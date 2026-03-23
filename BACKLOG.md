@@ -1,0 +1,83 @@
+# SBTracker — Feature Backlog
+
+> **How to use**: Mark items `in-progress` when starting, `done` when complete. Add new items at the bottom of their priority group. Reference IDs in commit messages and branch names.
+
+---
+
+## Core Systems (P0 — Foundation)
+
+| ID | Status | Feature | Description | Acceptance Criteria |
+|---|---|---|---|---|
+| F-001 | `done` | BLE Connection | Connect to S&B device via BLE, maintain GATT session | Scans, connects, receives notifications, handles reconnect |
+| F-002 | `done` | Status Logging | Continuous `device_status` insert (god log) | Rows inserted every ~500ms (heater on) / ~30s (idle) |
+| F-003 | `done` | Session Detection | Auto-detect heater sessions from status log | Sessions created with correct start/end, survives grace periods |
+| F-004 | `done` | Hit Detection | Detect individual hits from temperature patterns | Hits stored in `hits` table, linked to session |
+| F-005 | `done` | Charge Cycle Tracking | Detect and record charging events | ChargeCycle rows with start/end battery, rate |
+| F-006 | `done` | Device Identity | Parse CMD 0x05 (serial, type, colour) | DeviceInfo stored, multi-device support via serial |
+| F-007 | `done` | Session Rebuild | Reconstruct sessions/hits from raw log | `backcompileSessionsFromLogs()` works end-to-end |
+| F-008 | `done` | DB Schema + Migrations | Room DB with explicit migration path | v2 schema, MIGRATIONS.md documented |
+
+## Data Insight (P0 — Analytics)
+
+| ID | Status | Feature | Description | Acceptance Criteria |
+|---|---|---|---|---|
+| F-010 | `done` | Session Summaries | Compute full stats from raw log per session | `SessionSummary` includes hits, battery, temp, heat-up |
+| F-011 | `done` | History Stats | Aggregate stats across filtered sessions | HistoryStats card shows avg duration, hits, drain, etc. |
+| F-012 | `done` | Usage Insights | Streaks, time-of-day patterns, weekly comparison | UsageInsights populates correctly |
+| F-013 | `done` | Battery Insights | Drain trends, charge patterns, depth of discharge | BatteryInsights derived from sessions + charge cycles |
+| F-014 | `done` | Personal Records | All-time bests (most hits, longest, most efficient) | PersonalRecords computed from summaries |
+| F-015 | `done` | Daily Stats | Per-day aggregates for trend charts | DailyStats list drives bar chart |
+| F-016 | `done` | Profile Stats | Lifetime totals (sessions, hits, heater hours) | ProfileStats card reads correctly |
+
+## Device Management (P1 — Polish)
+
+| ID | Status | Feature | Description | Acceptance Criteria |
+|---|---|---|---|---|
+| F-020 | `done` | Multi-Device | Track multiple devices, switch between them | Known devices list, per-device history |
+| F-021 | `done` | Device Controls | Write temp, heater on/off, boost, brightness, vibration | All CMD 0x01 / 0x06 write operations |
+| F-022 | `done` | Phone Alerts | Vibrate/notify on temp ready, charge 80% | Alerts fire in foreground + background |
+| F-023 | `done` | Dim on Charge | Auto-dim display brightness while charging | Brightness saves/restores correctly |
+| F-024 | `done` | CSV Export | Export session history to CSV | File generated, share intent fires |
+| F-025 | `planned` | History Clear | Per-device clear of all tables | All 6 tables wiped for target device |
+| F-026 | `planned` | Data Backup / Restore | Export/import full database | User can backup and restore DB file |
+
+## UI & Visualization (P1 — Next Up)
+
+| ID | Status | Feature | Description | Acceptance Criteria |
+|---|---|---|---|---|
+| F-030 | `done` | Real-time Temp Graph | Live temperature chart during session | `GraphView` renders smooth curve |
+| F-031 | `done` | Battery Graph | Battery level over time | `BatteryGraphView` renders correctly |
+| F-032 | `done` | Session Detail Graph | Per-session temperature replay | `SessionGraphView` on `SessionReportActivity` |
+| F-033 | `done` | History Bar Chart | Daily sessions bar chart | `HistoryBarChartView` displays with tap interaction |
+| F-034 | `done` | History Timeline | Visual timeline of sessions | `HistoryTimelineView` renders |
+| F-035 | `planned` | UI Polish Pass | Consistent styling, colours, spacing | All screens feel cohesive and premium |
+| F-036 | `planned` | Settings Screen | Dedicated settings (day start hour, units, alerts) | Currently scattered in ViewModel, needs proper UI |
+
+## Quality & Infra (P2 — Foundation for Scale)
+
+| ID | Status | Feature | Description | Acceptance Criteria |
+|---|---|---|---|---|
+| F-040 | `done` | Version Control | Git + GitHub setup | Repo initialized, remote linked, .gitignore in place |
+| F-041 | `done` | Project Docs | PROJECT.md, BACKLOG.md, CHANGELOG.md | Agent memory system works across sessions |
+| F-042 | `planned` | Unit Tests | Test analytics pure functions | AnalyticsRepository functions have test coverage |
+| F-043 | `planned` | ViewModel Decomposition | Break up 1074-line MainViewModel | Extract to feature-specific ViewModels or use cases |
+| F-044 | `planned` | MainActivity Decomposition | Break up 1048-line MainActivity | Extract Fragments or Compose screens |
+
+---
+
+## Bugs
+
+| ID | Status | Priority | Description |
+|---|---|---|---|
+| B-001 | `planned` | P1 | `fallbackToDestructiveMigration()` must be removed before public release |
+
+---
+
+## Notes & Decisions Log
+
+| Date | Decision | Rationale |
+|---|---|---|
+| 2026-03 | Event-sourcing via `device_status` god log | All analytics retroactively improvable; feature tables are rebuildable |
+| 2026-03 | `SessionSummary` is computed, not stored | Algorithm improvements apply to all history automatically |
+| 2026-03 | Single-Activity + programmatic Views | Started simple; Compose migration is a future option |
+| 2026-03-23 | Project management via markdown files in repo | Solves context-loss across AI agent sessions |

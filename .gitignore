@@ -1,0 +1,25 @@
+# Built outputs
+/build/
+/app/build/
+*.apk
+*.aab
+
+# Gradle
+.gradle/
+local.properties
+
+# IDE
+.idea/
+*.iml
+.DS_Store
+
+# Kotlin
+.kotlin/
+
+# Agent working dirs (session-specific, not project code)
+.claude/
+.cursor/
+.gemini/
+
+# Reference app (protocol reference only — do not ship)
+\!gitignore.referenceonly-reactive-volcano-app-main/

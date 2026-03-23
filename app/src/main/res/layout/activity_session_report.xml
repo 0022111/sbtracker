@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#000000"
+        app:elevation="0dp">
+
+        <com.google.android.material.appbar.CollapsingToolbarLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="24dp">
+
+                <TextView
+                    android:id="@+id/report_tv_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Session Report"
+                    android:textColor="#FFFFFF"
+                    android:textSize="32sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/report_tv_date"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="OCT 24, 14:20"
+                    android:textColor="#8E8E93"
+                    android:textSize="14sp"
+                    android:letterSpacing="0.05"
+                    android:textStyle="bold" />
+
+                <!-- Session Graph -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="220dp"
+                    android:layout_marginTop="20dp"
+                    app:cardBackgroundColor="#1C1C1E"
+                    app:cardCornerRadius="16dp">
+
+                    <com.sbtracker.SessionGraphView
+                        android:id="@+id/report_graph"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:padding="8dp" />
+                </androidx.cardview.widget.CardView>
+
+                <!-- Graph legend -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center"
+                    android:orientation="horizontal">
+
+                    <View
+                        android:layout_width="10dp"
+                        android:layout_height="10dp"
+                        android:background="#FF9F0A" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:text="Heating"
+                        android:textColor="#636366"
+                        android:textSize="10sp" />
+
+                    <View
+                        android:layout_width="10dp"
+                        android:layout_height="10dp"
+                        android:layout_marginStart="12dp"
+                        android:background="#30D158" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:text="Ready"
+                        android:textColor="#636366"
+                        android:textSize="10sp" />
+
+                    <View
+                        android:layout_width="10dp"
+                        android:layout_height="10dp"
+                        android:layout_marginStart="12dp"
+                        android:background="#FFD60A" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:text="Hit"
+                        android:textColor="#636366"
+                        android:textSize="10sp" />
+
+                    <View
+                        android:layout_width="10dp"
+                        android:layout_height="3dp"
+                        android:layout_marginStart="12dp"
+                        android:background="#44AAFF" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:text="Battery"
+                        android:textColor="#636366"
+                        android:textSize="10sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.appbar.CollapsingToolbarLayout>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <!-- Hero Stats -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardBackgroundColor="#1C1C1E"
+                app:cardCornerRadius="24dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="24dp">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="vertical">
+                        <TextView
+                            android:id="@+id/report_tv_hits"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textColor="#FFD60A"
+                            android:textSize="28sp"
+                            android:textStyle="bold" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Hits"
+                            android:textColor="#8E8E93"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1.2"
+                        android:gravity="center"
+                        android:orientation="vertical">
+                        <TextView
+                            android:id="@+id/report_tv_duration"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0m 0s"
+                            android:textColor="#FFFFFF"
+                            android:textSize="28sp"
+                            android:textStyle="bold" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Total Time"
+                            android:textColor="#8E8E93"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="vertical">
+                        <TextView
+                            android:id="@+id/report_tv_drain"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0%"
+                            android:textColor="#FF453A"
+                            android:textSize="28sp"
+                            android:textStyle="bold" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Battery"
+                            android:textColor="#8E8E93"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Technical Breakdown -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:text="TECHNICAL DATA"
+                android:textColor="#8E8E93"
+                android:textSize="11sp"
+                android:letterSpacing="0.1"
+                android:textStyle="bold" />
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                app:cardBackgroundColor="#1C1C1E"
+                app:cardCornerRadius="20dp">
+
+                <GridLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="20dp"
+                    android:columnCount="2">
+
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Peak Extraction Temp" android:textColor="#8E8E93" android:layout_marginBottom="12dp" />
+                    <TextView android:id="@+id/report_tv_peak_temp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="end" android:layout_gravity="fill_horizontal" android:text="--°C" android:textColor="#FFFFFF" android:textStyle="bold" />
+
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Initial Heat Time" android:textColor="#8E8E93" android:layout_marginBottom="12dp" />
+                    <TextView android:id="@+id/report_tv_latency" android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="end" android:layout_gravity="fill_horizontal" android:text="--s" android:textColor="#FFFFFF" />
+
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Active Hit Time" android:textColor="#8E8E93" android:layout_marginBottom="12dp" />
+                    <TextView android:id="@+id/report_tv_active_hit" android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="end" android:layout_gravity="fill_horizontal" android:text="--s" android:textColor="#FFFFFF" />
+
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Battery Range" android:textColor="#8E8E93" android:layout_marginBottom="12dp" />
+                    <TextView android:id="@+id/report_tv_battery_range" android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="end" android:layout_gravity="fill_horizontal" android:text="--% → --%" android:textColor="#FFFFFF" />
+
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Device Wear (Heater)" android:textColor="#8E8E93" />
+                    <TextView android:id="@+id/report_tv_wear" android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="end" android:layout_gravity="fill_horizontal" android:text="+0 min" android:textColor="#30D158" android:textStyle="bold" />
+                </GridLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Extraction Log -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:text="EXTRACTION LOG"
+                android:textColor="#8E8E93"
+                android:textSize="11sp"
+                android:letterSpacing="0.1"
+                android:textStyle="bold" />
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                app:cardBackgroundColor="#1C1C1E"
+                app:cardCornerRadius="20dp">
+
+                <TextView
+                    android:id="@+id/report_tv_hit_log"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="20dp"
+                    android:fontFamily="monospace"
+                    android:lineSpacingExtra="6dp"
+                    android:text="No individual hit data"
+                    android:textColor="#FFFFFF"
+                    android:textSize="13sp" />
+            </androidx.cardview.widget.CardView>
+
+            <Button
+                android:id="@+id/report_btn_close"
+                android:layout_width="match_parent"
+                android:layout_height="64dp"
+                android:layout_marginTop="32dp"
+                android:layout_marginBottom="40dp"
+                android:backgroundTint="#FFFFFF"
+                android:text="DONE"
+                android:textColor="#000000"
+                android:textStyle="bold"
+                app:cornerRadius="20dp" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

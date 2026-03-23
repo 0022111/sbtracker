@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.SBTracker" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="colorPrimary">#0A84FF</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorPrimaryContainer">#003366</item>
+        <item name="colorOnPrimaryContainer">#D1E4FF</item>
+
+        <item name="colorSecondary">#30D158</item>
+        <item name="colorOnSecondary">#003912</item>
+
+        <item name="android:windowBackground">#000000</item>
+        <item name="colorSurface">#1C1C1E</item>
+        <item name="colorOnSurface">#E5E5EA</item>
+        <item name="colorSurfaceVariant">#2C2C2E</item>
+        <item name="colorOnSurfaceVariant">#8E8E93</item>
+
+        <item name="android:statusBarColor">#000000</item>
+        <item name="android:navigationBarColor">#000000</item>
+    </style>
+
+    <style name="Theme.SBTracker.NoActionBar" parent="Theme.SBTracker" />
+
+    <!-- Section headers for settings/report -->
+    <style name="SectionHeader">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:letterSpacing">0.08</item>
+        <item name="android:paddingBottom">8dp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+</resources>
