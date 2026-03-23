@@ -60,6 +60,9 @@ class HistoryBarChartView @JvmOverloads constructor(
 
     // Touch state
     private var selectedIdx: Int = -1
+    private var touchDownX = 0f
+    private var touchDownY = 0f
+    private var isDraggingHorizontally = false
 
     private val dp = context.resources.displayMetrics.density
 
@@ -247,19 +250,37 @@ class HistoryBarChartView @JvmOverloads constructor(
         if (chartW <= 0f) return false
         val slotW  = chartW / bars.size
 
-        return when (event.action) {
-            MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
+        when (event.action) {
+            MotionEvent.ACTION_DOWN -> {
+                touchDownX = event.x
+                touchDownY = event.y
+                isDraggingHorizontally = false
                 val idx = ((event.x - padL) / slotW).toInt().coerceIn(0, bars.size - 1)
                 if (selectedIdx != idx) { selectedIdx = idx; invalidate() }
-                parent.requestDisallowInterceptTouchEvent(true)
-                true
+                return true
+            }
+            MotionEvent.ACTION_MOVE -> {
+                val dx = Math.abs(event.x - touchDownX)
+                val dy = Math.abs(event.y - touchDownY)
+                if (!isDraggingHorizontally) {
+                    if (dx > 8f * dp && dx > dy) {
+                        isDraggingHorizontally = true
+                        parent.requestDisallowInterceptTouchEvent(true)
+                    }
+                }
+                if (isDraggingHorizontally || (dx < 8f * dp && dy < 8f * dp)) {
+                    val idx = ((event.x - padL) / slotW).toInt().coerceIn(0, bars.size - 1)
+                    if (selectedIdx != idx) { selectedIdx = idx; invalidate() }
+                }
+                return true
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                isDraggingHorizontally = false
                 parent.requestDisallowInterceptTouchEvent(false)
-                true
+                return true
             }
-            else -> super.onTouchEvent(event)
         }
+        return super.onTouchEvent(event)
     }
 
     // ── Draw ──────────────────────────────────────────────────────────────────

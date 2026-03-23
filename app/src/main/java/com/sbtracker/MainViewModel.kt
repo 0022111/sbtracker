@@ -238,6 +238,55 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             bleManager.extendedBytes.collect { (bytes, address) ->
                 val extended = BlePacket.parseExtended(bytes, address) ?: return@collect
+                
+                // Offline gap detection: if this is the first ExtendedData received this session,
+                // check if the heaterRuntime jumped since we last saw the device.
+                if (_latestExtended.value == null) {
+                    withContext(Dispatchers.IO) {
+                        try {
+                            val dbExtended = db.extendedDataDao().getByAddress(address)
+                            if (dbExtended != null) {
+                                val gapMinutes = extended.heaterRuntimeMinutes - dbExtended.heaterRuntimeMinutes
+                                if (gapMinutes > 0) {
+                                    val lastStatus = db.deviceStatusDao().getLatestForAddress(address)
+                                    val currentStatus = _latestStatus.value
+                                    
+                                    val startBattery = lastStatus?.batteryLevel ?: currentStatus?.batteryLevel ?: 50
+                                    val endBattery = currentStatus?.batteryLevel ?: startBattery
+                                    val serial = _latestInfo.value?.serialNumber ?: db.deviceInfoDao().getByAddress(address)?.serialNumber
+                                    
+                                    val endTimeMs = System.currentTimeMillis()
+                                    val startTimeMs = endTimeMs - (gapMinutes * 60_000L)
+                                    
+                                    val sessionId = db.sessionDao().insert(
+                                        Session(
+                                            deviceAddress = address,
+                                            serialNumber = serial,
+                                            startTimeMs = startTimeMs,
+                                            endTimeMs = endTimeMs
+                                        )
+                                    )
+                                    
+                                    // Insert synthetic bounded logs so that AnalyticsRepository can compute duration and drain
+                                    val baseStatus = currentStatus ?: lastStatus
+                                    if (baseStatus != null) {
+                                        db.deviceStatusDao().insert(baseStatus.copy(
+                                            id = 0, timestampMs = startTimeMs, batteryLevel = startBattery, heaterMode = 1
+                                        ))
+                                        db.deviceStatusDao().insert(baseStatus.copy(
+                                            id = 0, timestampMs = endTimeMs, batteryLevel = endBattery, heaterMode = 0
+                                        ))
+                                    }
+                                    
+                                    analyticsRepo.invalidateSession(sessionId)
+                                }
+                            }
+                        } catch (e: Exception) {
+                            // Ignore
+                        }
+                    }
+                }
+
                 _latestExtended.value = extended
                 db.extendedDataDao().upsert(extended)
             }
@@ -688,6 +737,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 db.sessionDao().observeAllSessions()
             sessionsFlow.map { sessions -> analyticsRepo.getSessionSummaries(sessions) }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val estimatedHeatUpTimeSecs: StateFlow<Long?> =
+        combine(deviceSessionSummaries, targetTemp) { summaries, target ->
+            val ms = analyticsRepo.computeEstimatedHeatUpTime(target, summaries)
+            if (ms != null) ms / 1000 else null
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     val sessionHistory: StateFlow<List<HistoryItem>> =
         combine(sessionSummaries, rawChargeHistory, _sessionSort) { summaries, charges, sort ->

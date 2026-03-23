@@ -189,13 +189,15 @@ class HistoryTimelineView @JvmOverloads constructor(
                 touchDownX = event.x
                 touchDownY = event.y
                 isScrubbing = false
-                parent.requestDisallowInterceptTouchEvent(true)
                 return true
             }
             MotionEvent.ACTION_MOVE -> {
                 val dx = abs(event.x - touchDownX)
                 val dy = abs(event.y - touchDownY)
-                if (!isScrubbing && (dx > 8f * dp || dy > 8f * dp)) isScrubbing = true
+                if (!isScrubbing && dx > 8f * dp && dx > dy) {
+                    isScrubbing = true
+                    parent.requestDisallowInterceptTouchEvent(true)
+                }
                 if (isScrubbing) {
                     scrubX = event.x.coerceIn(padLeft, padLeft + w)
                     invalidate()
@@ -203,7 +205,13 @@ class HistoryTimelineView @JvmOverloads constructor(
                 return true
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                if (!isScrubbing) handleTap(event.x, padLeft, w)
+                if (!isScrubbing && event.action == MotionEvent.ACTION_UP) {
+                    val dx = abs(event.x - touchDownX)
+                    val dy = abs(event.y - touchDownY)
+                    if (dx <= 8f * dp && dy <= 8f * dp) {
+                        handleTap(event.x, padLeft, w)
+                    }
+                }
                 scrubX = null
                 isScrubbing = false
                 parent.requestDisallowInterceptTouchEvent(false)

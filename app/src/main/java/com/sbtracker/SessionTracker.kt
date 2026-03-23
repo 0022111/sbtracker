@@ -195,7 +195,10 @@ class SessionTracker {
 
                 if (hitInProgress) {
                     hitPeakTempC = max(hitPeakTempC, s.currentTempC)
-                    if (!timerResetTrigger && !tempDipTrigger && s.autoShutdownSeconds < prevShutdownSecs) {
+                    val hasTempRecovered = s.currentTempC >= lastBaselineTemp - 1
+                    val isTimerTickingDown = prevShutdownSecs != -1 && s.autoShutdownSeconds < prevShutdownSecs
+                    
+                    if (!timerResetTrigger && (hasTempRecovered || (isTimerTickingDown && !tempDipTrigger))) {
                         endHit(now)
                     }
                 } else if (s.setpointReached) {

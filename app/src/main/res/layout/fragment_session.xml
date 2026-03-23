@@ -10,7 +10,7 @@
         android:id="@+id/tv_session_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Session"
+        android:text="Command Center"
         android:textColor="#FFFFFF"
         android:textSize="32sp"
         android:textStyle="bold"
@@ -21,6 +21,9 @@
         android:id="@+id/session_content_scroll"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:layout_marginTop="16dp"
+        android:clipToPadding="false"
+        android:paddingBottom="40dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tv_session_title">
 
@@ -29,13 +32,15 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
+            <!-- HERO CARD (Dynamic Status) -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/card_big_temp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="8dp"
                 app:cardBackgroundColor="#1C1C1E"
-                app:cardCornerRadius="32dp">
+                app:cardCornerRadius="32dp"
+                app:cardElevation="0dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -50,26 +55,43 @@
                         android:layout_height="wrap_content"
                         android:text="---°"
                         android:textColor="#FFFFFF"
-                        android:textSize="64sp"
-                        android:textStyle="bold" />
+                        android:textSize="72sp"
+                        android:fontFamily="sans-serif-black" />
 
-                    <TextView
-                        android:id="@+id/session_tv_status"
+                    <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="OFFLINE"
-                        android:textColor="#8E8E93"
-                        android:textSize="14sp"
-                        android:letterSpacing="0.1"
-                        android:textStyle="bold" />
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="8dp">
 
-                    <!-- Hits + Timer + Drain row (only visible when running) -->
+                        <TextView
+                            android:id="@+id/session_tv_status"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="OFFLINE"
+                            android:textColor="#8E8E93"
+                            android:textSize="16sp"
+                            android:letterSpacing="0.15"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                    
+                    <TextView
+                        android:id="@+id/session_tv_heat_up_estimate"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="Est. ready in --s"
+                        android:textColor="#8E8E93"
+                        android:textSize="12sp"
+                        android:visibility="gone" />
+
+                    <!-- Running Stats Row -->
                     <LinearLayout
                         android:id="@+id/session_running_stats_row"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="20dp"
+                        android:layout_marginTop="24dp"
                         android:orientation="horizontal"
                         android:gravity="center"
                         android:visibility="gone">
@@ -85,7 +107,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="0"
-                                android:textColor="#FFD60A"
+                                android:textColor="#0A84FF"
                                 android:textSize="28sp"
                                 android:textStyle="bold" />
                             <TextView
@@ -156,7 +178,7 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Active Hit / Breath Tracking -->
+            <!-- Active Hit Notification -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/card_active_hit"
                 android:layout_width="match_parent"
@@ -164,13 +186,24 @@
                 android:layout_marginTop="16dp"
                 android:visibility="gone"
                 app:cardBackgroundColor="#0A84FF"
-                app:cardCornerRadius="20dp">
+                app:cardCornerRadius="24dp"
+                app:cardElevation="8dp">
+                
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
+                    android:gravity="center"
                     android:orientation="horizontal"
-                    android:padding="16dp">
+                    android:paddingVertical="16dp"
+                    android:paddingHorizontal="24dp">
+                    
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@android:drawable/ic_popup_sync"
+                        app:tint="#FFFFFF"
+                        android:layout_marginEnd="12dp" />
+                        
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -178,204 +211,53 @@
                         android:text="ACTIVE BREATH"
                         android:textColor="#FFFFFF"
                         android:textSize="16sp"
+                        android:letterSpacing="0.05"
                         android:textStyle="bold" />
+                        
                     <TextView
                         android:id="@+id/tv_hit_timer"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="0s"
                         android:textColor="#FFFFFF"
-                        android:textSize="22sp"
-                        android:textStyle="bold" />
+                        android:textSize="24sp"
+                        android:fontFamily="sans-serif-medium" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Mode Selection Buttons -->
-            <LinearLayout
-                android:id="@+id/mode_selection_group"
+            <!-- Action Buttons -->
+            <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:orientation="horizontal">
+                android:layout_marginTop="24dp">
 
                 <Button
-                    android:id="@+id/btn_mode_normal"
-                    android:layout_width="0dp"
-                    android:layout_height="56dp"
-                    android:layout_marginEnd="4dp"
-                    android:layout_weight="1"
-                    android:backgroundTint="#2C2C2E"
-                    android:text="NORMAL"
-                    android:textColor="#FFFFFF"
-                    android:textSize="12sp"
-                    android:textStyle="bold"
-                    app:cornerRadius="12dp" />
-
-                <Button
-                    android:id="@+id/btn_mode_boost"
-                    android:layout_width="0dp"
-                    android:layout_height="56dp"
-                    android:layout_marginHorizontal="4dp"
-                    android:layout_weight="1"
-                    android:backgroundTint="#2C2C2E"
-                    android:text="BOOST"
-                    android:textColor="#FFFFFF"
-                    android:textSize="12sp"
-                    android:textStyle="bold"
-                    app:cornerRadius="12dp" />
-
-                <Button
-                    android:id="@+id/btn_mode_superboost"
-                    android:layout_width="0dp"
-                    android:layout_height="56dp"
-                    android:layout_marginStart="4dp"
-                    android:layout_weight="1"
-                    android:backgroundTint="#2C2C2E"
-                    android:text="SUPER"
-                    android:textColor="#FFFFFF"
-                    android:textSize="12sp"
-                    android:textStyle="bold"
-                    app:cornerRadius="12dp" />
-            </LinearLayout>
-
-            <!-- Controls (ALWAYS VISIBLE IF CONNECTED) -->
-            <LinearLayout
-                android:id="@+id/session_controls_group"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:orientation="vertical">
-
-                <!-- Base Temp -->
-                <LinearLayout
+                    android:id="@+id/btn_start_normal"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:padding="8dp">
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="BASE TEMP"
-                        android:textColor="#8E8E93"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
-                    <ImageButton
-                        android:id="@+id/btn_temp_minus"
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:src="@android:drawable/ic_input_delete"
-                        app:tint="#0A84FF" />
-                    <TextView
-                        android:id="@+id/tv_target_temp"
-                        android:layout_width="60dp"
-                        android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:text="180°"
-                        android:textColor="#FFFFFF"
-                        android:textSize="18sp"
-                        android:textStyle="bold" />
-                    <ImageButton
-                        android:id="@+id/btn_temp_plus"
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:src="@android:drawable/ic_input_add"
-                        app:tint="#0A84FF" />
-                </LinearLayout>
+                    android:layout_height="64dp"
+                    android:backgroundTint="#30D158"
+                    android:text="IGNITE"
+                    android:textColor="#000000"
+                    android:textSize="18sp"
+                    android:letterSpacing="0.1"
+                    android:fontFamily="sans-serif-black"
+                    app:cornerRadius="24dp" />
 
-                <!-- Boost Group -->
-                <LinearLayout
-                    android:id="@+id/group_boost_controls"
+                <Button
+                    android:id="@+id/btn_end_session"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
-                    <!-- Boost -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        android:padding="8dp">
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="BOOST"
-                            android:textColor="#8E8E93"
-                            android:textSize="12sp"
-                            android:textStyle="bold" />
-                        <ImageButton
-                            android:id="@+id/btn_boost_minus"
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:src="@android:drawable/ic_input_delete"
-                            app:tint="#FFD60A" />
-                        <TextView
-                            android:id="@+id/tv_boost_offset"
-                            android:layout_width="60dp"
-                            android:layout_height="wrap_content"
-                            android:gravity="center"
-                            android:text="+10°"
-                            android:textColor="#FFFFFF"
-                            android:textSize="18sp"
-                            android:textStyle="bold" />
-                        <ImageButton
-                            android:id="@+id/btn_boost_plus"
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:src="@android:drawable/ic_input_add"
-                            app:tint="#FFD60A" />
-                    </LinearLayout>
+                    android:layout_height="64dp"
+                    android:backgroundTint="#FF453A"
+                    android:text="POWER OFF"
+                    android:textColor="#FFFFFF"
+                    android:textSize="18sp"
+                    android:letterSpacing="0.1"
+                    android:fontFamily="sans-serif-black"
+                    android:visibility="gone"
+                    app:cornerRadius="24dp" />
+            </FrameLayout>
 
-                    <!-- Super Boost -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        android:padding="8dp">
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="SUPER BOOST"
-                            android:textColor="#8E8E93"
-                            android:textSize="12sp"
-                            android:textStyle="bold" />
-                        <ImageButton
-                            android:id="@+id/btn_superboost_minus"
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:src="@android:drawable/ic_input_delete"
-                            app:tint="#FF9F0A" />
-                        <TextView
-                            android:id="@+id/tv_superboost_offset"
-                            android:layout_width="60dp"
-                            android:layout_height="wrap_content"
-                            android:gravity="center"
-                            android:text="+20°"
-                            android:textColor="#FFFFFF"
-                            android:textSize="18sp"
-                            android:textStyle="bold" />
-                        <ImageButton
-                            android:id="@+id/btn_superboost_plus"
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:src="@android:drawable/ic_input_add"
-                            app:tint="#FF9F0A" />
-                    </LinearLayout>
-                </LinearLayout>
-
-            </LinearLayout>
-
-            <!-- Stats Grid (only when running) -->
+            <!-- Stats Grid -->
             <GridLayout
                 android:id="@+id/stats_grid"
                 android:layout_width="match_parent"
@@ -390,10 +272,10 @@
                     android:layout_columnWeight="1"
                     android:background="@drawable/bg_dashboard_card"
                     android:orientation="vertical"
-                    android:padding="12dp"
-                    android:layout_marginEnd="4dp">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="HEAT-UP" android:textColor="#8E8E93" android:textSize="10sp" />
-                    <TextView android:id="@+id/session_tv_heat_up" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#FFD60A" android:textSize="18sp" android:textStyle="bold" />
+                    android:padding="16dp"
+                    android:layout_marginEnd="6dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="HEAT-UP" android:textColor="#8E8E93" android:textSize="10sp" android:letterSpacing="0.05"/>
+                    <TextView android:id="@+id/session_tv_heat_up" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="—" android:textColor="#FFD60A" android:textSize="20sp" android:textStyle="bold" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -402,10 +284,10 @@
                     android:layout_columnWeight="1"
                     android:background="@drawable/bg_dashboard_card"
                     android:orientation="vertical"
-                    android:padding="12dp"
-                    android:layout_marginHorizontal="4dp">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="READY" android:textColor="#8E8E93" android:textSize="10sp" />
-                    <TextView android:id="@+id/session_tv_ready_time" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="00:00" android:textColor="#30D158" android:textSize="18sp" android:textStyle="bold" />
+                    android:padding="16dp"
+                    android:layout_marginHorizontal="6dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="READY" android:textColor="#8E8E93" android:textSize="10sp" android:letterSpacing="0.05"/>
+                    <TextView android:id="@+id/session_tv_ready_time" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="00:00" android:textColor="#30D158" android:textSize="20sp" android:textStyle="bold" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -414,43 +296,302 @@
                     android:layout_columnWeight="1"
                     android:background="@drawable/bg_dashboard_card"
                     android:orientation="vertical"
-                    android:padding="12dp"
-                    android:layout_marginStart="4dp">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="BATTERY" android:textColor="#8E8E93" android:textSize="10sp" />
-                    <TextView android:id="@+id/session_tv_battery" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--%" android:textColor="#FFFFFF" android:textSize="18sp" android:textStyle="bold" />
+                    android:padding="16dp"
+                    android:layout_marginStart="6dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="BATTERY" android:textColor="#8E8E93" android:textSize="10sp" android:letterSpacing="0.05"/>
+                    <TextView android:id="@+id/session_tv_battery" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="--%" android:textColor="#FFFFFF" android:textSize="20sp" android:textStyle="bold" />
                 </LinearLayout>
             </GridLayout>
 
-            <!-- Action Buttons -->
+            <!-- Mode Controls Section -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:text="OPERATING MODE"
+                android:textColor="#8E8E93"
+                android:textSize="12sp"
+                android:letterSpacing="0.1"
+                android:textStyle="bold" />
+
+            <!-- Mode Selection Buttons -->
             <LinearLayout
+                android:id="@+id/mode_selection_group"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:layout_marginBottom="24dp"
-                android:orientation="vertical">
+                android:layout_marginTop="12dp"
+                android:orientation="horizontal">
 
                 <Button
-                    android:id="@+id/btn_start_normal"
-                    android:layout_width="match_parent"
-                    android:layout_height="64dp"
-                    android:backgroundTint="#30D158"
-                    android:text="BEGIN SESSION"
+                    android:id="@+id/btn_mode_normal"
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_marginEnd="6dp"
+                    android:layout_weight="1"
+                    android:backgroundTint="#2C2C2E"
+                    android:text="NORMAL"
                     android:textColor="#FFFFFF"
+                    android:textSize="13sp"
                     android:textStyle="bold"
-                    app:cornerRadius="20dp" />
+                    app:cornerRadius="16dp" />
 
                 <Button
-                    android:id="@+id/btn_end_session"
-                    android:layout_width="match_parent"
-                    android:layout_height="64dp"
-                    android:backgroundTint="#FF453A"
-                    android:text="END SESSION"
+                    android:id="@+id/btn_mode_boost"
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_marginHorizontal="6dp"
+                    android:layout_weight="1"
+                    android:backgroundTint="#2C2C2E"
+                    android:text="BOOST"
                     android:textColor="#FFFFFF"
+                    android:textSize="13sp"
                     android:textStyle="bold"
-                    android:visibility="gone"
-                    app:cornerRadius="20dp" />
+                    app:cornerRadius="16dp" />
+
+                <Button
+                    android:id="@+id/btn_mode_superboost"
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_marginStart="6dp"
+                    android:layout_weight="1"
+                    android:backgroundTint="#2C2C2E"
+                    android:text="SUPER"
+                    android:textColor="#FFFFFF"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    app:cornerRadius="16dp" />
             </LinearLayout>
 
+            <!-- Parameter Controls Card -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                app:cardBackgroundColor="#1C1C1E"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="0dp">
+
+                <LinearLayout
+                    android:id="@+id/session_controls_group"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp">
+
+                    <!-- Base Temp -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="12dp">
+                        
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="TARGET TARGET"
+                                android:textColor="#FFFFFF"
+                                android:textSize="16sp"
+                                android:textStyle="bold" />
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Normal operating temperature"
+                                android:textColor="#8E8E93"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:background="@drawable/bg_dashboard_card"
+                            android:paddingHorizontal="4dp"
+                            android:paddingVertical="4dp">
+                            
+                            <ImageButton
+                                android:id="@+id/btn_temp_minus"
+                                android:layout_width="44dp"
+                                android:layout_height="44dp"
+                                android:background="?attr/selectableItemBackgroundBorderless"
+                                android:src="@android:drawable/ic_media_previous"
+                                android:rotation="-90"
+                                app:tint="#0A84FF" />
+                            <TextView
+                                android:id="@+id/tv_target_temp"
+                                android:layout_width="64dp"
+                                android:layout_height="wrap_content"
+                                android:gravity="center"
+                                android:text="180°"
+                                android:textColor="#FFFFFF"
+                                android:textSize="20sp"
+                                android:fontFamily="sans-serif-medium" />
+                            <ImageButton
+                                android:id="@+id/btn_temp_plus"
+                                android:layout_width="44dp"
+                                android:layout_height="44dp"
+                                android:background="?attr/selectableItemBackgroundBorderless"
+                                android:src="@android:drawable/ic_media_next"
+                                android:rotation="-90"
+                                app:tint="#0A84FF" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#2C2C2E"
+                        android:layout_marginHorizontal="16dp" />
+
+                    <!-- Boost Group -->
+                    <LinearLayout
+                        android:id="@+id/group_boost_controls"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+                        <!-- Boost -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:padding="12dp">
+                            
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="BOOST OFFSET"
+                                    android:textColor="#FFFFFF"
+                                    android:textSize="16sp"
+                                    android:textStyle="bold" />
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Temperature delta"
+                                    android:textColor="#8E8E93"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal"
+                                android:background="@drawable/bg_dashboard_card"
+                                android:paddingHorizontal="4dp"
+                                android:paddingVertical="4dp">
+                                <ImageButton
+                                    android:id="@+id/btn_boost_minus"
+                                    android:layout_width="44dp"
+                                    android:layout_height="44dp"
+                                    android:background="?attr/selectableItemBackgroundBorderless"
+                                    android:src="@android:drawable/ic_media_previous"
+                                    android:rotation="-90"
+                                    app:tint="#FFD60A" />
+                                <TextView
+                                    android:id="@+id/tv_boost_offset"
+                                    android:layout_width="64dp"
+                                    android:layout_height="wrap_content"
+                                    android:gravity="center"
+                                    android:text="+10°"
+                                    android:textColor="#FFFFFF"
+                                    android:textSize="20sp"
+                                    android:fontFamily="sans-serif-medium" />
+                                <ImageButton
+                                    android:id="@+id/btn_boost_plus"
+                                    android:layout_width="44dp"
+                                    android:layout_height="44dp"
+                                    android:background="?attr/selectableItemBackgroundBorderless"
+                                    android:src="@android:drawable/ic_media_next"
+                                    android:rotation="-90"
+                                    app:tint="#FFD60A" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="#2C2C2E"
+                            android:layout_marginHorizontal="16dp" />
+
+                        <!-- Super Boost -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:padding="12dp">
+                            
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="SUPER OFFSET"
+                                    android:textColor="#FFFFFF"
+                                    android:textSize="16sp"
+                                    android:textStyle="bold" />
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Maximum heating delta"
+                                    android:textColor="#8E8E93"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal"
+                                android:background="@drawable/bg_dashboard_card"
+                                android:paddingHorizontal="4dp"
+                                android:paddingVertical="4dp">
+                                <ImageButton
+                                    android:id="@+id/btn_superboost_minus"
+                                    android:layout_width="44dp"
+                                    android:layout_height="44dp"
+                                    android:background="?attr/selectableItemBackgroundBorderless"
+                                    android:src="@android:drawable/ic_media_previous"
+                                    android:rotation="-90"
+                                    app:tint="#FF9F0A" />
+                                <TextView
+                                    android:id="@+id/tv_superboost_offset"
+                                    android:layout_width="64dp"
+                                    android:layout_height="wrap_content"
+                                    android:gravity="center"
+                                    android:text="+20°"
+                                    android:textColor="#FFFFFF"
+                                    android:textSize="20sp"
+                                    android:fontFamily="sans-serif-medium" />
+                                <ImageButton
+                                    android:id="@+id/btn_superboost_plus"
+                                    android:layout_width="44dp"
+                                    android:layout_height="44dp"
+                                    android:background="?attr/selectableItemBackgroundBorderless"
+                                    android:src="@android:drawable/ic_media_next"
+                                    android:rotation="-90"
+                                    app:tint="#FF9F0A" />
+                            </LinearLayout>
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

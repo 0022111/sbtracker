@@ -568,5 +568,15 @@
             android:textColor="#FF453A"
             app:cornerRadius="16dp" />
 
+        <Button
+            android:id="@+id/btn_dev_rebuild_history"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginTop="12dp"
+            android:backgroundTint="#2C2C2E"
+            android:text="DEV: REBUILD HISTORY FROM LOGS"
+            android:textColor="#30D158"
+            app:cornerRadius="16dp" />
+
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

@@ -71,6 +71,9 @@ interface DeviceStatusDao {
     @Query("SELECT * FROM device_status WHERE deviceAddress = :address ORDER BY timestampMs DESC LIMIT :limit")
     fun observeRecentStatus(address: String, limit: Int): Flow<List<DeviceStatus>>
 
+    @Query("SELECT * FROM device_status WHERE deviceAddress = :address ORDER BY timestampMs DESC LIMIT 1")
+    suspend fun getLatestForAddress(address: String): DeviceStatus?
+
     @Query("SELECT * FROM device_status WHERE deviceAddress = :address AND timestampMs >= :startMs AND timestampMs <= :endMs ORDER BY timestampMs ASC")
     fun observeStatusForRange(address: String, startMs: Long, endMs: Long): Flow<List<DeviceStatus>>
 

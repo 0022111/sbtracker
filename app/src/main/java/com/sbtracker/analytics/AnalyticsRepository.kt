@@ -190,6 +190,23 @@ class AnalyticsRepository(private val db: AppDatabase) {
         )
     }
 
+    // ── Pre-session estimates ─────────────────────────────────────────────────
+
+    /**
+     * Estimates the time to initial heat based on recent historical sessions with a similar target temperature.
+     * We use `peakTempC` as a proxy for the target temperature.
+     */
+    fun computeEstimatedHeatUpTime(targetTempC: Int, summaries: List<SessionSummary>): Long? {
+        val similarSessions = summaries.filter { 
+            it.heatUpTimeMs > 0 && Math.abs(it.peakTempC - targetTempC) <= 10 
+        }
+        if (similarSessions.isEmpty()) return null
+        
+        // Average the last 5 relevant sessions for a responsive estimate
+        val recentSimilar = similarSessions.sortedByDescending { it.startTimeMs }.take(5)
+        return recentSimilar.sumOf { it.heatUpTimeMs } / recentSimilar.size
+    }
+
     // ── Usage insights ────────────────────────────────────────────────────────
 
     /**

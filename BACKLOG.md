@@ -61,7 +61,7 @@
 | F-041 | `done` | Project Docs | PROJECT.md, BACKLOG.md, CHANGELOG.md | Agent memory system works across sessions |
 | F-042 | `planned` | Unit Tests | Test analytics pure functions | AnalyticsRepository functions have test coverage |
 | F-043 | `planned` | ViewModel Decomposition | Break up 1074-line MainViewModel | Extract to feature-specific ViewModels or use cases |
-| F-044 | `planned` | MainActivity Decomposition | Break up 1048-line MainActivity | Extract Fragments or Compose screens |
+| F-044 | `done` | MainActivity Decomposition | Break up 1169-line MainActivity | Extract Fragments or Compose screens |
 
 ---
 
