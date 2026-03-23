@@ -277,7 +277,7 @@ class LandingFragment : Fragment() {
                     device != null -> "${device.deviceType} · ${device.serialNumber} (Offline)"
                     else -> "No Device Found"
                 }
-                tvTileSettingsVal.text = if (info != null) "FW ${info.firmwareVersion}" else "Configure"
+                tvTileSettingsVal.text = "Configure"
             }
         }
 
@@ -332,7 +332,7 @@ class LandingFragment : Fragment() {
                 layoutOffline.visibility = View.GONE
                 layoutOnline.visibility = View.VISIBLE
                 
-                tvLiveTemp.text = s.currentTempC.toDisplayTemp(celsius)
+                tvLiveTemp.text = s.currentTempC.toDisplayTemp(celsius).toString()
                 tvLiveTarget.text = "/ ${s.targetTempC.toDisplayTemp(celsius)}${celsius.unitSuffix()}"
                 
                 val isOn = s.heaterMode > 0
@@ -367,20 +367,19 @@ class LandingFragment : Fragment() {
 
         // Live Session duration tick
         viewLifecycleOwner.lifecycleScope.launch {
-            while (isActive) {
-                val s = vm.latestStatus.value
-                val start = vm.currentSessionStartMs.value
-                val isConnected = vm.connectionState.value is BleManager.ConnectionState.Connected
+            combine(vm.sessionStats, vm.latestStatus, vm.connectionState) { ss, s, conn ->
+                Triple(ss, s, conn)
+            }.collect { (ss, s, conn) ->
+                val isConnected = conn is BleManager.ConnectionState.Connected
                 
-                if (isConnected && s != null && s.heaterMode > 0 && start != null) {
-                    val activeDur = System.currentTimeMillis() - start
-                    tvTileSessionVal.text = formatDurationShort(activeDur / 1000)
+                if (isConnected && s != null && s.heaterMode > 0) {
+                    val sec = ss.durationSeconds
+                    tvTileSessionVal.text = "%02d:%02d".format(sec / 60, sec % 60)
                     tvTileSessionVal.setTextColor(Color.parseColor("#FF9F0A"))
                 } else {
                     tvTileSessionVal.text = "Ready"
                     tvTileSessionVal.setTextColor(Color.WHITE)
                 }
-                delay(1000)
             }
         }
 
