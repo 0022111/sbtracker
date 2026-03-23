@@ -28,6 +28,7 @@ class BatteryGraphView @JvmOverloads constructor(
     private var dataPoints: List<DeviceStatus> = emptyList()
     private var windowStartMs: Long = 0L
     private var chargeEtaMs: Long = 0L
+    private var chargeEta80Ms: Long = 0L
     private var projectionStartLevel: Int? = null
 
     private val chargeFill = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -83,6 +84,14 @@ class BatteryGraphView @JvmOverloads constructor(
         alpha = 200
     }
 
+    private val target80Paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.parseColor("#0A84FF")
+        strokeWidth = 2f
+        style = Paint.Style.STROKE
+        pathEffect = DashPathEffect(floatArrayOf(8f, 8f), 0f)
+        alpha = 150
+    }
+
     private val gridPaint = Paint().apply {
         color = Color.parseColor("#22FFFFFF")
         strokeWidth = 1f
@@ -124,11 +133,13 @@ class BatteryGraphView @JvmOverloads constructor(
         points: List<DeviceStatus>,
         windowStartMs: Long,
         chargeEtaMs: Long = 0L,
+        chargeEta80Ms: Long = 0L,
         projectionStartLevel: Int? = null
     ) {
         this.dataPoints = points
         this.windowStartMs = windowStartMs
         this.chargeEtaMs = max(chargeEtaMs, 0L)
+        this.chargeEta80Ms = max(chargeEta80Ms, 0L)
         this.projectionStartLevel = projectionStartLevel
         invalidate()
     }
@@ -253,6 +264,19 @@ class BatteryGraphView @JvmOverloads constructor(
         val span = spanMs.toFloat()
         val axisFmt = timeAxisFormat(winEnd - winStart)
 
+        fun xFor(ts: Long): Float {
+            val frac = ((ts - winStart).toFloat() / span).coerceIn(0f, 1f)
+            return padLeft + frac * w
+        }
+
+        fun yFor(level: Int): Float =
+            padTop + h - (level.coerceIn(0, 100) / 100f) * h
+
+        // 80% Target Line
+        val y80 = yFor(80)
+        canvas.drawLine(padLeft, y80, padLeft + w, y80, target80Paint)
+        canvas.drawText("80%", padLeft, y80 - 4f, Paint(labelPaint).apply { color = Color.parseColor("#0A84FF") })
+
         for (i in 0..4) {
             val y = padTop + h - (i * 0.25f * h)
             canvas.drawLine(padLeft, y, padLeft + w, y, gridPaint)
@@ -266,14 +290,6 @@ class BatteryGraphView @JvmOverloads constructor(
                 canvas.drawText(label, padLeft, y - 4f, labelPaint)
             }
         }
-
-        fun xFor(ts: Long): Float {
-            val frac = ((ts - winStart).toFloat() / span).coerceIn(0f, 1f)
-            return padLeft + frac * w
-        }
-
-        fun yFor(level: Int): Float =
-            padTop + h - (level.coerceIn(0, 100) / 100f) * h
 
         val leftLabel = axisFmt.format(Date(winStart))
         val rightLabel = axisFmt.format(Date(winEnd))
@@ -348,13 +364,30 @@ class BatteryGraphView @JvmOverloads constructor(
         }
 
         val level = projectionStartLevel
-        if (chargeEtaMs > 0L && level != null) {
+        if (chargeEtaMs > 0L && level != null && level < 100) {
             val x0 = xFor(now)
             val y0 = yFor(level)
-            val x1 = xFor(now + chargeEtaMs)
-            val y1 = yFor(100)
-            if (x1 > x0 + 2f) {
-                canvas.drawLine(x0, y0, x1, y1, projectionPaint)
+            
+            // Draw dual-segment taper projection!
+            if (level < 80 && chargeEta80Ms > 0L) {
+                val x80 = xFor(now + chargeEta80Ms)
+                val y80proj = yFor(80)
+                if (x80 > x0 + 2f) {
+                    canvas.drawLine(x0, y0, x80, y80proj, projectionPaint)
+                    
+                    val x100 = xFor(now + chargeEtaMs)
+                    val y100proj = yFor(100)
+                    if (x100 > x80 + 2f) {
+                        canvas.drawLine(x80, y80proj, x100, y100proj, projectionPaint)
+                    }
+                }
+            } else {
+                // Already above 80% or no 80 target, just draw straight to 100
+                val x100 = xFor(now + chargeEtaMs)
+                val y100proj = yFor(100)
+                if (x100 > x0 + 2f) {
+                    canvas.drawLine(x0, y0, x100, y100proj, projectionPaint)
+                }
             }
         }
     }

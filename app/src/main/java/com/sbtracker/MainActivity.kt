@@ -877,19 +877,26 @@ class BatteryFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val vm = (requireActivity() as MainActivity).vm
 
-        val tvPercent      = view.findViewById<TextView>(R.id.batt_tv_percent)
-        val tvStatus       = view.findViewById<TextView>(R.id.batt_tv_status)
-        val cardAnalysis   = view.findViewById<View>(R.id.card_charging_analysis)
-        val tvEta80        = view.findViewById<TextView>(R.id.batt_tv_eta_80)
-        val tvEtaFull      = view.findViewById<TextView>(R.id.batt_tv_eta_full)
-        val tvChargeRate   = view.findViewById<TextView>(R.id.batt_tv_charge_rate)
-        val tvDrainRate    = view.findViewById<TextView>(R.id.batt_tv_drain_rate)
-        val tvAvgDrain     = view.findViewById<TextView>(R.id.batt_tv_avg_drain)
-        val tvSessionsLeft = view.findViewById<TextView>(R.id.batt_tv_sessions_left)
-        val tvSessionsRange = view.findViewById<TextView>(R.id.batt_tv_sessions_range)
-        val tvChargeCycles = view.findViewById<TextView>(R.id.batt_tv_charge_cycles)
-        val graph          = view.findViewById<BatteryGraphView>(R.id.batt_graph)
-        val tvBattPeriodDay  = view.findViewById<TextView>(R.id.batt_graph_period_day)
+        // Hero state containers
+        val heroIdle = view.findViewById<View>(R.id.hero_idle)
+        val heroCharging = view.findViewById<View>(R.id.hero_charging)
+
+        // Hero Idle Views
+        val tvHeroSessionsLeft = view.findViewById<TextView>(R.id.tv_hero_sessions_left)
+        val tvHeroIdleSubtext = view.findViewById<TextView>(R.id.tv_hero_idle_subtext)
+
+        // Hero Charging Views
+        val tvHeroEta80 = view.findViewById<TextView>(R.id.tv_hero_eta_80)
+        val tvHeroEtaFull = view.findViewById<TextView>(R.id.tv_hero_eta_full)
+        val tvHeroChargeRate = view.findViewById<TextView>(R.id.tv_hero_charge_rate)
+
+        // Status row
+        val tvPercent = view.findViewById<TextView>(R.id.batt_tv_percent)
+        val tvStatus = view.findViewById<TextView>(R.id.batt_tv_status)
+
+        // Graph
+        val graph = view.findViewById<BatteryGraphView>(R.id.batt_graph)
+        val tvBattPeriodDay = view.findViewById<TextView>(R.id.batt_graph_period_day)
         val tvBattPeriodWeek = view.findViewById<TextView>(R.id.batt_graph_period_week)
 
         tvBattPeriodDay.setOnClickListener  { vm.setGraphPeriod(MainViewModel.GraphPeriod.DAY) }
@@ -915,10 +922,12 @@ class BatteryFragment : Fragment() {
                 vm.latestStatus
             ) { statuses, windowStart, stats, latest ->
                 val etaMin = stats.chargeEtaMinutes
+                val eta80Min = stats.chargeEta80Minutes
                 val charging = latest?.isCharging == true
                 val etaMs = if (charging && etaMin != null && etaMin > 0) etaMin * 60_000L else 0L
+                val eta80Ms = if (charging && eta80Min != null && eta80Min > 0) eta80Min * 60_000L else 0L
                 val projLevel = if (etaMs > 0L && latest != null) latest.batteryLevel else null
-                graph.setData(statuses, windowStart, etaMs, projLevel)
+                graph.setData(statuses, windowStart, etaMs, eta80Ms, projLevel)
                 Unit
             }.collect { }
         }
@@ -932,27 +941,59 @@ class BatteryFragment : Fragment() {
             }
         }
 
-        // Drain analysis card
-        val tvRecentAvgDrain     = view.findViewById<TextView>(R.id.batt_tv_recent_avg_drain)
-        val tvDrainTrend         = view.findViewById<TextView>(R.id.batt_tv_drain_trend)
-        val tvSessionsPerCharge  = view.findViewById<TextView>(R.id.batt_tv_sessions_per_charge)
-        val tvAvgChargeTime      = view.findViewById<TextView>(R.id.batt_tv_avg_charge_time)
-        val tvAvgGained          = view.findViewById<TextView>(R.id.batt_tv_avg_gained)
-        val tvLongestRun         = view.findViewById<TextView>(R.id.batt_tv_longest_run)
-        val tvDrainStdDev        = view.findViewById<TextView>(R.id.batt_tv_drain_std_dev)
-        val tvAvgDod             = view.findViewById<TextView>(R.id.batt_tv_avg_dod)
-        val tvEstDays            = view.findViewById<TextView>(R.id.batt_tv_est_days)
-        val tvMedianDrain        = view.findViewById<TextView>(R.id.batt_tv_median_drain)
+        // Expandable Cards
+        val contentDrain = view.findViewById<View>(R.id.content_drain_analysis)
+        val headerDrain = view.findViewById<View>(R.id.header_drain_analysis)
+        val tvExpandDrain = view.findViewById<TextView>(R.id.tv_expand_drain)
+        var drainExpanded = true
+
+        headerDrain.setOnClickListener {
+            drainExpanded = !drainExpanded
+            contentDrain.visibility = if (drainExpanded) View.VISIBLE else View.GONE
+            tvExpandDrain.text = if (drainExpanded) "▼" else "◀"
+        }
+
+        val contentHealth = view.findViewById<View>(R.id.content_charge_health)
+        val headerHealth = view.findViewById<View>(R.id.header_charge_health)
+        val tvExpandHealth = view.findViewById<TextView>(R.id.tv_expand_health)
+        var healthExpanded = false
+        contentHealth.visibility = View.GONE
+        tvExpandHealth.text = "◀"
+
+        headerHealth.setOnClickListener {
+            healthExpanded = !healthExpanded
+            contentHealth.visibility = if (healthExpanded) View.VISIBLE else View.GONE
+            tvExpandHealth.text = if (healthExpanded) "▼" else "◀"
+        }
+
+        // Data bindings for Tier 3 Cards
+        val tvAvgDrainAll = view.findViewById<TextView>(R.id.tv_stats_avg_drain_all)
+        val tvAvgDrainRecent = view.findViewById<TextView>(R.id.tv_stats_avg_drain_recent)
+        val tvDrainTrend = view.findViewById<TextView>(R.id.tv_stats_drain_trend)
+        val tvDrainMedian = view.findViewById<TextView>(R.id.tv_stats_drain_median)
+        val tvDrainStdDev = view.findViewById<TextView>(R.id.tv_stats_drain_std_dev)
+        val tvSessionsPerCharge = view.findViewById<TextView>(R.id.tv_stats_sessions_per_charge)
+
+        val tvAvgChargeTime = view.findViewById<TextView>(R.id.tv_stats_avg_charge_time)
+        val tvAvgPctGained = view.findViewById<TextView>(R.id.tv_stats_avg_pct_gained)
+        val tvAvgDod = view.findViewById<TextView>(R.id.tv_stats_avg_dod)
+        val tvDaysPerCycle = view.findViewById<TextView>(R.id.tv_stats_days_per_cycle)
+        val tvLongestRun = view.findViewById<TextView>(R.id.tv_stats_longest_run)
 
         viewLifecycleOwner.lifecycleScope.launch {
             vm.latestStatus.collect { s ->
                 if (s == null) {
+                    heroIdle.visibility = View.VISIBLE
+                    heroCharging.visibility = View.GONE
                     tvPercent.text = "--"
                     tvStatus.text = "OFFLINE"
                     tvStatus.setTextColor(Color.parseColor("#636366"))
-                    cardAnalysis.visibility = View.GONE
                     return@collect
                 }
+                
+                heroIdle.visibility = if (s.isCharging) View.GONE else View.VISIBLE
+                heroCharging.visibility = if (s.isCharging) View.VISIBLE else View.GONE
+
                 tvPercent.text = "${s.batteryLevel}%"
                 tvStatus.text = when {
                     s.isCharging -> "CHARGING"
@@ -964,62 +1005,57 @@ class BatteryFragment : Fragment() {
                     s.heaterMode > 0 -> Color.parseColor("#FFD60A")
                     else -> Color.parseColor("#8E8E93")
                 })
-                cardAnalysis.visibility = if (s.isCharging) View.VISIBLE else View.GONE
             }
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
             vm.sessionStats.collect { ss ->
-                tvEta80.text = ss.chargeEta80Minutes?.let { "${it}m" } ?: "--"
-                tvEtaFull.text = ss.chargeEtaMinutes?.let { "${it}m" } ?: "--"
-                tvChargeRate.text = if (ss.chargeRatePctPerMin > 0) "%.1f%%/m".format(ss.chargeRatePctPerMin) else "--"
-                tvDrainRate.text = if (ss.drainRatePctPerMin > 0 && ss.state == SessionTracker.State.ACTIVE)
-                    "%.1f%%/min".format(ss.drainRatePctPerMin) else "--"
-                tvSessionsLeft.text = if (ss.sessionsRemaining > 0) "${ss.sessionsRemaining}" else "--"
-                // Show confidence range if we have enough samples for a meaningful std dev
-                tvSessionsRange.text = if (ss.drainSampleCount >= 5 && ss.sessionsRemainingLow != ss.sessionsRemainingHigh)
-                    "${ss.sessionsRemainingLow}–${ss.sessionsRemainingHigh}"
-                    else ""
+                // Hero Idle Data
+                tvHeroSessionsLeft.text = if (ss.sessionsRemaining > 0) "${ss.sessionsRemaining}" else "--"
+                if (ss.drainSampleCount >= 5 && ss.sessionsRemainingLow != ss.sessionsRemainingHigh) {
+                    tvHeroIdleSubtext.text = "Based on avg drain (Range: ${ss.sessionsRemainingLow} to ${ss.sessionsRemainingHigh})"
+                } else {
+                    tvHeroIdleSubtext.text = "Based on average drain"
+                }
+
+                // Hero Charging Data
+                tvHeroEta80.text = ss.chargeEta80Minutes?.let { "$it" } ?: "--"
+                tvHeroEtaFull.text = ss.chargeEtaMinutes?.let { "${it}m" } ?: "--"
+                tvHeroChargeRate.text = if (ss.chargeRatePctPerMin > 0) "%.1f%%/m".format(ss.chargeRatePctPerMin) else "--"
             }
         }
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            vm.rawChargeHistory.collect { cycles ->
-                tvChargeCycles.text = cycles.size.toString()
-            }
-        }
-
-        // Drain analysis card + all-time avg (single source of truth for drain)
         viewLifecycleOwner.lifecycleScope.launch {
             vm.batteryInsights.collect { bi ->
-                tvAvgDrain.text = if (bi.allTimeAvgDrain > 0f) "%.1f%%".format(bi.allTimeAvgDrain) else "--"
-                tvRecentAvgDrain.text = if (bi.recentAvgDrain > 0f) "%.1f%%".format(bi.recentAvgDrain) else "—"
-                // Drain trend: stable within ±0.5%, otherwise show direction
+                tvAvgDrainAll.text = if (bi.allTimeAvgDrain > 0f) "%.1f%%".format(bi.allTimeAvgDrain) else "—"
+                tvAvgDrainRecent.text = if (bi.recentAvgDrain > 0f) "%.1f%%".format(bi.recentAvgDrain) else "—"
+                
                 val trendText  = when {
                     bi.drainTrend == 0f || (bi.drainTrend > -0.5f && bi.drainTrend < 0.5f) -> "Stable"
                     bi.drainTrend > 0f -> "+%.1f%%".format(bi.drainTrend)
                     else               -> "%.1f%%".format(bi.drainTrend)
                 }
                 val trendColor = when {
-                    bi.drainTrend > 0.5f  -> Color.parseColor("#FF453A")  // increasing = bad
-                    bi.drainTrend < -0.5f -> Color.parseColor("#30D158")  // decreasing = good
-                    else                  -> Color.parseColor("#8E8E93")  // stable = neutral
+                    bi.drainTrend > 0.5f  -> Color.parseColor("#FF453A")
+                    bi.drainTrend < -0.5f -> Color.parseColor("#30D158")
+                    else                  -> Color.parseColor("#8E8E93")
                 }
                 tvDrainTrend.text = trendText
                 tvDrainTrend.setTextColor(trendColor)
-                tvSessionsPerCharge.text = if (bi.sessionsPerChargeCycle > 0f)
-                    "%.1f".format(bi.sessionsPerChargeCycle) else "—"
+                
+                tvDrainMedian.text = if (bi.medianDrain > 0f) "%.1f%%".format(bi.medianDrain) else "—"
+                tvDrainStdDev.text = if (bi.drainStdDev > 0f) "±%.1f%%".format(bi.drainStdDev) else "—"
+                tvSessionsPerCharge.text = if (bi.sessionsPerChargeCycle > 0f) "%.1f".format(bi.sessionsPerChargeCycle) else "—"
+
                 tvAvgChargeTime.text = when {
                     bi.avgChargeDurationMin <= 0 -> "—"
                     bi.avgChargeDurationMin >= 60 -> "${bi.avgChargeDurationMin / 60}h ${bi.avgChargeDurationMin % 60}m"
                     else -> "${bi.avgChargeDurationMin}m"
                 }
-                tvAvgGained.text = if (bi.avgBatteryGainedPct > 0f) "%.0f%%".format(bi.avgBatteryGainedPct) else "—"
-                tvLongestRun.text = if (bi.longestRunSessions > 0) "${bi.longestRunSessions}" else "—"
-                tvDrainStdDev.text = if (bi.drainStdDev > 0f) "±%.1f%%".format(bi.drainStdDev) else "—"
+                tvAvgPctGained.text = if (bi.avgBatteryGainedPct > 0f) "%.0f%%".format(bi.avgBatteryGainedPct) else "—"
                 tvAvgDod.text = if (bi.avgDepthOfDischarge > 0f) "%.0f%%".format(bi.avgDepthOfDischarge) else "—"
-                tvEstDays.text = bi.avgDaysPerChargeCycle?.let { "%.1f".format(it) } ?: "—"
-                tvMedianDrain.text = if (bi.medianDrain > 0f) "%.1f%%".format(bi.medianDrain) else "—"
+                tvDaysPerCycle.text = bi.avgDaysPerChargeCycle?.let { "%.1f".format(it) } ?: "—"
+                tvLongestRun.text = if (bi.longestRunSessions > 0) "${bi.longestRunSessions}" else "—"
             }
         }
     }
