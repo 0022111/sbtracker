@@ -380,7 +380,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:letterSpacing="0.1"
-                    android:text="STREAKS & PATTERNS"
+                    android:text="STREAKS &amp; PATTERNS"
                     android:textColor="#8E8E93"
                     android:textSize="11sp"
                     android:textStyle="bold" />
