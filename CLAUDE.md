@@ -34,7 +34,7 @@ Requires JDK 17 (JetBrains distribution). The CI workflow mirrors these commands
 
 **To push branches or create refs, use the GitHub REST API directly with the PAT:**
 
-The PAT is available as `$GITHUB_PAT` (set in `~/.claude/settings.json`).
+The PAT must be provided by the user at the start of each session (no persistent secret storage available in Research Preview). If `$GITHUB_PAT` is not set, ask the user for it before attempting any push.
 
 ```bash
 # Create a branch
