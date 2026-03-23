@@ -15,17 +15,18 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.animation.DecelerateInterpolator
 import com.sbtracker.analytics.DailyStats
+import com.sbtracker.data.ChargeCycle
 import java.util.Calendar
 
 /**
- * History page session-activity bar chart.
+ * History/Analytics page session + charge activity bar chart.
  *
  * DAY mode  – last 7 days as individual daily bars.
  * WEEK mode – last 8 calendar weeks as aggregated weekly bars.
  *
- * Each bar renders two layers:
- *   • Blue gradient tall bar  → session count  (Y-axis: 0 … max sessions)
- *   • Amber narrow stripe     → total hits     (Y-axis: 0 … max hits, independently scaled)
+ * Each time bucket renders two side-by-side bars:
+ *   • Blue gradient bar  → session count
+ *   • Green gradient bar → charge count
  *
  * A dashed "average sessions" guide-line crosses the chart.
  * Tap (or drag) a bar to reveal a stats tooltip.
@@ -41,31 +42,31 @@ class HistoryBarChartView @JvmOverloads constructor(
     private data class BarEntry(
         val label: String,
         val sessions: Int,
-        val hits: Int,
+        val charges: Int,
         val totalDurationMs: Long,
         val avgDrainPct: Float,
-        val isHighlighted: Boolean,  // today / this week
-        val dateMs: Long             // UTC start-of-period for tooltip header
+        val isHighlighted: Boolean,
+        val dateMs: Long
     )
 
     private var rawDaily: List<DailyStats> = emptyList()
+    private var rawCharges: List<ChargeCycle> = emptyList()
     private var period: Period = Period.DAY
     private var bars: List<BarEntry> = emptyList()
 
-    // Animation: parallel fraction per bar, clamped [0..1]
+    // Animation
     private var animFracs: FloatArray = FloatArray(0)
     private var animator: ValueAnimator? = null
 
     // Touch state
     private var selectedIdx: Int = -1
 
-    // Density shorthand
     private val dp = context.resources.displayMetrics.density
 
-    // ── Pre-allocated draw objects (never allocate inside onDraw) ─────────────
+    // ── Paints ─────────────────────────────────────────────────────────────────
 
     private val sessionBarPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
-    private val hitStripePaint  = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
+    private val chargeBarPaint  = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
 
     private val selectionPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
@@ -120,7 +121,13 @@ class HistoryBarChartView @JvmOverloads constructor(
         strokeWidth = 1f
     }
 
-    // Reusable geometry objects
+    // Legend paints
+    private val legendDotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
+    private val legendTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.parseColor("#8E8E93")
+        textSize = 9f * dp
+    }
+
     private val barRect     = RectF()
     private val selRect     = RectF()
     private val tooltipRect = RectF()
@@ -141,9 +148,10 @@ class HistoryBarChartView @JvmOverloads constructor(
 
     // ── Public API ────────────────────────────────────────────────────────────
 
-    fun setData(daily: List<DailyStats>, period: Period) {
-        this.rawDaily = daily
-        this.period   = period
+    fun setData(daily: List<DailyStats>, charges: List<ChargeCycle>, period: Period) {
+        this.rawDaily   = daily
+        this.rawCharges = charges
+        this.period     = period
         buildBars()
         startAnimation()
         invalidate()
@@ -159,20 +167,21 @@ class HistoryBarChartView @JvmOverloads constructor(
         val cal      = Calendar.getInstance()
 
         if (period == Period.DAY) {
-            // Map daily stats by their UTC epoch day
             val map = rawDaily.associateBy { utcDay(it.dayStartMs) }
             val dayAbbr = arrayOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
 
             bars = (6 downTo 0).map { offset ->
                 val epochDay = todayDay - offset
                 val ms       = epochDay * 24L * 3_600_000L
+                val endMs    = (epochDay + 1L) * 24L * 3_600_000L
                 val d        = map[epochDay]
                 cal.timeInMillis = ms
+                val dayCharges = rawCharges.count { it.startTimeMs in ms until endMs }
+
                 BarEntry(
-                    label           = if (offset == 0) "Today"
-                                      else dayAbbr[cal.get(Calendar.DAY_OF_WEEK) - 1],
+                    label           = if (offset == 0) "Today" else dayAbbr[cal.get(Calendar.DAY_OF_WEEK) - 1],
                     sessions        = d?.sessionCount ?: 0,
-                    hits            = d?.totalHits ?: 0,
+                    charges         = dayCharges,
                     totalDurationMs = d?.totalDurationMs ?: 0L,
                     avgDrainPct     = d?.avgBatteryDrainPct ?: 0f,
                     isHighlighted   = offset == 0,
@@ -180,7 +189,6 @@ class HistoryBarChartView @JvmOverloads constructor(
                 )
             }
         } else {
-            // 8 calendar weeks, each = 7 UTC days; rightmost bar = current (partial) week
             bars = (7 downTo 0).map { weekOffset ->
                 val weekEndDay   = todayDay - weekOffset * 7L
                 val weekStartDay = weekEndDay - 6L
@@ -188,6 +196,7 @@ class HistoryBarChartView @JvmOverloads constructor(
                 val endMs        = (weekEndDay + 1L) * 24L * 3_600_000L - 1L
 
                 val inWeek = rawDaily.filter { it.dayStartMs in startMs..endMs }
+                val weekCharges = rawCharges.count { it.startTimeMs in startMs..endMs }
 
                 cal.timeInMillis = startMs
                 val mon = cal.get(Calendar.MONTH) + 1
@@ -196,16 +205,14 @@ class HistoryBarChartView @JvmOverloads constructor(
                 BarEntry(
                     label           = if (weekOffset == 0) "Now" else "$mon/$dom",
                     sessions        = inWeek.sumOf { it.sessionCount },
-                    hits            = inWeek.sumOf { it.totalHits },
+                    charges         = weekCharges,
                     totalDurationMs = inWeek.sumOf { it.totalDurationMs },
-                    avgDrainPct     = if (inWeek.isNotEmpty())
-                        inWeek.map { it.avgBatteryDrainPct }.average().toFloat() else 0f,
+                    avgDrainPct     = if (inWeek.isNotEmpty()) inWeek.map { it.avgBatteryDrainPct }.average().toFloat() else 0f,
                     isHighlighted   = weekOffset == 0,
                     dateMs          = startMs
                 )
             }
         }
-
         animFracs = FloatArray(bars.size) { 0f }
     }
 
@@ -262,7 +269,7 @@ class HistoryBarChartView @JvmOverloads constructor(
 
         val padL = 28f * dp
         val padR = 12f * dp
-        val padT = 12f * dp
+        val padT = 20f * dp   // extra room for legend
         val padB = 26f * dp
 
         val cw = width  - padL - padR
@@ -270,57 +277,55 @@ class HistoryBarChartView @JvmOverloads constructor(
 
         if (cw <= 0f || ch <= 0f) return
 
+        // Legend at top
+        drawLegend(canvas, padL, 4f * dp)
+
         // No-data state
-        if (bars.isEmpty() || bars.all { it.sessions == 0 }) {
-            val msg = if (period == Period.DAY) "No sessions in the last 7 days"
-                      else "No sessions in the last 8 weeks"
+        if (bars.isEmpty() || bars.all { it.sessions == 0 && it.charges == 0 }) {
+            val msg = if (period == Period.DAY) "No activity in the last 7 days"
+                      else "No activity in the last 8 weeks"
             canvas.drawText(msg, padL + cw / 2f, padT + ch / 2f + noDataPaint.textSize / 3f, noDataPaint)
             return
         }
 
-        val maxSessions = bars.maxOf { it.sessions }.coerceAtLeast(1)
-        val maxHits     = bars.maxOf { it.hits }.coerceAtLeast(1)
-        val avgSess     = bars.map { it.sessions }.average().toFloat()
-        val n           = bars.size
-        val slotW       = cw / n
-        val barW        = slotW * 0.50f
-        val hitW        = (slotW * 0.20f).coerceAtLeast(2f * dp)
-        val barCr       = (5f * dp).coerceAtMost(barW / 2f)
-        val hitCr       = (3f * dp).coerceAtMost(hitW / 2f)
+        val maxValue = bars.maxOf { maxOf(it.sessions, it.charges) }.coerceAtLeast(1)
+        val avgSess  = bars.map { it.sessions }.average().toFloat()
+        val n        = bars.size
+        val slotW    = cw / n
+        val pairW    = slotW * 0.65f
+        val barW     = pairW / 2f - 1f * dp
+        val barCr    = (4f * dp).coerceAtMost(barW / 2f)
 
-        // ── Horizontal grid lines ─────────────────────────────────────────────
+        // ── Horizontal grid lines ─────────────────────────────────────────
 
         val gridVals = when {
-            maxSessions <= 3  -> listOf(0, maxSessions)
-            maxSessions <= 6  -> listOf(0, maxSessions / 2, maxSessions)
-            else              -> listOf(0, maxSessions / 4, maxSessions / 2, (maxSessions * 3) / 4, maxSessions)
+            maxValue <= 3  -> listOf(0, maxValue)
+            maxValue <= 6  -> listOf(0, maxValue / 2, maxValue)
+            else           -> listOf(0, maxValue / 4, maxValue / 2, (maxValue * 3) / 4, maxValue)
         }
         for (gv in gridVals) {
-            val gy = padT + ch - (gv.toFloat() / maxSessions) * ch
+            val gy = padT + ch - (gv.toFloat() / maxValue) * ch
             canvas.drawLine(padL, gy, padL + cw, gy, gridLinePaint)
             if (gv > 0) {
-                canvas.drawText(
-                    "$gv",
-                    padL - 4f * dp,
-                    gy + yLabelPaint.textSize / 3f,
-                    yLabelPaint
-                )
+                canvas.drawText("$gv", padL - 4f * dp, gy + yLabelPaint.textSize / 3f, yLabelPaint)
             }
         }
 
-        // ── Average guide line ────────────────────────────────────────────────
+        // ── Average guide line ────────────────────────────────────────────
 
-        val avgY = padT + ch - (avgSess / maxSessions) * ch
-        canvas.drawLine(padL, avgY, padL + cw, avgY, avgLinePaint)
+        if (avgSess > 0) {
+            val avgY = padT + ch - (avgSess / maxValue) * ch
+            canvas.drawLine(padL, avgY, padL + cw, avgY, avgLinePaint)
+        }
 
-        // ── Bars ──────────────────────────────────────────────────────────────
+        // ── Bars ──────────────────────────────────────────────────────────
 
         for (i in bars.indices) {
             val bar  = bars[i]
             val anim = if (i < animFracs.size) animFracs[i] else 1f
             val cx   = padL + i * slotW + slotW / 2f
 
-            // Selection column highlight (drawn before everything else for this slot)
+            // Selection highlight
             if (i == selectedIdx) {
                 selRect.set(
                     padL + i * slotW + 1f * dp, padT,
@@ -331,74 +336,85 @@ class HistoryBarChartView @JvmOverloads constructor(
 
             // X-axis label
             canvas.drawText(
-                bar.label,
-                cx,
-                padT + ch + padB - 4f * dp,
+                bar.label, cx, padT + ch + padB - 4f * dp,
                 if (bar.isHighlighted) xLabelActivePaint else xLabelPaint
             )
 
-            if (bar.sessions == 0) continue  // nothing to draw for empty day
+            // ── Session bar (blue, left) ──────────────────────────────────
 
-            // ── Session bar (blue gradient) ──────────────────────────────────
+            if (bar.sessions > 0) {
+                val sessFrac = (bar.sessions.toFloat() / maxValue) * anim
+                val sessH    = sessFrac * ch
+                val barL     = cx - pairW / 2f
+                val barR     = barL + barW
+                val barT     = padT + ch - sessH
+                val barB     = padT + ch
 
-            val sessFrac = (bar.sessions.toFloat() / maxSessions) * anim
-            val sessH    = sessFrac * ch
-            val barL     = cx - barW / 2f
-            val barR     = cx + barW / 2f
-            val barT     = padT + ch - sessH
-            val barB     = padT + ch
-
-            sessionBarPaint.shader = LinearGradient(
-                barL, barT, barL, barB,
-                if (bar.isHighlighted) Color.parseColor("#55CCFF")
-                else                   Color.parseColor("#1A8FFF"),
-                if (bar.isHighlighted) Color.parseColor("#0A72E6")
-                else                   Color.parseColor("#0A52AD"),
-                Shader.TileMode.CLAMP
-            )
-
-            val effectiveCr = barCr.coerceAtMost(sessH / 2f)
-            barRect.set(barL, barT, barR, barB)
-            canvas.drawRoundRect(barRect, effectiveCr, effectiveCr, sessionBarPaint)
-            // Fill in the rounded bottom so it sits flush with the axis
-            if (sessH > effectiveCr) {
-                barRect.set(barL, barT + effectiveCr, barR, barB)
-                canvas.drawRect(barRect, sessionBarPaint)
-            }
-
-            // ── Hit stripe (amber, narrow, centred, independent Y-scale) ─────
-
-            if (bar.hits > 0) {
-                val hitFrac = (bar.hits.toFloat() / maxHits) * anim
-                val hitH    = hitFrac * ch
-                val hitL    = cx - hitW / 2f
-                val hitR    = cx + hitW / 2f
-                val hitT    = padT + ch - hitH
-                val hitB    = padT + ch
-
-                hitStripePaint.shader = LinearGradient(
-                    hitL, hitT, hitL, hitB,
-                    Color.parseColor("#FFC535"),
-                    Color.parseColor("#C87A00"),
+                sessionBarPaint.shader = LinearGradient(
+                    barL, barT, barL, barB,
+                    if (bar.isHighlighted) Color.parseColor("#55CCFF") else Color.parseColor("#1A8FFF"),
+                    if (bar.isHighlighted) Color.parseColor("#0A72E6") else Color.parseColor("#0A52AD"),
                     Shader.TileMode.CLAMP
                 )
 
-                val effHitCr = hitCr.coerceAtMost(hitH / 2f)
-                barRect.set(hitL, hitT, hitR, hitB)
-                canvas.drawRoundRect(barRect, effHitCr, effHitCr, hitStripePaint)
-                if (hitH > effHitCr) {
-                    barRect.set(hitL, hitT + effHitCr, hitR, hitB)
-                    canvas.drawRect(barRect, hitStripePaint)
+                val effectiveCr = barCr.coerceAtMost(sessH / 2f)
+                barRect.set(barL, barT, barR, barB)
+                canvas.drawRoundRect(barRect, effectiveCr, effectiveCr, sessionBarPaint)
+                if (sessH > effectiveCr) {
+                    barRect.set(barL, barT + effectiveCr, barR, barB)
+                    canvas.drawRect(barRect, sessionBarPaint)
+                }
+            }
+
+            // ── Charge bar (green, right) ─────────────────────────────────
+
+            if (bar.charges > 0) {
+                val chargeFrac = (bar.charges.toFloat() / maxValue) * anim
+                val chargeH    = chargeFrac * ch
+                val barR2      = cx + pairW / 2f
+                val barL2      = barR2 - barW
+                val barT2      = padT + ch - chargeH
+                val barB2      = padT + ch
+
+                chargeBarPaint.shader = LinearGradient(
+                    barL2, barT2, barL2, barB2,
+                    if (bar.isHighlighted) Color.parseColor("#50E878") else Color.parseColor("#30D158"),
+                    if (bar.isHighlighted) Color.parseColor("#1BA340") else Color.parseColor("#0F7B2E"),
+                    Shader.TileMode.CLAMP
+                )
+
+                val effectiveCr2 = barCr.coerceAtMost(chargeH / 2f)
+                barRect.set(barL2, barT2, barR2, barB2)
+                canvas.drawRoundRect(barRect, effectiveCr2, effectiveCr2, chargeBarPaint)
+                if (chargeH > effectiveCr2) {
+                    barRect.set(barL2, barT2 + effectiveCr2, barR2, barB2)
+                    canvas.drawRect(barRect, chargeBarPaint)
                 }
             }
         }
 
-        // ── Tooltip ───────────────────────────────────────────────────────────
+        // ── Tooltip ───────────────────────────────────────────────────────
 
         val sel = selectedIdx
-        if (sel in bars.indices && bars[sel].sessions > 0) {
+        if (sel in bars.indices && (bars[sel].sessions > 0 || bars[sel].charges > 0)) {
             drawTooltip(canvas, sel, bars[sel], slotW, padL, padT, cw, ch)
         }
+    }
+
+    private fun drawLegend(canvas: Canvas, startX: Float, y: Float) {
+        val dotR = 4f * dp
+        val gap  = 6f * dp
+
+        // Sessions legend
+        legendDotPaint.color = Color.parseColor("#1A8FFF")
+        canvas.drawCircle(startX + dotR, y + dotR, dotR, legendDotPaint)
+        canvas.drawText("Sessions", startX + dotR * 2 + gap, y + dotR + legendTextPaint.textSize * 0.35f, legendTextPaint)
+
+        // Charges legend
+        val offset = startX + 80f * dp
+        legendDotPaint.color = Color.parseColor("#30D158")
+        canvas.drawCircle(offset + dotR, y + dotR, dotR, legendDotPaint)
+        canvas.drawText("Charges", offset + dotR * 2 + gap, y + dotR + legendTextPaint.textSize * 0.35f, legendTextPaint)
     }
 
     private fun drawTooltip(
@@ -411,9 +427,7 @@ class HistoryBarChartView @JvmOverloads constructor(
     ) {
         val lines = buildList<Pair<String, String>> {
             add("Sessions" to "${bar.sessions}")
-            if (bar.hits > 0) add("Hits" to "${bar.hits}")
-            if (bar.hits > 0 && bar.sessions > 0)
-                add("Hits / session" to "%.1f".format(bar.hits.toFloat() / bar.sessions))
+            add("Charges"  to "${bar.charges}")
             if (bar.totalDurationMs > 0) {
                 val totalMin = bar.totalDurationMs / 60_000L
                 add("Total time" to if (totalMin >= 60)
@@ -451,14 +465,11 @@ class HistoryBarChartView @JvmOverloads constructor(
         canvas.drawRoundRect(tooltipRect, 8f * dp, 8f * dp, tooltipBgPaint)
         canvas.drawRoundRect(tooltipRect, 8f * dp, 8f * dp, tooltipBorderPaint)
 
-        // Title
         canvas.drawText(title, tx + padH, ty + padV + titleH - 3f * dp, tooltipTitlePaint)
 
-        // Divider
         val divY = ty + padV + titleH + 0.5f * dp
         canvas.drawLine(tx + padH, divY, tx + tW - padH, divY, tooltipDividerPaint)
 
-        // Rows
         lines.forEachIndexed { i, (label, value) ->
             val ly = ty + padV + titleH + 2f * dp + (i + 1) * lineH - 2f * dp
             canvas.drawText(label, tx + padH, ly, tooltipLabelPaint)

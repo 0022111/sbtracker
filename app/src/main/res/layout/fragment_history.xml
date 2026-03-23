@@ -1,533 +1,690 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#000000">
+    android:background="#000000"
+    android:fillViewport="true">
 
-    <com.google.android.material.appbar.AppBarLayout
+    <LinearLayout
+        android:id="@+id/analytics_root"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#000000"
-        app:elevation="0dp">
+        android:orientation="vertical"
+        android:paddingBottom="80dp">
 
-        <com.google.android.material.appbar.CollapsingToolbarLayout
+        <!-- ══════════════════════════════════════════════════════════════════
+             HEADER
+             ══════════════════════════════════════════════════════════════════ -->
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:layout_scrollFlags="scroll|exitUntilCollapsed">
+            android:paddingHorizontal="24dp"
+            android:paddingTop="24dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Analytics"
+                android:textColor="#FFFFFF"
+                android:textSize="32sp"
+                android:textStyle="bold" />
+
+            <ImageButton
+                android:id="@+id/btn_export_history"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@android:drawable/ic_menu_save"
+                app:tint="#0A84FF" />
+        </RelativeLayout>
+
+        <!-- Count subtitle -->
+        <TextView
+            android:id="@+id/tv_history_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="4dp"
+            android:text="0 Sessions"
+            android:textColor="#8E8E93"
+            android:textSize="14sp" />
+
+        <!-- Device Filter Chips -->
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:paddingHorizontal="24dp"
+            android:scrollbars="none">
+            <LinearLayout
+                android:id="@+id/ll_device_filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal" />
+        </HorizontalScrollView>
+
+        <!-- ══════════════════════════════════════════════════════════════════
+             TIER 1 — AT-A-GLANCE HERO
+             ══════════════════════════════════════════════════════════════════ -->
+
+        <!-- Battery Timeline Card -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="16dp"
+            app:cardBackgroundColor="#1C1C1E"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="0dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="24dp">
+                android:padding="16dp">
 
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="History"
-                        android:textColor="#FFFFFF"
-                        android:textSize="32sp"
-                        android:textStyle="bold" />
-
-                    <ImageButton
-                        android:id="@+id/btn_export_history"
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:src="@android:drawable/ic_menu_save"
-                        app:tint="#0A84FF" />
-                </RelativeLayout>
-
-                <!-- Count + Clear -->
+                <!-- Header + period toggle -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
+                    android:gravity="center_vertical"
                     android:orientation="horizontal">
+
                     <TextView
-                        android:id="@+id/tv_history_count"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="0 Sessions"
+                        android:letterSpacing="0.1"
+                        android:text="BATTERY TIMELINE"
                         android:textColor="#8E8E93"
-                        android:textSize="14sp" />
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+
                     <TextView
-                        android:id="@+id/tv_history_clear"
+                        android:id="@+id/tv_graph_period_day"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Clear All"
-                        android:textColor="#FF453A"
-                        android:textSize="14sp" />
+                        android:background="@drawable/bg_badge_blue"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="5dp"
+                        android:text="Day"
+                        android:textColor="#0A84FF"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tv_graph_period_week"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="5dp"
+                        android:text="Week"
+                        android:textColor="#636366"
+                        android:textSize="12sp" />
                 </LinearLayout>
 
-                <!-- Device Filter -->
-                <HorizontalScrollView
+                <com.sbtracker.HistoryTimelineView
+                    android:id="@+id/analytics_timeline"
+                    android:layout_width="match_parent"
+                    android:layout_height="180dp"
+                    android:layout_marginTop="8dp" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Quick Stats Row -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="12dp"
+            app:cardBackgroundColor="#1C1C1E"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="16dp">
+
+                <!-- Sessions -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
+                    <TextView
+                        android:id="@+id/tv_hero_sessions"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="—"
+                        android:textColor="#FFFFFF"
+                        android:textSize="22sp"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Sessions"
+                        android:textColor="#636366"
+                        android:textSize="10sp" />
+                </LinearLayout>
+
+                <!-- Avg Duration -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
+                    <TextView
+                        android:id="@+id/tv_hero_avg_duration"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="—"
+                        android:textColor="#FFFFFF"
+                        android:textSize="22sp"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Avg Length"
+                        android:textColor="#636366"
+                        android:textSize="10sp" />
+                </LinearLayout>
+
+                <!-- Avg Hits -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
+                    <TextView
+                        android:id="@+id/tv_hero_avg_hits"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="—"
+                        android:textColor="#0A84FF"
+                        android:textSize="22sp"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Avg Hits"
+                        android:textColor="#636366"
+                        android:textSize="10sp" />
+                </LinearLayout>
+
+                <!-- Avg Drain -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
+                    <TextView
+                        android:id="@+id/tv_hero_avg_drain"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="—"
+                        android:textColor="#FF453A"
+                        android:textSize="22sp"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Avg Drain"
+                        android:textColor="#636366"
+                        android:textSize="10sp" />
+                </LinearLayout>
+
+                <!-- Avg Heat-Up -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
+                    <TextView
+                        android:id="@+id/tv_hero_avg_heatup"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="—"
+                        android:textColor="#FF9F0A"
+                        android:textSize="22sp"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Heat-Up"
+                        android:textColor="#636366"
+                        android:textSize="10sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- ══════════════════════════════════════════════════════════════════
+             TIER 2 — CHARTS & TRENDS
+             ══════════════════════════════════════════════════════════════════ -->
+
+        <!-- Activity Bar Chart Card -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="16dp"
+            app:cardBackgroundColor="#1C1C1E"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:letterSpacing="0.1"
+                    android:text="SESSION ACTIVITY"
+                    android:textColor="#8E8E93"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <com.sbtracker.HistoryBarChartView
+                    android:id="@+id/history_bar_chart"
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:layout_marginTop="8dp" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Weekly Comparison Card -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="12dp"
+            app:cardBackgroundColor="#1C1C1E"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:letterSpacing="0.1"
+                    android:text="THIS WEEK VS LAST"
+                    android:textColor="#8E8E93"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:scrollbars="none">
-                    <LinearLayout
-                        android:id="@+id/ll_device_filter"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal" />
-                </HorizontalScrollView>
+                    android:orientation="horizontal">
 
-                <!-- Sort Bar -->
-                <HorizontalScrollView
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                        <TextView android:id="@+id/tv_week_sessions" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#FFFFFF" android:textSize="22sp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Sessions" android:textColor="#636366" android:textSize="10sp" />
+                    </LinearLayout>
+
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                        <TextView android:id="@+id/tv_week_sessions_delta" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#30D158" android:textSize="22sp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="vs Last Wk" android:textColor="#636366" android:textSize="10sp" />
+                    </LinearLayout>
+
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                        <TextView android:id="@+id/tv_week_hits" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#FFFFFF" android:textSize="22sp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Hits" android:textColor="#636366" android:textSize="10sp" />
+                    </LinearLayout>
+
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                        <TextView android:id="@+id/tv_week_hits_delta" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#30D158" android:textSize="22sp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Hit Delta" android:textColor="#636366" android:textSize="10sp" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Streak & Patterns Card -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="12dp"
+            app:cardBackgroundColor="#1C1C1E"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:letterSpacing="0.1"
+                    android:text="STREAKS & PATTERNS"
+                    android:textColor="#8E8E93"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:scrollbars="none">
-                    <LinearLayout
-                        android:id="@+id/ll_sort_bar"
+                    android:layout_marginTop="12dp"
+                    android:orientation="horizontal">
+
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                        <TextView android:id="@+id/tv_streak_current" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#FFD60A" android:textSize="22sp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Day Streak" android:textColor="#636366" android:textSize="10sp" />
+                    </LinearLayout>
+
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                        <TextView android:id="@+id/tv_streak_longest" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#FFFFFF" android:textSize="22sp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Best Streak" android:textColor="#636366" android:textSize="10sp" />
+                    </LinearLayout>
+
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                        <TextView android:id="@+id/tv_peak_time" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#0A84FF" android:textSize="22sp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Peak Time" android:textColor="#636366" android:textSize="10sp" />
+                    </LinearLayout>
+
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                        <TextView android:id="@+id/tv_busiest_day" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#FFFFFF" android:textSize="22sp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Busiest Day" android:textColor="#636366" android:textSize="10sp" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- ══════════════════════════════════════════════════════════════════
+             TIER 3 — DEEP DIVE (expandable)
+             ══════════════════════════════════════════════════════════════════ -->
+
+        <!-- Session Averages (expandable) -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="16dp"
+            app:cardBackgroundColor="#1C1C1E"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <!-- Expandable header -->
+                <LinearLayout
+                    android:id="@+id/header_session_averages"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:letterSpacing="0.1"
+                        android:text="SESSION AVERAGES"
+                        android:textColor="#8E8E93"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tv_expand_averages"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:paddingHorizontal="8dp"
+                        android:text="▶"
+                        android:textColor="#636366"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <!-- Expandable content -->
+                <LinearLayout
+                    android:id="@+id/content_session_averages"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <!-- Row 1 -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
                         android:orientation="horizontal">
 
-                        <TextView
-                            android:id="@+id/tv_sort_date"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:paddingHorizontal="14dp"
-                            android:paddingVertical="6dp"
-                            android:text="Date"
-                            android:textColor="#0A84FF"
-                            android:textSize="13sp"
-                            android:textStyle="bold"
-                            android:background="@drawable/bg_badge_blue" />
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                            <TextView android:id="@+id/tv_stats_avg_duration" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#FFFFFF" android:textSize="18sp" android:textStyle="bold" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Avg Length" android:textColor="#636366" android:textSize="10sp" />
+                        </LinearLayout>
 
-                        <TextView
-                            android:id="@+id/tv_sort_hits"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:paddingHorizontal="14dp"
-                            android:paddingVertical="6dp"
-                            android:text="Hits"
-                            android:textColor="#636366"
-                            android:textSize="13sp" />
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                            <TextView android:id="@+id/tv_stats_median_duration" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#FFFFFF" android:textSize="18sp" android:textStyle="bold" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Median Length" android:textColor="#636366" android:textSize="10sp" />
+                        </LinearLayout>
 
-                        <TextView
-                            android:id="@+id/tv_sort_duration"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:paddingHorizontal="14dp"
-                            android:paddingVertical="6dp"
-                            android:text="Duration"
-                            android:textColor="#636366"
-                            android:textSize="13sp" />
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                            <TextView android:id="@+id/tv_stats_avg_hits" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#FFFFFF" android:textSize="18sp" android:textStyle="bold" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Hits/Session" android:textColor="#636366" android:textSize="10sp" />
+                        </LinearLayout>
 
-                        <TextView
-                            android:id="@+id/tv_sort_drain"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:paddingHorizontal="14dp"
-                            android:paddingVertical="6dp"
-                            android:text="Drain"
-                            android:textColor="#636366"
-                            android:textSize="13sp" />
-
-                        <TextView
-                            android:id="@+id/tv_sort_temp"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:paddingHorizontal="14dp"
-                            android:paddingVertical="6dp"
-                            android:text="Temp"
-                            android:textColor="#636366"
-                            android:textSize="13sp" />
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                            <TextView android:id="@+id/tv_stats_avg_hit_len" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#FFFFFF" android:textSize="18sp" android:textStyle="bold" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Avg Hit Len" android:textColor="#636366" android:textSize="10sp" />
+                        </LinearLayout>
                     </LinearLayout>
-                </HorizontalScrollView>
 
-                <!-- Session Stats Summary Card -->
-                <androidx.cardview.widget.CardView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    app:cardBackgroundColor="#1A1A1C"
-                    app:cardCornerRadius="20dp">
+                    <!-- Row 2 -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="20dp">
+                        android:layout_marginTop="14dp"
+                        android:orientation="horizontal">
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="SESSION AVERAGES"
-                            android:textColor="#8E8E93"
-                            android:textSize="11sp"
-                            android:letterSpacing="0.1"
-                            android:textStyle="bold" />
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
-                            android:orientation="horizontal">
-
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:orientation="vertical">
-                                <TextView
-                                    android:id="@+id/tv_stats_avg_duration"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="—"
-                                    android:textColor="#FFFFFF"
-                                    android:textSize="18sp"
-                                    android:textStyle="bold" />
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Avg Length"
-                                    android:textColor="#8E8E93"
-                                    android:textSize="11sp" />
-                            </LinearLayout>
-
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:orientation="vertical">
-                                <TextView
-                                    android:id="@+id/tv_stats_avg_hits"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="—"
-                                    android:textColor="#FFFFFF"
-                                    android:textSize="18sp"
-                                    android:textStyle="bold" />
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Per Session"
-                                    android:textColor="#8E8E93"
-                                    android:textSize="11sp" />
-                            </LinearLayout>
-
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:orientation="vertical">
-                                <TextView
-                                    android:id="@+id/tv_stats_avg_hit_len"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="—"
-                                    android:textColor="#FFFFFF"
-                                    android:textSize="18sp"
-                                    android:textStyle="bold" />
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Avg Hit"
-                                    android:textColor="#8E8E93"
-                                    android:textSize="11sp" />
-                            </LinearLayout>
-
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:orientation="vertical">
-                                <TextView
-                                    android:id="@+id/tv_stats_avg_drain"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="—"
-                                    android:textColor="#FF453A"
-                                    android:textSize="18sp"
-                                    android:textStyle="bold" />
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Avg Drain"
-                                    android:textColor="#8E8E93"
-                                    android:textSize="11sp" />
-                            </LinearLayout>
-
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                            <TextView android:id="@+id/tv_stats_avg_drain" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#FF453A" android:textSize="18sp" android:textStyle="bold" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Avg Drain" android:textColor="#636366" android:textSize="10sp" />
                         </LinearLayout>
 
-                        <!-- Row 2: median duration + per-day rates + peak day -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="14dp"
-                            android:orientation="horizontal">
-
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                                <TextView android:id="@+id/tv_stats_median_duration" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#FFFFFF" android:textSize="18sp" android:textStyle="bold" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Median Length" android:textColor="#8E8E93" android:textSize="11sp" />
-                            </LinearLayout>
-
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                                <TextView android:id="@+id/tv_stats_sess_per_day_7d" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#30D158" android:textSize="18sp" android:textStyle="bold" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Sess/Day (7d)" android:textColor="#8E8E93" android:textSize="11sp" />
-                            </LinearLayout>
-
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                                <TextView android:id="@+id/tv_stats_sess_per_day_30d" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#30D158" android:textSize="18sp" android:textStyle="bold" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Sess/Day (30d)" android:textColor="#8E8E93" android:textSize="11sp" />
-                            </LinearLayout>
-
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                                <TextView android:id="@+id/tv_stats_peak_in_day" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#FF9F0A" android:textSize="18sp" android:textStyle="bold" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Most in a Day" android:textColor="#8E8E93" android:textSize="11sp" />
-                            </LinearLayout>
-
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                            <TextView android:id="@+id/tv_stats_sess_per_day_7d" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#30D158" android:textSize="18sp" android:textStyle="bold" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Sess/Day (7d)" android:textColor="#636366" android:textSize="10sp" />
                         </LinearLayout>
 
-                        <View
-                            android:layout_width="match_parent"
-                            android:layout_height="1dp"
-                            android:layout_marginTop="16dp"
-                            android:background="#2C2C2E" />
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                            <TextView android:id="@+id/tv_stats_sess_per_day_30d" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#30D158" android:textSize="18sp" android:textStyle="bold" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Sess/Day (30d)" android:textColor="#636366" android:textSize="10sp" />
+                        </LinearLayout>
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
-                            android:text="FAVORITE TEMPS"
-                            android:textColor="#8E8E93"
-                            android:textSize="11sp"
-                            android:letterSpacing="0.1"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/tv_stats_fav_temps"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:text="—"
-                            android:textColor="#FFFFFF"
-                            android:textSize="13sp"
-                            android:lineSpacingExtra="4dp" />
-
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                            <TextView android:id="@+id/tv_stats_peak_in_day" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#FF9F0A" android:textSize="18sp" android:textStyle="bold" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Most in Day" android:textColor="#636366" android:textSize="10sp" />
+                        </LinearLayout>
                     </LinearLayout>
-                </androidx.cardview.widget.CardView>
 
-                <!-- ── USAGE INSIGHTS CARD ─────────────────────────────────── -->
-                <androidx.cardview.widget.CardView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    app:cardBackgroundColor="#1A1A1C"
-                    app:cardCornerRadius="20dp">
-                    <LinearLayout
+                    <!-- Favorite Temps -->
+                    <View
                         android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="14dp"
+                        android:background="#2C2C2E" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="20dp">
+                        android:layout_marginTop="10dp"
+                        android:letterSpacing="0.08"
+                        android:text="FAVORITE TEMPS"
+                        android:textColor="#636366"
+                        android:textSize="10sp"
+                        android:textStyle="bold" />
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="USAGE INSIGHTS"
-                            android:textColor="#8E8E93"
-                            android:textSize="11sp"
-                            android:letterSpacing="0.1"
-                            android:textStyle="bold" />
-
-                        <!-- Row 1: streak + heat-up + hits/min -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
-                            android:orientation="horizontal">
-
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                                <TextView android:id="@+id/tv_streak_current" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#FFD60A" android:textSize="20sp" android:textStyle="bold" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Day Streak" android:textColor="#8E8E93" android:textSize="11sp" />
-                            </LinearLayout>
-
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                                <TextView android:id="@+id/tv_streak_longest" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#FFFFFF" android:textSize="20sp" android:textStyle="bold" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Best Streak" android:textColor="#8E8E93" android:textSize="11sp" />
-                            </LinearLayout>
-
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                                <TextView android:id="@+id/tv_avg_heat_up" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#FF9F0A" android:textSize="20sp" android:textStyle="bold" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Avg Heat-Up" android:textColor="#8E8E93" android:textSize="11sp" />
-                            </LinearLayout>
-
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                                <TextView android:id="@+id/tv_hits_per_minute" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#FFFFFF" android:textSize="20sp" android:textStyle="bold" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Hits/Min" android:textColor="#8E8E93" android:textSize="11sp" />
-                            </LinearLayout>
-
-                        </LinearLayout>
-
-                        <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="16dp" android:background="#2C2C2E" />
-
-                        <!-- Row 2: this week vs last week -->
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
-                            android:text="THIS WEEK VS LAST WEEK"
-                            android:textColor="#636366"
-                            android:textSize="10sp"
-                            android:letterSpacing="0.08"
-                            android:textStyle="bold" />
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:orientation="horizontal">
-
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                                <TextView android:id="@+id/tv_week_sessions" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#FFFFFF" android:textSize="20sp" android:textStyle="bold" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Sessions" android:textColor="#8E8E93" android:textSize="11sp" />
-                            </LinearLayout>
-
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                                <TextView android:id="@+id/tv_week_hits" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#FFFFFF" android:textSize="20sp" android:textStyle="bold" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Hits" android:textColor="#8E8E93" android:textSize="11sp" />
-                            </LinearLayout>
-
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                                <TextView android:id="@+id/tv_week_sessions_delta" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#30D158" android:textSize="20sp" android:textStyle="bold" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="vs Last Week" android:textColor="#8E8E93" android:textSize="11sp" />
-                            </LinearLayout>
-
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                                <TextView android:id="@+id/tv_week_hits_delta" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#30D158" android:textSize="20sp" android:textStyle="bold" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Hit Delta" android:textColor="#8E8E93" android:textSize="11sp" />
-                            </LinearLayout>
-
-                        </LinearLayout>
-
-                        <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="16dp" android:background="#2C2C2E" />
-
-                        <!-- Row 3: peak time + busiest day -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
-                            android:orientation="horizontal">
-
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                                <TextView android:id="@+id/tv_peak_time" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#0A84FF" android:textSize="20sp" android:textStyle="bold" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Peak Time" android:textColor="#8E8E93" android:textSize="11sp" />
-                            </LinearLayout>
-
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                                <TextView android:id="@+id/tv_busiest_day" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#FFFFFF" android:textSize="20sp" android:textStyle="bold" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Busiest Day" android:textColor="#8E8E93" android:textSize="11sp" />
-                            </LinearLayout>
-
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                                <TextView android:id="@+id/tv_avg_sessions_per_day" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#30D158" android:textSize="20sp" android:textStyle="bold" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Sess/Active Day" android:textColor="#8E8E93" android:textSize="11sp" />
-                            </LinearLayout>
-
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                                <TextView android:id="@+id/tv_total_days_active" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#FFFFFF" android:textSize="20sp" android:textStyle="bold" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Days Active" android:textColor="#8E8E93" android:textSize="11sp" />
-                            </LinearLayout>
-
-                        </LinearLayout>
-
-                    </LinearLayout>
-                </androidx.cardview.widget.CardView>
-
-                <!-- Battery timeline graph card -->
-                <androidx.cardview.widget.CardView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    app:cardBackgroundColor="#1C1C1E"
-                    app:cardCornerRadius="20dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
+                    <TextView
+                        android:id="@+id/tv_stats_fav_temps"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:paddingStart="16dp"
-                        android:paddingEnd="16dp"
-                        android:paddingTop="14dp"
-                        android:paddingBottom="12dp">
-
-                        <!-- Header: label + DAY / WEEK toggle -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical">
-
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="SESSION ACTIVITY"
-                                android:textColor="#8E8E93"
-                                android:textSize="11sp"
-                                android:letterSpacing="0.1"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:id="@+id/tv_graph_period_day"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:paddingHorizontal="12dp"
-                                android:paddingVertical="5dp"
-                                android:text="Day"
-                                android:textSize="12sp"
-                                android:textColor="#0A84FF"
-                                android:textStyle="bold"
-                                android:background="@drawable/bg_badge_blue" />
-
-                            <TextView
-                                android:id="@+id/tv_graph_period_week"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="8dp"
-                                android:paddingHorizontal="12dp"
-                                android:paddingVertical="5dp"
-                                android:text="Week"
-                                android:textSize="12sp"
-                                android:textColor="#636366" />
-
-                        </LinearLayout>
-
-                        <!-- Usage activity bar chart -->
-                        <com.sbtracker.HistoryBarChartView
-                            android:id="@+id/history_timeline"
-                            android:layout_width="match_parent"
-                            android:layout_height="220dp"
-                            android:layout_marginTop="8dp" />
-
-                    </LinearLayout>
-                </androidx.cardview.widget.CardView>
+                        android:layout_marginTop="6dp"
+                        android:lineSpacingExtra="4dp"
+                        android:text="—"
+                        android:textColor="#FFFFFF"
+                        android:textSize="13sp" />
+                </LinearLayout>
             </LinearLayout>
-        </com.google.android.material.appbar.CollapsingToolbarLayout>
-    </com.google.android.material.appbar.AppBarLayout>
+        </androidx.cardview.widget.CardView>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_history"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:clipToPadding="false"
-        android:padding="16dp"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        tools:listitem="@layout/item_session" />
+        <!-- Usage Insights (expandable) -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="12dp"
+            app:cardBackgroundColor="#1C1C1E"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="0dp">
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <!-- Expandable header -->
+                <LinearLayout
+                    android:id="@+id/header_usage_insights"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:letterSpacing="0.1"
+                        android:text="USAGE INSIGHTS"
+                        android:textColor="#8E8E93"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tv_expand_insights"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingHorizontal="8dp"
+                        android:text="▶"
+                        android:textColor="#636366"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <!-- Expandable content -->
+                <LinearLayout
+                    android:id="@+id/content_usage_insights"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:orientation="horizontal">
+
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                            <TextView android:id="@+id/tv_hits_per_minute" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#FFFFFF" android:textSize="18sp" android:textStyle="bold" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Hits/Min" android:textColor="#636366" android:textSize="10sp" />
+                        </LinearLayout>
+
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                            <TextView android:id="@+id/tv_avg_sessions_per_day" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#30D158" android:textSize="18sp" android:textStyle="bold" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Sess/Active Day" android:textColor="#636366" android:textSize="10sp" />
+                        </LinearLayout>
+
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                            <TextView android:id="@+id/tv_total_days_active" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#FFFFFF" android:textSize="18sp" android:textStyle="bold" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Days Active" android:textColor="#636366" android:textSize="10sp" />
+                        </LinearLayout>
+
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                            <TextView android:id="@+id/tv_avg_heat_up" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#FF9F0A" android:textSize="18sp" android:textStyle="bold" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Avg Heat-Up" android:textColor="#636366" android:textSize="10sp" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- ══════════════════════════════════════════════════════════════════
+             SESSION HISTORY LIST
+             ══════════════════════════════════════════════════════════════════ -->
+
+        <!-- Sort Bar -->
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:paddingHorizontal="16dp"
+            android:scrollbars="none">
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView android:id="@+id/tv_sort_date" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingHorizontal="14dp" android:paddingVertical="6dp" android:text="Date" android:textColor="#0A84FF" android:textSize="13sp" android:textStyle="bold" android:background="@drawable/bg_badge_blue" />
+                <TextView android:id="@+id/tv_sort_hits" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:paddingHorizontal="14dp" android:paddingVertical="6dp" android:text="Hits" android:textColor="#636366" android:textSize="13sp" />
+                <TextView android:id="@+id/tv_sort_duration" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:paddingHorizontal="14dp" android:paddingVertical="6dp" android:text="Duration" android:textColor="#636366" android:textSize="13sp" />
+                <TextView android:id="@+id/tv_sort_drain" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:paddingHorizontal="14dp" android:paddingVertical="6dp" android:text="Drain" android:textColor="#636366" android:textSize="13sp" />
+                <TextView android:id="@+id/tv_sort_temp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:paddingHorizontal="14dp" android:paddingVertical="6dp" android:text="Temp" android:textColor="#636366" android:textSize="13sp" />
+            </LinearLayout>
+        </HorizontalScrollView>
+
+        <!-- Session List -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_history"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:clipToPadding="false"
+            android:nestedScrollingEnabled="false"
+            android:paddingHorizontal="16dp"
+            tools:listitem="@layout/item_session" />
+
+        <!-- Clear All (bottom, safe) -->
+        <TextView
+            android:id="@+id/tv_history_clear"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="24dp"
+            android:paddingHorizontal="24dp"
+            android:paddingVertical="12dp"
+            android:text="Clear All History"
+            android:textColor="#FF453A"
+            android:textSize="14sp" />
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>
