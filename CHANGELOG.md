@@ -2,9 +2,15 @@
 
 All notable changes to this project. Agents: append to the top of the relevant section after completing work.
 
+### 2026-03-23 — Battery Page Crash Fix
+- **Fixed** an `IllegalArgumentException` in `BatteryGraphView` that occurred when drawing narrow segments on the battery history graph.
+
 ---
 
-## [Unreleased]
+### 2026-03-23 — Enhanced Agent Infrastructure
+- **Created** `.agents/workflows/` with standardized workflows for `feature-work` and `documentation-sync`.
+- **Updated** `AGENT_INFO.md` with guidelines on using internal agent artifacts (`task.md`, `implementation_plan.md`, `walkthrough.md`).
+- **Refined** agent rules in `PROJECT.md` to formalize the use of workflows and internal artifacts.
 
 ### 2026-03-23 — History Page Scroll Fix
 - **Fixed** touch event interception logic in `HistoryBarChartView` and `HistoryTimelineView` to only trigger on horizontal dragging, allowing seamless vertical scrolling of the history page.

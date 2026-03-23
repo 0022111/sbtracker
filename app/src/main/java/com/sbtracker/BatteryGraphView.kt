@@ -317,7 +317,8 @@ class BatteryGraphView @JvmOverloads constructor(
             }
             val xc = (xL + xR) / 2f
             val spanX = xR - xL
-            val bodyHalfW = (spanX * 0.38f).coerceIn(3f, min(spanX / 2f - 1f, 56f))
+            val maxW = maxOf(3f, min(spanX / 2f - 1f, 56f))
+            val bodyHalfW = (spanX * 0.38f).coerceIn(3f, maxW)
 
             val yHi = yFor(seg.high)
             val yLo = yFor(seg.low)

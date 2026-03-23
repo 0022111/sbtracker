@@ -63,6 +63,7 @@
 | F-042 | `planned` | Unit Tests | Test analytics pure functions | AnalyticsRepository functions have test coverage |
 | F-043 | `planned` | ViewModel Decomposition | Break up 1074-line MainViewModel | Extract to feature-specific ViewModels or use cases |
 | F-044 | `done` | MainActivity Decomposition | Break up 1169-line MainActivity | Extract Fragments or Compose screens |
+| F-045 | `done` | Agent Infrastructure | Document AI agent branch strategy, workflows, and workspace context | `AGENT_INFO.md` and `.agents/workflows/` exist |
 
 ---
 
@@ -72,6 +73,7 @@
 |---|---|---|---|
 | B-001 | `planned` | P1 | `fallbackToDestructiveMigration()` must be removed before public release |
 | B-002 | `done` | P2 | History Page vertical scroll locked by unwieldy charts | Fixed touch interception |
+| B-003 | `done` | P1 | Battery Page crashes on load due to narrow graph segments | Fixed `coerceIn` range in `BatteryGraphView` |
 
 ---
 
@@ -83,3 +85,4 @@
 | 2026-03 | `SessionSummary` is computed, not stored | Algorithm improvements apply to all history automatically |
 | 2026-03 | Single-Activity + programmatic Views | Started simple; Compose migration is a future option |
 | 2026-03-23 | Project management via markdown files in repo | Solves context-loss across AI agent sessions |
+| 2026-03-23 | AI Agent branch strategy (`claude/` prefix) | Separates automated agent work from manual development; uses `verify-git-access-BVVfi` for connectivity reference |
