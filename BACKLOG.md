@@ -28,6 +28,7 @@
 | F-014 | `done` | Personal Records | All-time bests (most hits, longest, most efficient) | PersonalRecords computed from summaries |
 | F-015 | `done` | Daily Stats | Per-day aggregates for trend charts | DailyStats list drives bar chart |
 | F-016 | `done` | Profile Stats | Lifetime totals (sessions, hits, heater hours) | ProfileStats card reads correctly |
+| F-017 | `done` | Heat-up Estimation | Estimate time to heat based on target temp and history | Session screen shows ETA |
 
 ## Device Management (P1 — Polish)
 
@@ -70,6 +71,7 @@
 | ID | Status | Priority | Description |
 |---|---|---|---|
 | B-001 | `planned` | P1 | `fallbackToDestructiveMigration()` must be removed before public release |
+| B-002 | `done` | P2 | History Page vertical scroll locked by unwieldy charts | Fixed touch interception |
 
 ---
 

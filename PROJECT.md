@@ -83,9 +83,14 @@ The entire system follows an **event-sourcing pattern**. One table rules everyth
 
 ## UI Layer
 
-| File | Purpose |
+| File / Folder | Purpose |
 |---|---|
-| `MainActivity.kt` | Single activity (~1048 lines), all screens via programmatic views |
+| `MainActivity.kt` | Single hosting activity, minimal lifecycle and navigation |
+| `ui/LandingFragment.kt` | Home screen (Command Center / Quick stats) |
+| `ui/SessionFragment.kt` | Active session tracking, temp controls, and live graphs |
+| `ui/HistoryFragment.kt` | Analytics and historical sessions list |
+| `ui/BatteryFragment.kt` | Battery health and charging graphs |
+| `ui/SettingsFragment.kt` | App settings and preferences |
 | `SessionReportActivity.kt` | Detail view for a single session |
 | `SessionHistoryAdapter.kt` | RecyclerView adapter for session list |
 | `GraphView.kt` | Real-time temperature graph (custom View) |
