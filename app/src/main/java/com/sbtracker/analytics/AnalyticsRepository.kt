@@ -60,6 +60,20 @@ class AnalyticsRepository(private val db: AppDatabase) {
     /** Number of entries currently in the cache — exposed for diagnostics. */
     val cacheSize: Int get() = cache.size
 
+    // ── Data retention ────────────────────────────────────────────────────────
+
+    /**
+     * Delete device_status rows older than [retentionDays] days.
+     * Pass [Int.MAX_VALUE] (or use the "Never" sentinel) to skip pruning.
+     */
+    suspend fun pruneOldData(retentionDays: Int) {
+        if (retentionDays == Int.MAX_VALUE) return
+        val thresholdMs = System.currentTimeMillis() - retentionDays * 86_400_000L
+        withContext(Dispatchers.IO) {
+            db.deviceStatusDao().deleteRowsOlderThan(thresholdMs)
+        }
+    }
+
     // ── Session summary computation ───────────────────────────────────────────
 
     /**

@@ -2,20 +2,16 @@
 description: standard workflow for feature development and bug fixes
 ---
 
-1. Create a new branch with the `claude/` prefix.
-   - Example: `git checkout -b claude/F-042-unit-tests`
-2. Initialize the internal agent task.
-   - Create/update `task.md` in the artifact directory.
-3. Understand the requirements and propose an implementation plan.
-   - Create `implementation_plan.md` in the artifact directory.
-   - Request review from the user via `notify_user`.
-4. Once approved, execute the plan.
-   - Follow the `implementation_plan.md` precisely.
-   - Update `task.md` as progress is made.
-5. Verify the changes.
-   - Run relevant build and test commands (e.g., `./gradlew assembleDebug`).
-   - Create `walkthrough.md` with proof of work.
-6. Sync documentation.
-   - Run the `/documentation-sync` workflow.
-7. Notify the user of completion.
-   - Use `notify_user` with a brief summary and links to relevant artifacts (especially `walkthrough.md`).
+> **Start here**: Read `.agents/TASKS.md`. Find a `ready` task. Read its file in `.agents/tasks/`.
+> That file is your complete scope — do not read files it doesn't list.
+
+1. Pick a `ready` task from `.agents/TASKS.md` and read its task file.
+2. Create a branch: `git checkout -b claude/T-XXX-description`
+3. Follow the steps in the task file exactly.
+   - Read only the files listed under "Read these files first".
+   - Change only the files listed under "Change only these files".
+4. Run `./gradlew assembleDebug` — must pass before committing.
+5. Commit with message referencing the task ID: `T-XXX: description of change`.
+6. Run the `/documentation-sync` workflow.
+7. Mark the task `done` in `.agents/TASKS.md`.
+8. Open a PR. Title: `T-XXX — Task Title`.

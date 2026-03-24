@@ -200,15 +200,21 @@ class LandingFragment : Fragment() {
             }
         }
 
-        // Analytics & Recent
+        // Analytics tile (today count)
         viewLifecycleOwner.lifecycleScope.launch {
-            combine(vm.sessionSummaries, vm.todaySummaries) { all, today -> all to today }.collect { (all, today) ->
+            vm.todaySummaries.collect { today ->
                 tvTileAnalyticsVal.text = "${today.size} Today"
-                
-                val lastSession = all.firstOrNull()
+            }
+        }
+
+        // Last session (chronological across ALL devices)
+        viewLifecycleOwner.lifecycleScope.launch {
+            combine(vm.lastSession, vm.knownDeviceBatteries) { last, snapshots -> last to snapshots }.collect { (lastSession, snapshots) ->
                 if (lastSession != null) {
                     tvLastDate.text = relativeDate(lastSession.startTimeMs)
-                    tvLastSummary.text = "${formatDurationShort(lastSession.durationMs / 1000)} · ${lastSession.hitCount} hits"
+                    val deviceLabel = lastSession.serialNumber?.takeLast(6) ?: lastSession.deviceAddress.takeLast(5)
+                    val prefix = if (snapshots.size > 1) "[$deviceLabel] " else ""
+                    tvLastSummary.text = "${prefix}${formatDurationShort(lastSession.durationMs / 1000)} · ${lastSession.hitCount} hits"
                 } else {
                     tvLastDate.text = "No sessions yet"
                     tvLastSummary.text = "—"
@@ -224,6 +230,64 @@ class LandingFragment : Fragment() {
                         tvTileBatteryVal.text = "--%"
                         tvTileBatteryVal.setTextColor(Color.WHITE)
                     }
+                }
+            }
+        }
+
+        // Device battery snapshots (visible when 2+ devices known)
+        val llDeviceStatusRow = view.findViewById<android.widget.LinearLayout>(R.id.ll_device_status_row)
+        viewLifecycleOwner.lifecycleScope.launch {
+            vm.knownDeviceBatteries.collect { snapshots ->
+                if (snapshots.size < 2) {
+                    llDeviceStatusRow.visibility = View.GONE
+                    return@collect
+                }
+                llDeviceStatusRow.visibility = View.VISIBLE
+                llDeviceStatusRow.removeAllViews()
+
+                // Header
+                val header = TextView(requireContext()).apply {
+                    text = "DEVICES"
+                    setTextColor(Color.parseColor("#636366"))
+                    textSize = 13f
+                    letterSpacing = 0.1f
+                    setTypeface(null, android.graphics.Typeface.BOLD)
+                    setPadding(0, 0, 0, 16)
+                }
+                llDeviceStatusRow.addView(header)
+
+                for (snapshot in snapshots) {
+                    val row = android.widget.LinearLayout(requireContext()).apply {
+                        orientation = android.widget.LinearLayout.HORIZONTAL
+                        gravity = android.view.Gravity.CENTER_VERTICAL
+                        setPadding(16, 12, 16, 12)
+                    }
+                    val nameLabel = TextView(requireContext()).apply {
+                        text = snapshot.device.deviceType.ifEmpty { snapshot.device.serialNumber.takeLast(6) }
+                        setTextColor(Color.WHITE)
+                        textSize = 14f
+                        layoutParams = android.widget.LinearLayout.LayoutParams(0, android.view.ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+                    }
+                    val battLabel = TextView(requireContext()).apply {
+                        val bat = snapshot.lastBattery
+                        text = if (bat != null) "${bat}%" else "--%"
+                        setTextColor(
+                            if (bat != null && bat <= 20) Color.parseColor("#FF453A")
+                            else Color.parseColor("#80A88F")
+                        )
+                        textSize = 14f
+                        setTypeface(null, android.graphics.Typeface.BOLD)
+                    }
+                    val seenLabel = TextView(requireContext()).apply {
+                        val ms = snapshot.lastSeenMs
+                        text = if (ms != null) " · ${relativeDate(ms)}" else ""
+                        setTextColor(Color.parseColor("#636366"))
+                        textSize = 12f
+                    }
+                    row.addView(nameLabel)
+                    row.addView(battLabel)
+                    row.addView(seenLabel)
+                    llDeviceStatusRow.addView(row)
                 }
             }
         }

@@ -38,7 +38,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                app:cardBackgroundColor="#1C1C1E"
+                app:cardBackgroundColor="#0B110D"
                 app:cardCornerRadius="32dp"
                 app:cardElevation="0dp">
 
@@ -70,7 +70,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="OFFLINE"
-                            android:textColor="#8E8E93"
+                            android:textColor="#80A88F"
                             android:textSize="16sp"
                             android:letterSpacing="0.15"
                             android:textStyle="bold" />
@@ -82,7 +82,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
                         android:text="Est. ready in --s"
-                        android:textColor="#8E8E93"
+                        android:textColor="#80A88F"
                         android:textSize="12sp"
                         android:visibility="gone" />
 
@@ -107,14 +107,14 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="0"
-                                android:textColor="#0A84FF"
+                                android:textColor="#00FF41"
                                 android:textSize="28sp"
                                 android:textStyle="bold" />
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="HITS"
-                                android:textColor="#8E8E93"
+                                android:textColor="#80A88F"
                                 android:textSize="10sp"
                                 android:letterSpacing="0.05" />
                         </LinearLayout>
@@ -142,7 +142,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="ELAPSED"
-                                android:textColor="#8E8E93"
+                                android:textColor="#80A88F"
                                 android:textSize="10sp"
                                 android:letterSpacing="0.05" />
                         </LinearLayout>
@@ -170,7 +170,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="DRAIN"
-                                android:textColor="#8E8E93"
+                                android:textColor="#80A88F"
                                 android:textSize="10sp"
                                 android:letterSpacing="0.05" />
                         </LinearLayout>
@@ -185,7 +185,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:visibility="gone"
-                app:cardBackgroundColor="#0A84FF"
+                app:cardBackgroundColor="#00FF41"
                 app:cardCornerRadius="24dp"
                 app:cardElevation="8dp">
                 
@@ -274,7 +274,7 @@
                     android:orientation="vertical"
                     android:padding="16dp"
                     android:layout_marginEnd="6dp">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="HEAT-UP" android:textColor="#8E8E93" android:textSize="10sp" android:letterSpacing="0.05"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="HEAT-UP" android:textColor="#80A88F" android:textSize="10sp" android:letterSpacing="0.05"/>
                     <TextView android:id="@+id/session_tv_heat_up" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="—" android:textColor="#FFD60A" android:textSize="20sp" android:textStyle="bold" />
                 </LinearLayout>
 
@@ -286,7 +286,7 @@
                     android:orientation="vertical"
                     android:padding="16dp"
                     android:layout_marginHorizontal="6dp">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="READY" android:textColor="#8E8E93" android:textSize="10sp" android:letterSpacing="0.05"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="READY" android:textColor="#80A88F" android:textSize="10sp" android:letterSpacing="0.05"/>
                     <TextView android:id="@+id/session_tv_ready_time" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="00:00" android:textColor="#30D158" android:textSize="20sp" android:textStyle="bold" />
                 </LinearLayout>
 
@@ -298,7 +298,7 @@
                     android:orientation="vertical"
                     android:padding="16dp"
                     android:layout_marginStart="6dp">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="BATTERY" android:textColor="#8E8E93" android:textSize="10sp" android:letterSpacing="0.05"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="BATTERY" android:textColor="#80A88F" android:textSize="10sp" android:letterSpacing="0.05"/>
                     <TextView android:id="@+id/session_tv_battery" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="--%" android:textColor="#FFFFFF" android:textSize="20sp" android:textStyle="bold" />
                 </LinearLayout>
             </GridLayout>
@@ -309,7 +309,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="32dp"
                 android:text="OPERATING MODE"
-                android:textColor="#8E8E93"
+                android:textColor="#80A88F"
                 android:textSize="12sp"
                 android:letterSpacing="0.1"
                 android:textStyle="bold" />
@@ -328,7 +328,7 @@
                     android:layout_height="56dp"
                     android:layout_marginEnd="6dp"
                     android:layout_weight="1"
-                    android:backgroundTint="#2C2C2E"
+                    android:backgroundTint="#141E17"
                     android:text="NORMAL"
                     android:textColor="#FFFFFF"
                     android:textSize="13sp"
@@ -341,7 +341,7 @@
                     android:layout_height="56dp"
                     android:layout_marginHorizontal="6dp"
                     android:layout_weight="1"
-                    android:backgroundTint="#2C2C2E"
+                    android:backgroundTint="#141E17"
                     android:text="BOOST"
                     android:textColor="#FFFFFF"
                     android:textSize="13sp"
@@ -354,7 +354,7 @@
                     android:layout_height="56dp"
                     android:layout_marginStart="6dp"
                     android:layout_weight="1"
-                    android:backgroundTint="#2C2C2E"
+                    android:backgroundTint="#141E17"
                     android:text="SUPER"
                     android:textColor="#FFFFFF"
                     android:textSize="13sp"
@@ -367,7 +367,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                app:cardBackgroundColor="#1C1C1E"
+                app:cardBackgroundColor="#0B110D"
                 app:cardCornerRadius="24dp"
                 app:cardElevation="0dp">
 
@@ -403,7 +403,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Normal operating temperature"
-                                android:textColor="#8E8E93"
+                                android:textColor="#80A88F"
                                 android:textSize="12sp" />
                         </LinearLayout>
 
@@ -423,7 +423,7 @@
                                 android:background="?attr/selectableItemBackgroundBorderless"
                                 android:src="@android:drawable/ic_media_previous"
                                 android:rotation="-90"
-                                app:tint="#0A84FF" />
+                                app:tint="#00FF41" />
                             <TextView
                                 android:id="@+id/tv_target_temp"
                                 android:layout_width="64dp"
@@ -440,14 +440,14 @@
                                 android:background="?attr/selectableItemBackgroundBorderless"
                                 android:src="@android:drawable/ic_media_next"
                                 android:rotation="-90"
-                                app:tint="#0A84FF" />
+                                app:tint="#00FF41" />
                         </LinearLayout>
                     </LinearLayout>
 
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
-                        android:background="#2C2C2E"
+                        android:background="#141E17"
                         android:layout_marginHorizontal="16dp" />
 
                     <!-- Boost Group -->
@@ -480,7 +480,7 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="Temperature delta"
-                                    android:textColor="#8E8E93"
+                                    android:textColor="#80A88F"
                                     android:textSize="12sp" />
                             </LinearLayout>
 
@@ -523,7 +523,7 @@
                         <View
                             android:layout_width="match_parent"
                             android:layout_height="1dp"
-                            android:background="#2C2C2E"
+                            android:background="#141E17"
                             android:layout_marginHorizontal="16dp" />
 
                         <!-- Super Boost -->
@@ -550,7 +550,7 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="Maximum heating delta"
-                                    android:textColor="#8E8E93"
+                                    android:textColor="#80A88F"
                                     android:textSize="12sp" />
                             </LinearLayout>
 

@@ -65,4 +65,9 @@ object BleConstants {
     // ── Byte 16 — settings2 flags ─────────────────────────────────────────────
 
     const val FLAG2_PERMANENT_BLE = 0x01
+
+    // ── Hit detection ─────────────────────────────────────────────────────────
+
+    /** Temperature dip (°C) that triggers hit detection. Single source of truth. */
+    const val TEMP_DIP_THRESHOLD_C = 2
 }

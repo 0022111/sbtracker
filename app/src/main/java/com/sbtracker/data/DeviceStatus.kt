@@ -103,4 +103,8 @@ interface DeviceStatusDao {
     /** Delete all device_status rows for a device (user-initiated history clear). */
     @Query("DELETE FROM device_status WHERE deviceAddress = :address")
     suspend fun clearAll(address: String)
+
+    /** Delete rows older than [thresholdMs] across all devices (data retention pruning). */
+    @Query("DELETE FROM device_status WHERE timestampMs < :thresholdMs")
+    suspend fun deleteRowsOlderThan(thresholdMs: Long)
 }

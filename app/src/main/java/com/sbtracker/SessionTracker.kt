@@ -23,7 +23,6 @@ class SessionTracker {
         private const val CRITICAL_BATTERY_LEVEL = 15
         private const val TAPER_START       = 70
 
-        private const val TEMP_DIP_THRESHOLD = 2 // 2°C dip starts a hit
     }
 
     enum class State { IDLE, ACTIVE }
@@ -94,14 +93,14 @@ class SessionTracker {
     private var tempSamples = 0
     
     private var prevShutdownSecs = -1
+    private var prevTargetTempC  = 0
+    private var prevBoostOffsets = 0
     private var sessionEndPendingMs = -1L
 
     private var hitInProgress = false
     private var hitStartTimeMs = 0L
     private var totalHitDurationMs = 0L
     private var hitPeakTempC = 0
-
-    private var lastBaselineTemp = 0
 
     private val tempTimeMap = mutableMapOf<Int, Long>()
     private var lastUpdateMs = 0L
@@ -164,9 +163,10 @@ class SessionTracker {
             sessionStartMs = s.timestampMs; lastUpdateMs = now; startBattery = s.batteryLevel
             hitCount = 0; peakTempC = s.currentTempC; tempAccum = 0L; tempSamples = 0
             prevShutdownSecs = s.autoShutdownSeconds; sessionEndPendingMs = -1L
+            prevTargetTempC = s.targetTempC; prevBoostOffsets = s.boostOffsetC + s.superBoostOffsetC
             heatUpStartMs = s.timestampMs; heatUpEndMs = 0L; hitInProgress = false; hitStartTimeMs = 0L
             totalHitDurationMs = 0L; tempTimeMap.clear(); startHeaterRuntime = heaterRuntime
-            lastBaselineTemp = 0; heatingMs = 0L; readyMs = 0L
+            heatingMs = 0L; readyMs = 0L
         } else if (state == State.ACTIVE) {
             val deltaMs = now - lastUpdateMs
             lastUpdateMs = now
@@ -181,10 +181,12 @@ class SessionTracker {
                 tempTimeMap[s.currentTempC] = (tempTimeMap[s.currentTempC] ?: 0L) + deltaMs
 
                 // Detect Hit (Breath)
-                val timerResetTrigger = s.setpointReached && prevShutdownSecs != -1 && s.autoShutdownSeconds > prevShutdownSecs + 2
-                val tempDipTrigger    = s.setpointReached && lastBaselineTemp > 0 && (lastBaselineTemp - s.currentTempC) >= TEMP_DIP_THRESHOLD
+                // Deprioritize temperature detection due to low Bluetooth polling rate. 
+                // Rely firmly on the device's internal timer reset behavior for hits instead.
+                val isTempStable = s.targetTempC == prevTargetTempC && (s.boostOffsetC + s.superBoostOffsetC) == prevBoostOffsets
+                val timerResetTrigger = prevShutdownSecs != -1 && s.autoShutdownSeconds > prevShutdownSecs + 2 && isTempStable
 
-                if (timerResetTrigger || tempDipTrigger) {
+                if (timerResetTrigger) {
                     if (!hitInProgress) {
                         hitCount++
                         hitInProgress = true
@@ -195,19 +197,16 @@ class SessionTracker {
 
                 if (hitInProgress) {
                     hitPeakTempC = max(hitPeakTempC, s.currentTempC)
-                    val hasTempRecovered = s.currentTempC >= lastBaselineTemp - 1
                     val isTimerTickingDown = prevShutdownSecs != -1 && s.autoShutdownSeconds < prevShutdownSecs
                     
-                    if (!timerResetTrigger && (hasTempRecovered || (isTimerTickingDown && !tempDipTrigger))) {
+                    if (!timerResetTrigger && isTimerTickingDown) {
                         endHit(now)
-                    }
-                } else if (s.setpointReached) {
-                    if (lastBaselineTemp == 0 || s.currentTempC >= lastBaselineTemp) {
-                        lastBaselineTemp = s.currentTempC
                     }
                 }
 
                 prevShutdownSecs = s.autoShutdownSeconds
+                prevTargetTempC = s.targetTempC
+                prevBoostOffsets = s.boostOffsetC + s.superBoostOffsetC
                 if (s.setpointReached) {
                     readyMs += deltaMs
                     if (heatUpEndMs == 0L) heatUpEndMs = now
@@ -217,8 +216,8 @@ class SessionTracker {
             } else {
                 if (hitInProgress) endHit(now)
 
-                if (sessionEndPendingMs == -1L) sessionEndPendingMs = now
-                if (now - sessionEndPendingMs >= SESSION_END_GRACE_MS) {
+                if (sessionEndPendingMs == -1L) sessionEndPendingMs = s.timestampMs
+                if (s.timestampMs - sessionEndPendingMs >= SESSION_END_GRACE_MS) {
                     val durationSec = (sessionEndPendingMs - sessionStartMs) / 1000
                     if (durationSec >= MIN_SESSION_DURATION_SEC) {
                         // Session stores only boundary markers — all stats are computed
@@ -367,9 +366,10 @@ class SessionTracker {
         state = State.IDLE
         sessionStartMs = 0L; startBattery = 0; hitCount = 0; peakTempC = 0
         tempAccum = 0L; tempSamples = 0; prevShutdownSecs = -1; sessionEndPendingMs = -1L
+        prevTargetTempC = 0; prevBoostOffsets = 0
         heatUpStartMs = 0L; heatUpEndMs = 0L; hitInProgress = false; hitStartTimeMs = 0L
         totalHitDurationMs = 0L; tempTimeMap.clear(); startHeaterRuntime = 0
-        lastBaselineTemp = 0; heatingMs = 0L; readyMs = 0L
+        heatingMs = 0L; readyMs = 0L
     }
 
     private var disconnectedMs = 0L

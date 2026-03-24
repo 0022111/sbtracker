@@ -112,6 +112,24 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _dayStartHour = MutableStateFlow(4)
     val dayStartHour: StateFlow<Int> = _dayStartHour.asStateFlow()
 
+    fun setDayStartHour(hour: Int) {
+        val next = hour.coerceIn(0, 23)
+        _dayStartHour.value = next
+        appPrefs.edit().putInt("day_start_hour", next).apply()
+    }
+
+    /**
+     * How many days of device_status rows to retain. [Int.MAX_VALUE] means "Never prune".
+     * Options: 30 / 60 / 90 / 180 / Never. Default: 90.
+     */
+    private val _retentionDays = MutableStateFlow(90)
+    val retentionDays: StateFlow<Int> = _retentionDays.asStateFlow()
+
+    fun setRetentionDays(days: Int) {
+        _retentionDays.value = days
+        appPrefs.edit().putInt("retention_days", days).apply()
+    }
+
     // Alerts State
     private var lastSetpointReached = false
     private var lastCharge80Reached = false
@@ -129,6 +147,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val deviceType: String
     )
 
+    data class DeviceBatterySnapshot(
+        val device: SavedDevice,
+        val lastBattery: Int?,
+        val lastSeenMs: Long?
+    )
+
     private val devicePrefs by lazy {
         getApplication<Application>().getSharedPreferences("known_devices_v1", Context.MODE_PRIVATE)
     }
@@ -139,6 +163,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _knownDevices = MutableStateFlow<List<SavedDevice>>(emptyList())
     val knownDevices: StateFlow<List<SavedDevice>> = _knownDevices.asStateFlow()
 
+    private val _knownDeviceBatteries = MutableStateFlow<List<DeviceBatterySnapshot>>(emptyList())
+    val knownDeviceBatteries: StateFlow<List<DeviceBatterySnapshot>> = _knownDeviceBatteries.asStateFlow()
+
     private val notificationManager = application.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     private val CHANNEL_ID = "device_alerts"
 
@@ -147,10 +174,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         _dimOnChargeEnabled.value = appPrefs.getBoolean("dim_on_charge", false)
         _isCelsius.value          = appPrefs.getBoolean("is_celsius", true)
         _dayStartHour.value       = appPrefs.getInt("day_start_hour", 4)
+        _retentionDays.value      = appPrefs.getInt("retention_days", 90)
+
+        viewModelScope.launch {
+            analyticsRepo.pruneOldData(_retentionDays.value)
+        }
 
         // Restore last-known device so history is accessible before connecting
         _activeDevice.value = loadLastDevice()
         _knownDevices.value = loadAllKnownDevices()
+
+        // Load per-device battery snapshots for the landing page
+        viewModelScope.launch { refreshKnownDeviceBatteries() }
 
         createNotificationChannel()
         setupLifecycleObserver()
@@ -258,6 +293,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                                     val endTimeMs = System.currentTimeMillis()
                                     val startTimeMs = endTimeMs - (gapMinutes * 60_000L)
                                     
+                                    val existingId = db.sessionDao().findExistingSessionNear(address, startTimeMs)
+                                    if (existingId != null) return@withContext
+
                                     val sessionId = db.sessionDao().insert(
                                         Session(
                                             deviceAddress = address,
@@ -386,7 +424,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 val duration = endMs - startMs
                 if (duration < minDurationMs) return
 
-                val existingId = db.sessionDao().getIdForBoundary(address, startMs, endMs)
+                val existingId = db.sessionDao().findExistingSessionNear(address, startMs)
                 if (existingId != null) return
 
                 val sessionId = db.sessionDao().insert(
@@ -672,6 +710,22 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }.sortedBy { it.serialNumber }
     }
 
+    /** Refresh per-device last-known battery readings from the DB. */
+    private suspend fun refreshKnownDeviceBatteries() {
+        val devices = _knownDevices.value
+        if (devices.isEmpty()) return
+        _knownDeviceBatteries.value = withContext(Dispatchers.IO) {
+            devices.map { device ->
+                val latest = db.deviceStatusDao().getLatestForAddress(device.deviceAddress)
+                DeviceBatterySnapshot(
+                    device = device,
+                    lastBattery = latest?.batteryLevel,
+                    lastSeenMs = latest?.timestampMs
+                )
+            }
+        }
+    }
+
     // ── History sort / filter ──
 
     enum class SessionSort { DATE, HITS, DURATION, DRAIN, TEMP }
@@ -725,6 +779,23 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     /**
+     * All sessions across all devices — used for cross-device "today" and "last session".
+     * Not filter-aware; always reflects the complete history.
+     */
+    private val allSessionSummaries: StateFlow<List<SessionSummary>> =
+        db.sessionDao().observeAllSessions()
+            .map { sessions -> analyticsRepo.getSessionSummaries(sessions) }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    /**
+     * Most recent session across ALL devices — drives the "Last Activity" card on the landing page.
+     * Always chronological, independent of any device filter.
+     */
+    val lastSession: StateFlow<SessionSummary?> =
+        allSessionSummaries.map { it.firstOrNull() }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    /**
      * Active-device summaries (not filter-aware) — used for insights and profile so they
      * always reflect the connected device regardless of the history filter.
      */
@@ -773,11 +844,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     /**
-     * Sessions for the active device that fall within the current "day window"
+     * Sessions across ALL devices that fall within the current "day window"
      * (from [_dayStartHour] today until now).  Drives the TODAY card on the landing page.
+     * Uses allSessionSummaries so every known device contributes to the count.
      */
     val todaySummaries: StateFlow<List<SessionSummary>> =
-        combine(deviceSessionSummaries, _dayStartHour) { summaries, startHour ->
+        combine(allSessionSummaries, _dayStartHour) { summaries, startHour ->
             // Fully-qualify to avoid any accidental Calendar shadowing/import differences.
             val c = java.util.Calendar.getInstance()
             // If the clock hasn't yet passed the day-start hour, the window began yesterday.
@@ -856,10 +928,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setGraphPeriod(p: GraphPeriod) { _graphPeriod.value = p }
 
-    fun setDayStartHour(hour: Int) {
-        _dayStartHour.value = hour
-        appPrefs.edit().putInt("day_start_hour", hour).apply()
-    }
+
 
     private fun computeGraphWindowStart(period: GraphPeriod, startHour: Int): Long {
         return if (period == GraphPeriod.DAY) {
@@ -1117,9 +1186,141 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    // pruneDatabase() removed — device_status, extended_data, and device_info are
-    // retained indefinitely as the raw source-of-truth log.  History is only ever
-    // cleared by an explicit user action (clearSessionHistory).
+    // ── Synthetic test device (development only) ─────────────────────────────
+
+    companion object {
+        const val TEST_DEVICE_ADDRESS = "AA:BB:CC:DD:EE:FF"
+        const val TEST_DEVICE_SERIAL  = "TEST00001"
+        const val TEST_DEVICE_TYPE    = "Crafty+"
+    }
+
+    /**
+     * Inject a synthetic "Crafty+" device with sessions, hits, and status data.
+     * Exercises the entire multi-device pipeline without a second physical device.
+     */
+    fun injectTestDevice() {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                // 1. Device identity
+                db.deviceInfoDao().upsert(
+                    DeviceInfo(
+                        deviceAddress = TEST_DEVICE_ADDRESS,
+                        lastSeenMs = System.currentTimeMillis(),
+                        serialNumber = TEST_DEVICE_SERIAL,
+                        colorIndex = 2,
+                        deviceType = TEST_DEVICE_TYPE
+                    )
+                )
+
+                // 2. Extended data
+                db.extendedDataDao().upsert(
+                    ExtendedData(
+                        deviceAddress = TEST_DEVICE_ADDRESS,
+                        lastUpdatedMs = System.currentTimeMillis(),
+                        heaterRuntimeMinutes = 420,
+                        batteryChargingTimeMinutes = 180
+                    )
+                )
+
+                // 3. Generate 5 sessions spread over the past 3 days
+                val now = System.currentTimeMillis()
+                val sessionDefs = listOf(
+                    now - 2 * 3600_000L to (4 * 60_000L),   // 2 hours ago, 4 min
+                    now - 8 * 3600_000L to (6 * 60_000L),   // 8 hours ago, 6 min
+                    now - 26 * 3600_000L to (3 * 60_000L),  // yesterday, 3 min
+                    now - 50 * 3600_000L to (5 * 60_000L),  // 2 days ago, 5 min
+                    now - 60 * 3600_000L to (8 * 60_000L)   // 2.5 days ago, 8 min
+                )
+
+                for ((startMs, durationMs) in sessionDefs) {
+                    val endMs = startMs + durationMs
+
+                    // Check for existing
+                    if (db.sessionDao().findExistingSessionNear(TEST_DEVICE_ADDRESS, startMs) != null) continue
+
+                    // Insert boundary status rows
+                    val baseBattery = (40..90).random()
+                    val drain = (3..12).random()
+                    val targetTemp = listOf(175, 180, 185, 190, 195).random()
+                    fun makeStatus(ts: Long, temp: Int, battery: Int, mode: Int, setpoint: Boolean) =
+                        DeviceStatus(
+                            timestampMs = ts, deviceAddress = TEST_DEVICE_ADDRESS,
+                            deviceType = TEST_DEVICE_TYPE, currentTempC = temp,
+                            targetTempC = targetTemp, boostOffsetC = 0, superBoostOffsetC = 0,
+                            batteryLevel = battery, heaterMode = mode, isCharging = false,
+                            setpointReached = setpoint, autoShutdownSeconds = 120,
+                            isCelsius = true, vibrationEnabled = true,
+                            chargeCurrentOptimization = false, chargeVoltageLimit = false,
+                            permanentBluetooth = true, boostVisualization = false
+                        )
+
+                    db.deviceStatusDao().insert(makeStatus(startMs, 25, baseBattery, 1, false))
+                    db.deviceStatusDao().insert(makeStatus(startMs + 30_000L, targetTemp, baseBattery - 1, 1, true))
+                    db.deviceStatusDao().insert(makeStatus(endMs, targetTemp, baseBattery - drain, 0, false))
+
+                    val sessionId = db.sessionDao().insert(
+                        Session(
+                            deviceAddress = TEST_DEVICE_ADDRESS,
+                            serialNumber = TEST_DEVICE_SERIAL,
+                            startTimeMs = startMs,
+                            endTimeMs = endMs
+                        )
+                    )
+
+                    // Insert hits
+                    val hitCount = (1..4).random()
+                    val hitSpacing = durationMs / (hitCount + 1)
+                    for (h in 1..hitCount) {
+                        db.hitDao().insert(
+                            Hit(
+                                sessionId = sessionId,
+                                deviceAddress = TEST_DEVICE_ADDRESS,
+                                startTimeMs = startMs + h * hitSpacing,
+                                durationMs = (2000L..6000L).random(),
+                                peakTempC = targetTemp + (0..5).random()
+                            )
+                        )
+                    }
+                }
+            }
+
+            // Register in known devices prefs
+            val serials = devicePrefs.getStringSet("known_serials", mutableSetOf())!!.toMutableSet()
+            serials.add(TEST_DEVICE_SERIAL)
+            devicePrefs.edit()
+                .putStringSet("known_serials", serials)
+                .putString("dev_${TEST_DEVICE_SERIAL}_addr", TEST_DEVICE_ADDRESS)
+                .putString("dev_${TEST_DEVICE_SERIAL}_type", TEST_DEVICE_TYPE)
+                .apply()
+            _knownDevices.value = loadAllKnownDevices()
+            analyticsRepo.clearCache()
+            refreshKnownDeviceBatteries()
+        }
+    }
+
+    /** Remove the synthetic test device and all its data. */
+    fun removeTestDevice() {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                db.hitDao().clearAll(TEST_DEVICE_ADDRESS)
+                db.sessionDao().clearHistory(TEST_DEVICE_SERIAL, TEST_DEVICE_ADDRESS)
+                db.chargeCycleDao().clearAll(TEST_DEVICE_ADDRESS)
+                db.deviceStatusDao().clearAll(TEST_DEVICE_ADDRESS)
+                db.extendedDataDao().clearAll(TEST_DEVICE_ADDRESS)
+                db.deviceInfoDao().clearAll(TEST_DEVICE_ADDRESS)
+            }
+            val serials = devicePrefs.getStringSet("known_serials", mutableSetOf())!!.toMutableSet()
+            serials.remove(TEST_DEVICE_SERIAL)
+            devicePrefs.edit()
+                .putStringSet("known_serials", serials)
+                .remove("dev_${TEST_DEVICE_SERIAL}_addr")
+                .remove("dev_${TEST_DEVICE_SERIAL}_type")
+                .apply()
+            _knownDevices.value = loadAllKnownDevices()
+            analyticsRepo.clearCache()
+            refreshKnownDeviceBatteries()
+        }
+    }
 
     override fun onCleared() {
         super.onCleared()
