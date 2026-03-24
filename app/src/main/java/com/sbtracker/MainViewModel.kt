@@ -178,6 +178,7 @@ class MainViewModel @Inject constructor(
         _isCelsius.value          = appPrefs.getBoolean("is_celsius", true)
         _dayStartHour.value       = appPrefs.getInt("day_start_hour", 4)
         _retentionDays.value      = appPrefs.getInt("retention_days", 90)
+        preDimBrightness          = appPrefs.getInt("pre_dim_brightness", -1)
 
         viewModelScope.launch {
             analyticsRepo.pruneOldData(_retentionDays.value)
@@ -590,7 +591,15 @@ class MainViewModel @Inject constructor(
             val current = _displaySettings.value?.brightness ?: -1
             if (current > 1) {
                 preDimBrightness = current
+                appPrefs.edit().putInt("pre_dim_brightness", current).apply()
                 applyBrightnessAndRefresh(1)
+            }
+        } else if (!next && _latestStatus.value?.isCharging == true) {
+            // If disabling while currently charging (and presumably dimmed), restore now
+            if (preDimBrightness > 1) {
+                applyBrightnessAndRefresh(preDimBrightness)
+                preDimBrightness = -1
+                appPrefs.edit().putInt("pre_dim_brightness", -1).apply()
             }
         }
     }
@@ -606,6 +615,7 @@ class MainViewModel @Inject constructor(
             val current = _displaySettings.value?.brightness ?: -1
             if (current > 1) {
                 preDimBrightness = current
+                appPrefs.edit().putInt("pre_dim_brightness", current).apply()
                 applyBrightnessAndRefresh(1)
             }
         } else if (!s.isCharging && wasCharging) {
@@ -613,6 +623,7 @@ class MainViewModel @Inject constructor(
             if (preDimBrightness > 1) {
                 applyBrightnessAndRefresh(preDimBrightness)
                 preDimBrightness = -1
+                appPrefs.edit().putInt("pre_dim_brightness", -1).apply()
             }
         }
         wasCharging = s.isCharging
@@ -1090,7 +1101,19 @@ class MainViewModel @Inject constructor(
         setBoostTimeout(next)
     }
 
-    fun setBrightness(level: Int) = bleManager.sendWrite(BlePacket.buildSetBrightness(level.coerceIn(1, 9)))
+    fun setBrightness(level: Int) {
+        val clamped = level.coerceIn(1, 9)
+        bleManager.sendWrite(BlePacket.buildSetBrightness(clamped))
+        
+        // If the user manually changes brightness while "Dim on Charge" is active and currently 
+        // charging (meaning we are in the dimmed state), we treat this as a manual override 
+        // to the pre-dim level. This ensures that when they unplug, it stays at this new 
+        // level rather than snapping back to the old one.
+        if (_dimOnChargeEnabled.value && _latestStatus.value?.isCharging == true) {
+            preDimBrightness = clamped
+            appPrefs.edit().putInt("pre_dim_brightness", clamped).apply()
+        }
+    }
 
     fun setVibrationLevel(level: Int) = bleManager.sendWrite(BlePacket.buildSetVibrationLevel(level.coerceIn(0, 100)))
 

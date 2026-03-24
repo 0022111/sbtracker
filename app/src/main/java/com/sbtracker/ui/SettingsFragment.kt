@@ -66,7 +66,7 @@ class SettingsFragment : Fragment() {
                 .show()
         }
         binding.rowRetentionDays.setOnClickListener {
-            val options = arrayOf("30 days", "60 days", "90 days", "180 days", "Never")
+            val options = arrayOf("Delete after 30 days", "Delete after 60 days", "Delete after 90 days", "Delete after 180 days", "Never")
             val values  = intArrayOf(30, 60, 90, 180, Int.MAX_VALUE)
             android.app.AlertDialog.Builder(requireContext())
                 .setTitle("Data Retention")
@@ -131,7 +131,7 @@ class SettingsFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             vm.retentionDays.collect { days ->
-                tvRetentionValue.text = if (days == Int.MAX_VALUE) "Never" else "$days days"
+                tvRetentionValue.text = if (days == Int.MAX_VALUE) "Never" else "Delete after $days days"
             }
         }
 

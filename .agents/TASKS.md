@@ -40,6 +40,7 @@ main  ← stable, merges only from dev
 | T-025 | `done` | Fix Day Start Hour Subtitle | [T-025](tasks/T-025-fix-day-start-subtitle.md) | — |
 | T-028 | `done` | Log Silent Exception Catches | [T-028](tasks/T-028-log-silent-exceptions.md) | — |
 | T-029 | `done` | Persist Battery Card Expand State | [T-029](tasks/T-029-persist-battery-expand-state.md) | — |
+| T-033 | `done` | Squash Bugs B-001, B-004, B-009 | [T-033](tasks/T-033-squash-bugs.md) | — |
 
 ## Phase 1 — Foundation
 

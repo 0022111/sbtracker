@@ -2,6 +2,9 @@
 
 ### [Unreleased]
 - **Added** (Orchestration) Formalized overhaul tasks for `MainViewModel` decomposition, Jetpack Compose migration, and BLE state machine refactoring.
+- **Fixed** (B-001) Removed `fallbackToDestructiveMigration()` from `AppModule` to enforce explicit schema migrations.
+- **Improved** (B-004) Data retention setting now explicitly states "Delete after X days" for better clarity.
+- **Fixed** (B-009) Dim-on-charge logic now correctly handles app restarts (persisted) and manual brightness overrides while charging.
 - **Fixed** (T-028) Silent exceptions in `BleCommandQueue` and `MainViewModel` are now logged to logcat for easier troubleshooting.
 
 All notable changes to this project. Agents: append to the top of the relevant section after completing work.
