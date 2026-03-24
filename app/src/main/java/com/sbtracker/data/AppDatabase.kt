@@ -41,22 +41,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun chargeCycleDao():  ChargeCycleDao
     abstract fun hitDao():          HitDao
 
-    companion object {
-        @Volatile
-        private var INSTANCE: AppDatabase? = null
-
-        fun getInstance(context: Context): AppDatabase =
-            INSTANCE ?: synchronized(this) {
-                INSTANCE ?: Room.databaseBuilder(
-                    context.applicationContext,
-                    AppDatabase::class.java,
-                    "sbtracker.db"
-                )
-                    // Safety net during development — wipes DB on unrecognised version.
-                    // TODO: Remove before first public release; use explicit migrations only.
-                    .fallbackToDestructiveMigration()
-                    .build()
-                    .also { INSTANCE = it }
-            }
-    }
+    abstract fun hitDao():          HitDao
 }
