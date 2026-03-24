@@ -83,6 +83,11 @@ class HistoryFragment : Fragment() {
         val tvSortDrain    = view.findViewById<TextView>(R.id.tv_sort_drain)
         val tvSortTemp     = view.findViewById<TextView>(R.id.tv_sort_temp)
 
+        // ── Health & Intake card ──────────────────────────────────────────────
+        val tvIntakeTotalAll = view.findViewById<TextView>(R.id.tvIntakeTotalAll)
+        val tvIntakeWeek     = view.findViewById<TextView>(R.id.tvIntakeWeek)
+        val tvIntakeSplit    = view.findViewById<TextView>(R.id.tvIntakeSplit)
+
         // Period toggle
         val tvPeriodDay  = view.findViewById<TextView>(R.id.tv_graph_period_day)
         val tvPeriodWeek = view.findViewById<TextView>(R.id.tv_graph_period_week)
@@ -274,6 +279,15 @@ class HistoryFragment : Fragment() {
                 val chartPeriod = if (period == MainViewModel.GraphPeriod.WEEK)
                     HistoryBarChartView.Period.WEEK else HistoryBarChartView.Period.DAY
                 barChart.setData(daily, charges, chartPeriod)
+            }
+        }
+
+        // ── Health & Intake stats ─────────────────────────────────────────────
+        viewLifecycleOwner.lifecycleScope.launch {
+            vm.intakeStats.collect { stats ->
+                tvIntakeTotalAll.text = "%.2fg".format(stats.totalGramsAllTime)
+                tvIntakeWeek.text     = "%.2fg".format(stats.totalGramsThisWeek)
+                tvIntakeSplit.text    = "${stats.capsuleSessionCount}·${stats.freePackSessionCount}"
             }
         }
 
