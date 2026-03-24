@@ -320,7 +320,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                                 }
                             }
                         } catch (e: Exception) {
-                            // Ignore
+                            android.util.Log.e("MainViewModel", "Offline gap detection failed", e)
                         }
                     }
                 }
