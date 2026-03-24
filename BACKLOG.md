@@ -51,8 +51,8 @@
 | F-032 | `done` | Session Detail Graph | Per-session temperature replay | `SessionGraphView` on `SessionReportActivity` |
 | F-033 | `done` | History Bar Chart | Daily sessions bar chart | `HistoryBarChartView` displays with tap interaction |
 | F-034 | `done` | History Timeline | Visual timeline of sessions | `HistoryTimelineView` renders |
-| F-035 | `under review` | UI Polish Pass | Consistent styling, colours, spacing | All screens feel cohesive and premium |
-| F-036 | `under review` | Settings Screen | Dedicated settings (day start hour, units, alerts) | Currently scattered in ViewModel, needs proper UI |
+| F-035 | `done` | UI Polish Pass | Consistent styling, colours, spacing | All screens feel cohesive and premium |
+| F-036 | `done` | Settings Screen | Dedicated settings (day start hour, units, alerts) | Currently scattered in ViewModel, needs proper UI |
 
 ## Quality & Infra (P2 — Foundation for Scale)
 
@@ -88,3 +88,4 @@
 | 2026-03-23 | Project management via markdown files in repo | Solves context-loss across AI agent sessions |
 | 2026-03-23 | AI Agent branch strategy (`claude/` prefix) | Separates automated agent work from manual development; uses `verify-git-access-BVVfi` for connectivity reference |
 | 2026-03-23 | GitHub Integrity & PR Workflow | Enforces build verification and structured documentation for all agent contributions |
+| 2026-03-24 | Multi-device infrastructure enhancements | Added synthetic test device and cross-device landing page aggregates for better testability and transparency. |

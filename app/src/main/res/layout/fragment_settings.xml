@@ -578,5 +578,25 @@
             android:textColor="#30D158"
             app:cornerRadius="16dp" />
 
+        <Button
+            android:id="@+id/btn_dev_inject_test_device"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginTop="12dp"
+            android:backgroundTint="#0B110D"
+            android:text="DEV: INJECT TEST DEVICE"
+            android:textColor="#0A84FF"
+            app:cornerRadius="16dp" />
+
+        <Button
+            android:id="@+id/btn_dev_remove_test_device"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginTop="12dp"
+            android:backgroundTint="#0B110D"
+            android:text="DEV: REMOVE TEST DEVICE"
+            android:textColor="#FF453A"
+            app:cornerRadius="16dp" />
+
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

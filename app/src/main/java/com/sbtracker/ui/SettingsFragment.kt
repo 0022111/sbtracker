@@ -62,6 +62,14 @@ class SettingsFragment : Fragment() {
                 vm.rebuildSessionHistoryFromLogs()
             }
         }
+        view.findViewById<Button>(R.id.btn_dev_inject_test_device).setOnClickListener {
+            vm.injectTestDevice()
+            android.widget.Toast.makeText(requireContext(), "Test Device Injected", android.widget.Toast.LENGTH_SHORT).show()
+        }
+        view.findViewById<Button>(R.id.btn_dev_remove_test_device).setOnClickListener {
+            vm.removeTestDevice()
+            android.widget.Toast.makeText(requireContext(), "Test Device Removed", android.widget.Toast.LENGTH_SHORT).show()
+        }
 
         sbBrightness.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {

@@ -2,6 +2,13 @@
 
 All notable changes to this project. Agents: append to the top of the relevant section after completing work.
 
+### 2026-03-24 01:00 — Multi-Device Infrastructure (Antigravity)
+- **Implemented** synthetic test device injector in Settings to simulate multi-device scenarios without extra hardware.
+- **Improved** landing page with aggregated session and battery data across all known devices.
+- **Added** "Last Activity" chronological tracking across devices with ownership identifiers (e.g., `[TEST001]`).
+- **Added** per-device battery status row on the landing page when multiple devices are remembered.
+- **Added** clear UI indicators for analytics scope on the History page when viewing "All" devices.
+
 ### 2026-03-23 20:38 — Hit Detection Reliability (Antigravity)
 - **Improved** hit detection by removing strict `setpointReached` requirement, allowing hits to register during temperature dips.
 - **Fixed** false positives on hit detection by tracking target temperature changes and boost activations.
