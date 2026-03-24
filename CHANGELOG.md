@@ -1,5 +1,19 @@
 # SBTracker — Changelog
 
+### 2026-03-24 14:15 — PR Workflow Documentation & Enforcement (Claude)
+- **PR to `dev`** (Origin: Workflow enforcement initiative)
+- **Created** `.agents/WORKFLOW_ENFORCEMENT.md` — comprehensive, non-negotiable rules for all agent work:
+  - Mandatory PR procedure for all feature code
+  - Meta-file direct-push rules (isolated commits only)
+  - Parallel agent coordination principles
+  - Violation detection & recovery procedures
+- **Enhanced** `AGENT_INFO.md` with clearer branching rules, role definitions, and slash command mappings
+- **Added** `.agents/QUICK_REFERENCE.md` — visual TL;DR guide for each agent role (Orchestrator, Planner, Worker)
+- **Created** `.git/hooks/pre-push` — automated git hook preventing direct pushes to `dev`/`main` (feature branches allowed)
+- **Added** `.agents/setup-hooks.sh` — one-command script to enable git hooks in new agent sessions
+- **Mapped workflows to slash commands**: `/morpheus` (orchestrator), `/plan-feature`, `/intake`, `/orchestrate`
+- **Enforces**: Feature branch → PR to dev → Changelog update → Meta-file sync
+
 ### 2026-03-24 — T-007: Decompose MainViewModel (Morpheus)
 - **PR to `dev`** (Origin: T-007 / Phase 1 Foundation)
 - **Decomposed** `MainViewModel` (~1420 lines) into 5 focused ViewModels:

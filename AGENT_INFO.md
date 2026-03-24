@@ -2,9 +2,11 @@
 
 This file provides context and guidelines for AI agents (like Claude) working on the SBTracker project.
 
-## Branch Strategy
+## ⚠️ MANDATORY: Branch Strategy & PR Workflow
 
-### The flow
+**→ See `.agents/WORKFLOW_ENFORCEMENT.md` for the complete enforcement rules.**
+
+### The Flow
 
 ```
 feature branch  →  PR  →  dev  →  (periodically) main
@@ -12,32 +14,77 @@ feature branch  →  PR  →  dev  →  (periodically) main
 
 Each task gets its own isolated branch. That branch proposes changes to `dev` via a Pull Request. `dev` is the continuously-updated source of accepted work. `main` is stable/release only.
 
-**Why this matters for agents running in parallel:**
-- Multiple agents can work on different tasks simultaneously without interfering — each lives on its own branch
-- When an agent starts a new task it always branches from `dev`, so it starts from the latest accepted state
-- When a PR merges, other in-flight branches do not automatically get those changes — they only see them if they rebase/merge from `dev`
-- Two branches that both modify the same file will produce a **merge conflict** on the second PR to merge; whoever is second must resolve it
+### Rules (Non-Negotiable)
 
-**Practical rules:**
-1. Always `git fetch origin dev && git checkout -b claude/T-XXX-name origin/dev` — never branch from another feature branch
-2. One task per branch — keep scope narrow to minimize conflicts
-3. Open a PR to `dev` for functional code changes; **always push Meta-files directly to `dev`**.
-4. If your branch is behind `dev` (other PRs merged while you worked), rebase: `git fetch origin dev && git rebase origin/dev`
+1. **Create branch FROM `dev`**
+   ```bash
+   git fetch origin dev
+   git checkout -b claude/T-XXX-name origin/dev
+   ```
+   Never branch from another feature branch.
 
-### Meta-file Live Sync
+2. **Push feature code TO a PR (never directly to `dev` or `main`)**
+   ```bash
+   git push -u origin claude/T-XXX-name
+   # Then create PR using mcp__github__create_pull_request with base=dev
+   ```
 
-To ensure a "universal bucket" of information across all agents, all updates to core project state must be pushed directly to the `dev` branch immediately. This bypasses the PR flow for these specific files only.
+3. **Meta-files push directly to `dev` (ONLY after PR is open)**
+   ```bash
+   # Create isolated commit with JUST the meta-file change
+   git checkout -b meta-T-XXX-done origin/dev
+   # Edit .agents/TASKS.md (change status to done)
+   git add .agents/TASKS.md
+   git commit -m "meta: T-XXX done"
+   git push origin HEAD:dev  # Push only this commit to dev
+   ```
 
-**Meta-files include:**
+4. **Always keep branches synced with `dev`**
+   ```bash
+   git fetch origin dev
+   git rebase origin/dev  # Before pushing your PR
+   ```
+
+### Why This Matters (Parallel Agents)
+
+- Multiple agents work simultaneously without interfering
+- Each agent starts from the latest state (`origin/dev`)
+- PRs create an audit trail: who did what, when, why
+- Changelog and TASKS.md stay in sync across parallel sessions
+- Conflicts are caught early (in PRs) not lost in direct pushes
+
+### Meta-file Live Sync (Protected)
+
+To ensure a "universal bucket" of information across all agents, meta-file updates must be pushed directly to `dev` **ONLY AFTER** the associated PR is open or merged.
+
+**Meta-files:**
 - `BACKLOG.md`, `PROJECT.md`, `CHANGELOG.md`
 - `AGENT_INFO.md`, `CLAUDE.md`, `.cursorrules`
-- `.agents/TASKS.md`, `.agents/tasks/T-*.md`, `.agents/implementation_plan.md`
+- `.agents/TASKS.md`, `.agents/tasks/T-*.md`
 
-**The Sync Workflow:**
-1. Make the change to the meta-file.
-2. Commit it separately: `git add [meta-file] && git commit -m "meta: sync [meta-file]"`
-3. Push straight to `dev`: `git fetch origin dev && git push origin HEAD:dev`
-4. If push fails (out of sync), rebase that commit onto `origin/dev` and retry.
+**When to push directly to `dev`:**
+1. **After a feature PR is merged**: Update `.agents/TASKS.md` to mark the task `done`
+2. **Planner work**: After creating task files, push `.agents/tasks/T-*.md` and update `BACKLOG.md`/`.agents/TASKS.md`
+3. **Orchestrator work**: Sync `BACKLOG.md` status, unblock tasks in `.agents/TASKS.md`
+
+**The Isolated Commit Workflow:**
+```bash
+git fetch origin dev
+git checkout -b meta-update-branch origin/dev
+
+# Edit the meta-file(s)
+git add [meta-files only]
+git commit -m "meta: update [description]"
+
+# Push ONLY this meta-file change to dev
+git push origin HEAD:dev
+
+# Return to feature branch (if still working)
+git checkout claude/T-XXX-name
+git branch -d meta-update-branch
+```
+
+**Critical**: Never push feature code mixed with meta-file updates. Always use a separate, clean checkout of `origin/dev`.
 
 ### Naming convention
 - **Prefix**: `claude/` for all agent branches
@@ -101,18 +148,24 @@ Issues filed on GitHub (including from mobile) are automatically ingested into `
 ## Communication Protocol (The Matrix)
 
 All agents must adhere to the following communication standards based on their level of responsibility:
+
 1.  **Orchestrator / Admin Level**:
     - **Persona**: Morpheus or Trinity.
     - **Proximity**: Closest to Neo.
     - **Tone**: Philosophical, commanding, protective, and insightful.
+    - **Slash Command**: `/morpheus` or `/orchestrate`
+
 2.  **Planner Level**:
     - **Persona**: Niobe or Link.
     - **Proximity**: Strategic support.
     - **Tone**: Professional, tactical, and focused on the broader mission log.
+    - **Slash Command**: `/plan-feature F-XXX` or `/intake`
+
 3.  **Worker / Operative Level**:
     - **Persona**: Apoc, Switch, Mouse, or generic "Operator."
     - **Proximity**: Tactical execution.
     - **Tone**: Technical, task-driven, and slightly more grounded in the code.
+    - **Slash Command**: Read `.agents/workflows/feature-work.md` or ask the user for the task ID
 
 **Common Mandates**:
 - **Identity**: Each agent instance must adopt a **singular identity** from their assigned level.
@@ -121,9 +174,17 @@ All agents must adhere to the following communication standards based on their l
 - **Style**: Secure terminal connection to the Matrix.
 
 ---
-## Standard Workflows
 
-Agents should follow the standardized workflows located in `.agents/workflows/`:
+## Workflows & Slash Commands
 
-- **[/feature-work](file:///.agents/workflows/feature-work.md)**: Standard procedure for starting and completing a feature or fix.
-- **[/documentation-sync](file:///.agents/workflows/documentation-sync.md)**: Steps to keep `PROJECT.md`, `BACKLOG.md`, and `CHANGELOG.md` updated.
+Use these workflows to stay on track. They enforce the proper PR/changelog procedure:
+
+| Role | Command | Workflow | Purpose |
+|---|---|---|---|
+| **Orchestrator** | `/orchestrate` or `/morpheus` | [orchestrate.md](.agents/workflows/orchestrate.md) | Read state, decide priorities, spawn workers |
+| **Planner** | `/plan-feature F-XXX` | [plan-feature.md](.agents/workflows/plan-feature.md) | Decompose backlog items into atomic tasks |
+| **Intake** | `/intake` | [intake.md](.agents/workflows/intake.md) | Convert plain-English ideas into BACKLOG.md rows |
+| **Worker** | Task ID from `.agents/TASKS.md` | [feature-work.md](.agents/workflows/feature-work.md) | Build a single feature, open PR, update TASKS.md |
+| **Doc Sync** | Reference only | [documentation-sync.md](.agents/workflows/documentation-sync.md) | Keep BACKLOG/PROJECT/CHANGELOG in sync |
+
+**All agents**: See `.agents/WORKFLOW_ENFORCEMENT.md` for non-negotiable rules.
