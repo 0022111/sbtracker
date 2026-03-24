@@ -1,5 +1,9 @@
 # SBTracker — Changelog
 
+### 2026-03-24 — Remove Duplicate CMD_FIRMWARE Constant (Direct push to dev)
+- **Fixed** Removed `CMD_FIRMWARE` (0x02) from `BleConstants` — was identical to `CMD_INITIAL_RESET` after protocol reconciliation in PR #26
+- **Updated** `BlePacket.parseFirmware()` and `BleManager` notification router to reference `CMD_INITIAL_RESET` instead
+
 ### 2026-03-24 13:15 — Meta-file Live Sync (Antigravity)
 - **Direct push to `dev`** (Origin: Orchestration)
 - **Added** "Meta-file Live Sync" policy to ensure core project state (`BACKLOG.md`, `TASKS.md`, agent instructions) is always current on `dev` across all branches.

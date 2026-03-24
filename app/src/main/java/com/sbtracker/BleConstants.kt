@@ -27,7 +27,6 @@ object BleConstants {
 
     const val CMD_STATUS:               Byte = 0x01
     const val CMD_INITIAL_RESET:        Byte = 0x02
-    const val CMD_FIRMWARE:             Byte = 0x02
     const val CMD_EXTENDED:             Byte = 0x04
     const val CMD_IDENTITY:             Byte = 0x05
     const val CMD_BRIGHTNESS_VIBRATION: Byte = 0x06

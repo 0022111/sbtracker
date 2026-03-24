@@ -123,7 +123,7 @@ object BlePacket {
 
     fun parseFirmware(bytes: ByteArray): String? {
         if (bytes.size < 5) return null
-        if (bytes[0] != BleConstants.CMD_FIRMWARE) return null
+        if (bytes[0] != BleConstants.CMD_INITIAL_RESET) return null
         val fw = "${bytes[1].toInt() and 0xFF}.${bytes[2].toInt() and 0xFF}.${bytes[3].toInt() and 0xFF}.${bytes[4].toInt() and 0xFF}"
         // Bytes 5-8 are bootloader version (if present)
         val bl = if (bytes.size >= 9)

@@ -356,7 +356,7 @@ class BleManager(private val context: Context) {
         }
         when (value.firstOrNull()) {
             BleConstants.CMD_BRIGHTNESS_VIBRATION -> managerScope.launch { _displaySettingsBytes.emit(value) }
-            BleConstants.CMD_FIRMWARE -> managerScope.launch { _firmwareBytes.emit(value) }
+            BleConstants.CMD_INITIAL_RESET -> managerScope.launch { _firmwareBytes.emit(value) }
             BleConstants.CMD_DEVICE_NOTIFICATION -> Unit
             else -> Unit
         }
