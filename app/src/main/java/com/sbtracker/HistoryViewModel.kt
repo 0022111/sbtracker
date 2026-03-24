@@ -161,6 +161,32 @@ class HistoryViewModel @Inject constructor(
             if (ms != null) ms / 1000 else null
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
+    /** Create a heat-up estimate flow that incorporates time-proximity and device temperature context. */
+    fun estimatedHeatUpTimeSecsWithContext(
+        targetTemp: StateFlow<Int>,
+        bleViewModel: BleViewModel
+    ): StateFlow<Long?> =
+        combine(
+            deviceSessionSummaries,
+            targetTemp,
+            bleViewModel.latestStatus
+        ) { summaries, target, status ->
+            // Calculate time since last session
+            val recentSession = summaries.lastOrNull()
+            val timeSinceLast = if (recentSession != null) {
+                System.currentTimeMillis() - recentSession.endTimeMs
+            } else null
+
+            // Call enhanced estimation with time and temperature parameters
+            val ms = analyticsRepo.computeEstimatedHeatUpTime(
+                targetTempC = target,
+                summaries = summaries,
+                timeSinceLastSessionMs = timeSinceLast,
+                currentDeviceTempC = status?.currentTempC
+            )
+            if (ms != null) ms / 1000 else null
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
     // ── Combined history list ──
 
     val sessionHistory: StateFlow<List<HistoryItem>> =
