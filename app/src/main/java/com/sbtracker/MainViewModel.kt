@@ -264,6 +264,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                                     val endTimeMs = System.currentTimeMillis()
                                     val startTimeMs = endTimeMs - (gapMinutes * 60_000L)
                                     
+                                    val existingId = db.sessionDao().findExistingSessionNear(address, startTimeMs)
+                                    if (existingId != null) return@withContext
+
                                     val sessionId = db.sessionDao().insert(
                                         Session(
                                             deviceAddress = address,
@@ -392,7 +395,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 val duration = endMs - startMs
                 if (duration < minDurationMs) return
 
-                val existingId = db.sessionDao().getIdForBoundary(address, startMs, endMs)
+                val existingId = db.sessionDao().findExistingSessionNear(address, startMs)
                 if (existingId != null) return
 
                 val sessionId = db.sessionDao().insert(
@@ -862,10 +865,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setGraphPeriod(p: GraphPeriod) { _graphPeriod.value = p }
 
-    fun setDayStartHour(hour: Int) {
-        _dayStartHour.value = hour
-        appPrefs.edit().putInt("day_start_hour", hour).apply()
-    }
+
 
     private fun computeGraphWindowStart(period: GraphPeriod, startHour: Int): Long {
         return if (period == GraphPeriod.DAY) {

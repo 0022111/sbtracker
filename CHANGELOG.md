@@ -2,6 +2,11 @@
 
 All notable changes to this project. Agents: append to the top of the relevant section after completing work.
 
+### 2026-03-23 20:38 — Hit Detection Reliability (Antigravity)
+- **Improved** hit detection by removing strict `setpointReached` requirement, allowing hits to register during temperature dips.
+- **Fixed** false positives on hit detection by tracking target temperature changes and boost activations.
+- **Removed** redundant temperature-dip detection in favor of the more reliable device idle timer reset.
+
 ### 2026-03-23 20:00 — UI Polish and Settings Screen (Antigravity)
 - **Completed** F-035: Unified the app with a "Cyber Green" matrix aesthetic using a dark green-tinted charcoal base (`#0B110D`) and bright green accent (`#00FF41`).
 - **Completed** F-036: Fully wired the native Settings screen, including `Day Start Hour` dialog and `Dim on Charge` bindings.
