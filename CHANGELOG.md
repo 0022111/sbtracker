@@ -1,6 +1,7 @@
 # SBTracker — Changelog
 
 ### [Unreleased]
+- **Fixed** (B-001) Removed `fallbackToDestructiveMigration()`; added explicit `MIGRATION_1_2` (no-op) so Room accepts existing v1 databases safely.
 - **Fixed** (T-028) Silent exceptions in `BleCommandQueue` and `MainViewModel` are now logged to logcat for easier troubleshooting.
 
 All notable changes to this project. Agents: append to the top of the relevant section after completing work.

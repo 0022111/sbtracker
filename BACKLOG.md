@@ -72,7 +72,7 @@
 
 | ID | Status | Priority | Description |
 |---|---|---|---|
-| B-001 | `planned` | P1 | `fallbackToDestructiveMigration()` must be removed before public release |
+| B-001 | `done` | P1 | `fallbackToDestructiveMigration()` must be removed before public release |
 | B-002 | `done` | P2 | History Page vertical scroll locked by unwieldy charts | Fixed touch interception |
 | B-003 | `done` | P1 | Battery Page crashes on load due to narrow graph segments | Fixed `coerceIn` range in `BatteryGraphView` |
 

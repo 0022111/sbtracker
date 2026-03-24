@@ -5,6 +5,7 @@
 | Version | Description |
 |---------|-------------|
 | 1       | Frozen baseline (2026-03). All pre-release iterations collapsed. |
+| 2       | No-op version bump (identity hash unchanged). `fallbackToDestructiveMigration()` removed; explicit migrations now required. |
 
 ## How to Add or Modify Schema
 
@@ -42,6 +43,5 @@ Same process, but use `CREATE TABLE IF NOT EXISTS` with all columns and indices.
 ### Important Rules
 
 - **Always increment by 1** — never jump versions.
-- **Never remove `fallbackToDestructiveMigration()`** during development — it's a safety net.
-- **Before first public release**: remove `fallbackToDestructiveMigration()` and rely solely on explicit migrations.
+- **Never use `fallbackToDestructiveMigration()`** — it has been removed. All schema changes require an explicit `Migration` object.
 - **`device_status` is the god log** — all analytics derive from it at query time. Adding columns here retroactively applies defaults to old rows. No re-ingestion needed.

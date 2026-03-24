@@ -8,17 +8,14 @@ import androidx.room.RoomDatabase
 /**
  * Room database for SBTracker.
  *
- * Schema version 1 — frozen baseline.
+ * Current schema version: 2.
  *
  * Migration strategy:
  *  1. Bump version from N to N+1 (increment by 1, always).
- *  2. Write Migration(N, N+1) with ALTER TABLE / CREATE TABLE SQL.
+ *  2. Write Migration(N, N+1) with ALTER TABLE / CREATE TABLE SQL in Migrations.kt.
  *  3. Add the migration to the builder via .addMigrations(...).
  *  4. Export the new schema JSON.
- *
- * fallbackToDestructiveMigration() is kept as a last-resort safety net
- * during development.  Remove it before the first public release and
- * rely solely on explicit migrations from that point forward.
+ *  5. Update MIGRATIONS.md with the version history entry.
  */
 @Database(
     entities = [
@@ -52,9 +49,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "sbtracker.db"
                 )
-                    // Safety net during development — wipes DB on unrecognised version.
-                    // TODO: Remove before first public release; use explicit migrations only.
-                    .fallbackToDestructiveMigration()
+                    .addMigrations(MIGRATION_1_2)
                     .build()
                     .also { INSTANCE = it }
             }
