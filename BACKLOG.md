@@ -24,7 +24,7 @@ The current dev codebase (v0.1) is extremely close to a functional Alpha. To off
 
 | ID | Status | Feature | Description | Acceptance Criteria |
 |---|---|---|---|---|
-| F-001 | `done` | BLE Connection | Connect to S&B device via BLE, maintain GATT session | Scans, connects, receives notifications, handles reconnect |
+| F-001 | `done` | BLE Connection | Connect to S&B device via BLE, maintain GATT session (Reconciled with ref app) | Scans, connects, receives notifications, handles reconnect |
 | F-002 | `done` | Status Logging | Continuous `device_status` insert (god log) | Rows inserted every ~500ms (heater on) / ~30s (idle) |
 | F-003 | `done` | Session Detection | Auto-detect heater sessions from status log | Sessions created with correct start/end, survives grace periods |
 | F-004 | `done` | Hit Detection | Detect individual hits from temperature patterns | Hits stored in `hits` table, linked to session |

@@ -6,8 +6,14 @@
 - **Updated** `AGENT_INFO.md`, `CLAUDE.md`, `.cursorrules`, and all `.agents/workflows/` to enforce immediate syncing of meta-files.
 - **Note**: Simultaneous edits to these files get out of hand fast; direct syncing to `dev` minimizes fragmentation.
 
+### 2026-03-24 15:47 — BLE Protocol Reconciliation (Operator/Apoc)
+- **PR to `dev`** (Origin: Protocol alignment)
+- **Fixed** Aligned Venty/Veazy handshake with reference app (`0x02` reset + `0x1D` status handshake).
+- **Added** Initial support for Crafty+ and Volcano Hybrid Service UUIDs.
+- **Fixed** `CMD_BRIGHTNESS_VIBRATION (0x06)` request size (now 7 bytes instead of 20).
+- **Fixed** Stabilized reconnection loop to prevent concurrent `connectGatt` collisions.
+
 ### [Unreleased]
-- **Fixed** (F-048) Completely overhauled the BLE connection layer. Replaced fragile connection states with a robust sealed class state machine featuring a `Reconnecting` state.
 - **Added** (F-048) Implemented an exponential backoff auto-reconnect loop (up to 30s intervals) that runs in the background if the device drops unexpectedly. Includes a 5-minute hard timeout to prevent endless battery drain if the device is permanently out of range.
 - **Added** (F-048) Updated `BleService` persistent notification to reflect active reconnection attempts.
 - **Added** (F-018) Unblocked Health & Dosage tracking by creating the `session_metadata` Room table and explicitly migrating the database from v2 to v3. This safely isolates user-entered data from destructive session rebuilds.
