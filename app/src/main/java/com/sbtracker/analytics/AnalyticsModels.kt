@@ -136,3 +136,27 @@ data class ProfileStats(
     val totalHits: Int = 0,
     val lifetimeHeaterMinutes: Int = 0
 )
+
+/**
+ * Dosage and intake analytics derived from session metadata.
+ * Uses a global default capsule weight; per-session overrides are respected
+ * when [SessionMetadata.capsuleWeightGrams] is non-zero.
+ */
+data class IntakeStats(
+    /** Total grams consumed across all capsule sessions (all time). */
+    val totalGramsAllTime: Float = 0f,
+    /** Total grams consumed in the last 7 days. */
+    val totalGramsThisWeek: Float = 0f,
+    /** Total grams consumed in the last 30 days. */
+    val totalGramsThisMonth: Float = 0f,
+    /** Number of sessions marked as capsule type. */
+    val capsuleSessionCount: Int = 0,
+    /** Number of sessions marked as free-pack type. */
+    val freePackSessionCount: Int = 0,
+    /** Average grams per capsule session (0 if no capsule sessions). */
+    val avgGramsPerSession: Float = 0f,
+    /** Grams per day averaged over the last 7 days. */
+    val gramsPerDay7d: Float = 0f,
+    /** Grams per day averaged over the last 30 days. */
+    val gramsPerDay30d: Float = 0f
+)

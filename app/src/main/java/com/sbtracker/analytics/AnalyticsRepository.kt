@@ -3,6 +3,7 @@ package com.sbtracker.analytics
 import com.sbtracker.data.AppDatabase
 import com.sbtracker.data.ChargeCycle
 import com.sbtracker.data.Session
+import com.sbtracker.data.SessionMetadata
 import com.sbtracker.data.SessionSummary
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -487,6 +488,59 @@ class AnalyticsRepository(private val db: AppDatabase) {
         totalHits             = summaries.sumOf { it.hitCount },
         lifetimeHeaterMinutes = lifetimeHeaterMinutes
     )
+
+    // ── Intake / dosage analytics ─────────────────────────────────────────────
+
+    /**
+     * Compute intake statistics from session summaries and their metadata.
+     *
+     * @param summaries All session summaries for the active device (or filtered set).
+     * @param metadataMap Map of sessionId → SessionMetadata for those sessions.
+     * @param defaultWeightGrams Global fallback capsule weight when per-session weight is 0.
+     */
+    fun computeIntakeStats(
+        summaries: List<SessionSummary>,
+        metadataMap: Map<Long, SessionMetadata>,
+        defaultWeightGrams: Float
+    ): IntakeStats {
+        if (summaries.isEmpty()) return IntakeStats()
+
+        val nowMs = System.currentTimeMillis()
+        val weekAgoMs  = nowMs - 7L  * 24 * 60 * 60 * 1000
+        val monthAgoMs = nowMs - 30L * 24 * 60 * 60 * 1000
+
+        var totalAll   = 0f
+        var totalWeek  = 0f
+        var totalMonth = 0f
+        var capsuleCount   = 0
+        var freePackCount  = 0
+
+        for (summary in summaries) {
+            val meta = metadataMap[summary.id]
+            val isCapsule = meta?.isCapsule ?: false
+
+            if (isCapsule) {
+                val weight = meta?.capsuleWeightGrams?.takeIf { it > 0f } ?: defaultWeightGrams
+                capsuleCount++
+                totalAll += weight
+                if (summary.startTimeMs >= weekAgoMs)  totalWeek  += weight
+                if (summary.startTimeMs >= monthAgoMs) totalMonth += weight
+            } else {
+                freePackCount++
+            }
+        }
+
+        return IntakeStats(
+            totalGramsAllTime      = totalAll,
+            totalGramsThisWeek     = totalWeek,
+            totalGramsThisMonth    = totalMonth,
+            capsuleSessionCount    = capsuleCount,
+            freePackSessionCount   = freePackCount,
+            avgGramsPerSession     = if (capsuleCount > 0) totalAll / capsuleCount else 0f,
+            gramsPerDay7d          = totalWeek  / 7f,
+            gramsPerDay30d         = totalMonth / 30f
+        )
+    }
 
     // ── Internal helpers ──────────────────────────────────────────────────────
 
