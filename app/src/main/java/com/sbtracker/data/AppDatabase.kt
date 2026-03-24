@@ -40,6 +40,4 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun sessionDao():      SessionDao
     abstract fun chargeCycleDao():  ChargeCycleDao
     abstract fun hitDao():          HitDao
-
-    abstract fun hitDao():          HitDao
 }

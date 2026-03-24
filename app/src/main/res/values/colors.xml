@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary theme palette -->
+    <color name="color_blue">#0A84FF</color>
+    <color name="color_green">#30D158</color>
+    <color name="color_red">#FF453A</color>
+    <color name="color_yellow">#FFD60A</color>
+    <color name="color_orange">#FF9F0A</color>
+
+    <color name="color_battery_ok">#30D158</color>
+
+    <!-- Grays -->
+    <color name="color_gray_mid">#636366</color>
+    <color name="color_gray_dim">#8E8E93</color>
+    <color name="color_surface">#2C2C2E</color>
+    <color name="color_background">#111113</color>
+
+    <!-- Custom usage colors -->
+    <color name="color_boost_bar_fill">#80A88F</color>
+    <color name="color_heat_overlay_dark">#261905</color>
+    <color name="color_cool_overlay_dark">#091F0D</color>
+
+    <color name="color_tint_orange">#261905</color>
+    <color name="color_tint_green">#091F0D</color>
+</resources>

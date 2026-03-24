@@ -16,6 +16,7 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.viewModelScope
 import com.sbtracker.analytics.AnalyticsRepository
 import com.sbtracker.data.AppDatabase
@@ -26,7 +27,6 @@ import com.sbtracker.data.ExtendedData
 import com.sbtracker.data.Hit
 import com.sbtracker.data.Session
 import com.sbtracker.data.SessionSummary
-import com.sbtracker.analytics.AnalyticsRepository
 import com.sbtracker.analytics.BatteryInsights
 import com.sbtracker.analytics.DailyStats
 import com.sbtracker.analytics.HistoryStats
