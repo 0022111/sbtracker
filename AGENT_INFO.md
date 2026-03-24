@@ -4,18 +4,29 @@ This file provides context and guidelines for AI agents (like Claude) working on
 
 ## Branch Strategy
 
-To maintain a clear distinction between automated agent work and manual developer changes, all agents should follow this branch naming convention:
+### The flow
 
-- **Prefix**: `claude/` (for Claude-based agents)
-- **Format**: `claude/feature-or-fix-description`
-- **Persistent/Reference Branch**: `claude/verify-git-access-BVVfi`
-    - This branch was established during initial environment setup to verify repository access and remains as a reference point for agent connectivity.
+```
+feature branch  →  PR  →  dev  →  (periodically) main
+```
 
-### Guidelines for Agents
-1. **Always** create a new branch with the `claude/` prefix for any non-trivial work.
-2. **Follow** a Pull Request (PR) workflow: Create branch -> Implement -> Verify -> Submit PR.
-3. **Sync** with `main` regularly.
-4. **Reference** task IDs from `BACKLOG.md` in branch names and PR descriptions (e.g., `claude/F-045-agent-docs`).
+Each task gets its own isolated branch. That branch proposes changes to `dev` via a Pull Request. `dev` is the continuously-updated source of accepted work. `main` is stable/release only.
+
+**Why this matters for agents running in parallel:**
+- Multiple agents can work on different tasks simultaneously without interfering — each lives on its own branch
+- When an agent starts a new task it always branches from `dev`, so it starts from the latest accepted state
+- When a PR merges, other in-flight branches do not automatically get those changes — they only see them if they rebase/merge from `dev`
+- Two branches that both modify the same file will produce a **merge conflict** on the second PR to merge; whoever is second must resolve it
+
+**Practical rules:**
+1. Always `git fetch origin dev && git checkout -b claude/T-XXX-name origin/dev` — never branch from another feature branch
+2. One task per branch — keep scope narrow to minimize conflicts
+3. Open a PR to `dev` as the last step; do not push directly to `dev` or `main`
+4. If your branch is behind `dev` (other PRs merged while you worked), rebase: `git fetch origin dev && git rebase origin/dev`
+
+### Naming convention
+- **Prefix**: `claude/` for all agent branches
+- **Format**: `claude/T-XXX-short-description`
 
 ## GitHub Integrity
 
