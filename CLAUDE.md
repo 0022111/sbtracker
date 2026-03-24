@@ -33,7 +33,7 @@ You are working on the **SBTracker** project. Please follow these rules to maint
 ## Core Directives
 1. **Read and display `BACKLOG.md` first**: Start every session by showing the user the current backlog to align on priorities.
 2. **Read `PROJECT.md`**: Understand the event-sourcing architecture and key invariants.
-3. **Follow Standard Workflows**: Use `.agents/workflows/feature-work.md` and `documentation-sync.md`.
+3. **Follow Standard Workflows**: Use `.agents/workflows/feature-work.md` and `.agents/workflows/documentation-sync.md`.
 3. **Maintain Living Docs**: Always update `PROJECT.md`, `BACKLOG.md`, and `CHANGELOG.md` upon completion.
 
 ## Branching & PRs
