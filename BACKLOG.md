@@ -41,6 +41,7 @@
 | F-024 | `done` | CSV Export | Export session history to CSV | File generated, share intent fires |
 | F-025 | `planned` | History Clear | Per-device clear of all tables | All 6 tables wiped for target device |
 | F-026 | `planned` | Data Backup / Restore | Export/import full database | User can backup and restore DB file |
+| F-050 | `planned` | Notifications Overhaul | Modernize and expand the notification system to support persistent status, rich controls, and configurable alerts. | Persistent status notification, drawer-based quick controls, and proper channel implementation. |
 
 ## UI & Visualization (P1 — Next Up)
 
