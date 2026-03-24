@@ -944,7 +944,8 @@ class MainViewModel @Inject constructor(
             val stats = analyticsRepo.computeIntakeStats(
                 summaries,
                 metaMap,
-                _capsuleWeightGrams.value
+                _capsuleWeightGrams.value,
+                _defaultIsCapsule.value
             )
             _intakeStats.value = stats
         }
