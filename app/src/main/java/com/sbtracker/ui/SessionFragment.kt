@@ -142,7 +142,7 @@ class SessionFragment : Fragment() {
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
-            combine(bleVm.latestStatus, historyVm.estimatedHeatUpTimeSecs(bleVm.targetTemp)) { s, est -> s to est }.collect { (s, est) ->
+            combine(bleVm.latestStatus, historyVm.estimatedHeatUpTimeSecsWithContext(bleVm.targetTemp, bleVm)) { s, est -> s to est }.collect { (s, est) ->
                 val isIdleOrOffline = s == null || s.heaterMode == 0
                 if (isIdleOrOffline && est != null) {
                     tvHeatUpEstimate.visibility = View.VISIBLE

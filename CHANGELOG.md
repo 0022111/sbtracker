@@ -67,6 +67,7 @@
 
 ### [Unreleased]
 - **Added** (F-051/T-040) Enhanced `computeEstimatedHeatUpTime` with time-proximity weighting and temperature-based ETA reductions.
+- **Added** (T-041) Wired context-aware heat-up estimation into `SessionFragment`.
 - **Added** (F-018/T-038) Health & Intake analytics card on History screen showing all-time/weekly grams and capsule split
 - **Added** (F-018/T-034) `capsuleWeightGrams` and `defaultIsCapsule` SharedPrefs-backed StateFlows + setters in `MainViewModel`
 - **Added** (F-048) Implemented an exponential backoff auto-reconnect loop (up to 30s intervals) that runs in the background if the device drops unexpectedly. Includes a 5-minute hard timeout to prevent endless battery drain if the device is permanently out of range.
