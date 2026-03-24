@@ -102,25 +102,26 @@ class BatteryFragment : Fragment() {
         val contentDrain = view.findViewById<View>(R.id.content_drain_analysis)
         val headerDrain = view.findViewById<View>(R.id.header_drain_analysis)
         val tvExpandDrain = view.findViewById<TextView>(R.id.tv_expand_drain)
-        var drainExpanded = true
-
-        headerDrain.setOnClickListener {
-            drainExpanded = !drainExpanded
-            contentDrain.visibility = if (drainExpanded) View.VISIBLE else View.GONE
-            tvExpandDrain.text = if (drainExpanded) "▼" else "◀"
-        }
 
         val contentHealth = view.findViewById<View>(R.id.content_charge_health)
         val headerHealth = view.findViewById<View>(R.id.header_charge_health)
         val tvExpandHealth = view.findViewById<TextView>(R.id.tv_expand_health)
-        var healthExpanded = false
-        contentHealth.visibility = View.GONE
-        tvExpandHealth.text = "◀"
 
-        headerHealth.setOnClickListener {
-            healthExpanded = !healthExpanded
-            contentHealth.visibility = if (healthExpanded) View.VISIBLE else View.GONE
-            tvExpandHealth.text = if (healthExpanded) "▼" else "◀"
+        headerDrain.setOnClickListener { vm.toggleDrainCard() }
+        headerHealth.setOnClickListener { vm.toggleHealthCard() }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            vm.drainCardExpanded.collect { expanded ->
+                contentDrain.visibility = if (expanded) View.VISIBLE else View.GONE
+                tvExpandDrain.text = if (expanded) "▼" else "◀"
+            }
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            vm.healthCardExpanded.collect { expanded ->
+                contentHealth.visibility = if (expanded) View.VISIBLE else View.GONE
+                tvExpandHealth.text = if (expanded) "▼" else "◀"
+            }
         }
 
         // Data bindings for Tier 3 Cards
