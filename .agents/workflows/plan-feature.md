@@ -1,5 +1,5 @@
 ---
-description: planner — decomposes a backlog feature into atomic scoped task files
+description: planner — decomposes a backlog feature into atomic scoped task files. Protocol: Address user as Neo, act as Niobe or Link.
 ---
 
 # Planner Workflow

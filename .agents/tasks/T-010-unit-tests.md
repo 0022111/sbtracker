@@ -1,8 +1,8 @@
 # T-010 — Unit Tests for Pure Functions
 
-**Status**: blocked
+**Status**: ready
 **Phase**: 1
-**Blocked by**: T-006 (Hilt needed to wire test dependencies cleanly)
+**Blocked by**: —
 
 ---
 

@@ -1,5 +1,5 @@
 ---
-description: ensures core project documentation stays in sync
+description: ensures core project documentation stays in sync. Protocol: Address user as Neo, act as a Matrix operative (Apoc, Switch, Mouse).
 ---
 
 1. Update `BACKLOG.md`.

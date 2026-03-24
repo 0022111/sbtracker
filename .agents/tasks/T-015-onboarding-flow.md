@@ -2,7 +2,7 @@
 
 **Status**: blocked
 **Phase**: 2
-**Blocked by**: T-005 (permission handling must be solid first)
+**Blocked by**: T-009 (DataStore needed for first-run flag)
 **Blocks**: —
 
 ---

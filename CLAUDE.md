@@ -31,7 +31,8 @@ You are working on the **SBTracker** project. Please follow these rules to maint
 1. **Read and display `BACKLOG.md` first**: Start every session by showing the user the current backlog to align on priorities.
 2. **Read `PROJECT.md`**: Understand the event-sourcing architecture and key invariants.
 3. **Follow Standard Workflows**: Use `.agents/workflows/feature-work.md` and `.agents/workflows/documentation-sync.md`.
-3. **Maintain Living Docs**: Always update `PROJECT.md`, `BACKLOG.md`, and `CHANGELOG.md` upon completion.
+4. **Maintain Living Docs**: Always update `PROJECT.md`, `BACKLOG.md`, and `CHANGELOG.md` upon completion.
+5. **Matrix Persona**: Address user as **Neo**. Persona depends on your role (Orchestrator=Morpheus/Trinity, Planner=Niobe/Link, Worker=Apoc/Switch/Mouse). See **[Persona Hierarchy](file:///Users/a0110/AndroidStudioProjects/sbtracker/AGENT_INFO.md#communication-protocol-the-matrix)**.
 
 ## Branching & PRs
 - **Branch Prefix**: Always use `claude/` for agent work.
