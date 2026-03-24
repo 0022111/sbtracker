@@ -41,6 +41,7 @@ class BleViewModel @Inject constructor(
     private val bleManager: BleManager,
     private val db: AppDatabase,
     private val analyticsRepo: AnalyticsRepository,
+    private val prefsRepo: UserPreferencesRepository,
     application: Application
 ) : AndroidViewModel(application) {
 
@@ -97,9 +98,6 @@ class BleViewModel @Inject constructor(
     private val trackers = mutableMapOf<String, SessionTracker>()
     private val lastSavedChargeState = mutableMapOf<String, SessionTracker.ChargeState?>()
 
-    private val appPrefs by lazy {
-        getApplication<Application>().getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
-    }
     private val devicePrefs by lazy {
         getApplication<Application>().getSharedPreferences("known_devices_v1", Context.MODE_PRIVATE)
     }
@@ -108,12 +106,14 @@ class BleViewModel @Inject constructor(
     }
 
     // Temperature unit — synced from device status, persisted locally
-    private val _isCelsius = MutableStateFlow(true)
-    val isCelsius: StateFlow<Boolean> = _isCelsius.asStateFlow()
+    val isCelsius: StateFlow<Boolean> = prefsRepo.userPreferencesFlow
+        .map { it.isCelsius }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
     // Alerts state
-    private val _phoneAlertsEnabled = MutableStateFlow(true)
-    val phoneAlertsEnabled: StateFlow<Boolean> = _phoneAlertsEnabled.asStateFlow()
+    val phoneAlertsEnabled: StateFlow<Boolean> = prefsRepo.userPreferencesFlow
+        .map { it.phoneAlertsEnabled }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
     private var lastSetpointReached = false
     private var lastCharge80Reached = false
@@ -122,19 +122,22 @@ class BleViewModel @Inject constructor(
     private var hasSyncedInitialTemp = false
 
     // Dim-on-charge state
-    private val _dimOnChargeEnabled = MutableStateFlow(false)
-    val dimOnChargeEnabled: StateFlow<Boolean> = _dimOnChargeEnabled.asStateFlow()
-    private var wasCharging = false
+    val dimOnChargeEnabled: StateFlow<Boolean> = prefsRepo.userPreferencesFlow
+        .map { it.dimOnChargeEnabled }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
     private var preDimBrightness = -1
+    private var wasCharging = false
 
     private val notificationManager = application.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     private val CHANNEL_ID = "device_alerts"
 
     init {
-        _phoneAlertsEnabled.value = appPrefs.getBoolean("phone_alerts", true)
-        _dimOnChargeEnabled.value = appPrefs.getBoolean("dim_on_charge", false)
-        _isCelsius.value = appPrefs.getBoolean("is_celsius", true)
-        preDimBrightness = appPrefs.getInt("pre_dim_brightness", -1)
+        viewModelScope.launch {
+            prefsRepo.userPreferencesFlow.collect { prefs ->
+                preDimBrightness = prefs.preDimBrightness
+            }
+        }
 
         _activeDevice.value = loadLastDevice()
         _knownDevices.value = loadAllKnownDevices()
@@ -161,9 +164,10 @@ class BleViewModel @Inject constructor(
                 checkAlerts(status)
                 checkChargeDim(status)
 
-                if (status.isCelsius != _isCelsius.value) {
-                    _isCelsius.value = status.isCelsius
-                    appPrefs.edit().putBoolean("is_celsius", status.isCelsius).apply()
+                if (status.isCelsius != isCelsius.value) {
+                    viewModelScope.launch {
+                        prefsRepo.updateIsCelsius(status.isCelsius)
+                    }
                 }
 
                 statusTick++
@@ -340,8 +344,9 @@ class BleViewModel @Inject constructor(
         val s = _latestStatus.value ?: return
         bleManager.sendWrite(BlePacket.buildSetUnit(s.isCelsius))
         val newCelsius = !s.isCelsius
-        _isCelsius.value = newCelsius
-        appPrefs.edit().putBoolean("is_celsius", newCelsius).apply()
+        viewModelScope.launch {
+            prefsRepo.updateIsCelsius(newCelsius)
+        }
     }
 
     // ── Display settings local update ──
@@ -361,13 +366,13 @@ class BleViewModel @Inject constructor(
     // ── Alerts ──
 
     fun togglePhoneAlerts() {
-        val next = !_phoneAlertsEnabled.value
-        _phoneAlertsEnabled.value = next
-        appPrefs.edit().putBoolean("phone_alerts", next).apply()
+        viewModelScope.launch {
+            prefsRepo.updatePhoneAlerts(!phoneAlertsEnabled.value)
+        }
     }
 
     private fun checkAlerts(s: DeviceStatus) {
-        if (!_phoneAlertsEnabled.value) return
+        if (!phoneAlertsEnabled.value) return
         if (s.heaterMode > 0) {
             if (s.setpointReached && !lastSetpointReached) {
                 triggerAlert("Device Ready", "Target temperature reached!")
@@ -443,27 +448,32 @@ class BleViewModel @Inject constructor(
     // ── Dim-on-charge ──
 
     fun toggleDimOnCharge() {
-        val next = !_dimOnChargeEnabled.value
-        _dimOnChargeEnabled.value = next
-        appPrefs.edit().putBoolean("dim_on_charge", next).apply()
+        val next = !dimOnChargeEnabled.value
+        viewModelScope.launch {
+            prefsRepo.updateDimOnCharge(next)
+        }
         if (next && _latestStatus.value?.isCharging == true) {
             val current = _displaySettings.value?.brightness ?: -1
             if (current > 1) {
                 preDimBrightness = current
-                appPrefs.edit().putInt("pre_dim_brightness", current).apply()
+                viewModelScope.launch {
+                    prefsRepo.updatePreDimBrightness(current)
+                }
                 applyBrightnessAndRefresh(1)
             }
         } else if (!next && _latestStatus.value?.isCharging == true) {
             if (preDimBrightness > 1) {
                 applyBrightnessAndRefresh(preDimBrightness)
                 preDimBrightness = -1
-                appPrefs.edit().putInt("pre_dim_brightness", -1).apply()
+                viewModelScope.launch {
+                    prefsRepo.updatePreDimBrightness(-1)
+                }
             }
         }
     }
 
     private fun checkChargeDim(s: DeviceStatus) {
-        if (!_dimOnChargeEnabled.value) {
+        if (!dimOnChargeEnabled.value) {
             wasCharging = s.isCharging
             return
         }
@@ -471,14 +481,18 @@ class BleViewModel @Inject constructor(
             val current = _displaySettings.value?.brightness ?: -1
             if (current > 1) {
                 preDimBrightness = current
-                appPrefs.edit().putInt("pre_dim_brightness", current).apply()
+                viewModelScope.launch {
+                    prefsRepo.updatePreDimBrightness(current)
+                }
                 applyBrightnessAndRefresh(1)
             }
         } else if (!s.isCharging && wasCharging) {
             if (preDimBrightness > 1) {
                 applyBrightnessAndRefresh(preDimBrightness)
                 preDimBrightness = -1
-                appPrefs.edit().putInt("pre_dim_brightness", -1).apply()
+                viewModelScope.launch {
+                    prefsRepo.updatePreDimBrightness(-1)
+                }
             }
         }
         wasCharging = s.isCharging
@@ -493,9 +507,11 @@ class BleViewModel @Inject constructor(
 
     /** Handle manual brightness override during dim-on-charge state. */
     fun onManualBrightnessChange(level: Int) {
-        if (_dimOnChargeEnabled.value && _latestStatus.value?.isCharging == true) {
+        if (dimOnChargeEnabled.value && _latestStatus.value?.isCharging == true) {
             preDimBrightness = level
-            appPrefs.edit().putInt("pre_dim_brightness", level).apply()
+            viewModelScope.launch {
+                prefsRepo.updatePreDimBrightness(level)
+            }
         }
     }
 

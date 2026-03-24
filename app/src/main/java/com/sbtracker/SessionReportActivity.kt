@@ -9,7 +9,9 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.sbtracker.data.AppDatabase
+import com.sbtracker.data.UserPreferencesRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
@@ -27,21 +29,24 @@ import java.util.Locale
 class SessionReportActivity : AppCompatActivity() {
 
     @Inject lateinit var db: AppDatabase
+    @Inject lateinit var prefsRepo: UserPreferencesRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_session_report)
 
         val sessionId = intent.getLongExtra("session_id", -1L)
-        val isCelsius = getSharedPreferences("app_prefs", MODE_PRIVATE)
-            .getBoolean("is_celsius", true)
-
+        // We observe the flow but since we only need it once for the report, 
+        // we can just use the first value or collect in lifecycleScope.
+        
         val hitLogView  = findViewById<TextView>(R.id.report_tv_hit_log)
         val graph       = findViewById<SessionGraphView>(R.id.report_graph)
         val btnCapsule  = findViewById<Button>(R.id.report_btn_capsule)
         val btnFreePack = findViewById<Button>(R.id.report_btn_free_pack)
 
         lifecycleScope.launch {
+            val prefs = prefsRepo.userPreferencesFlow.first()
+            val isCelsius = prefs.isCelsius
 
             val session = withContext(Dispatchers.IO) { db.sessionDao().getById(sessionId) }
             if (session == null) {

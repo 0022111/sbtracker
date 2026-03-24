@@ -47,6 +47,7 @@ import javax.inject.Inject
 class HistoryViewModel @Inject constructor(
     private val db: AppDatabase,
     val analyticsRepo: AnalyticsRepository,
+    private val prefsRepo: UserPreferencesRepository,
     application: Application
 ) : AndroidViewModel(application) {
 
@@ -65,9 +66,6 @@ class HistoryViewModel @Inject constructor(
     fun setSessionFilter(filter: String?) { _sessionFilter.value = filter }
 
     // Active device — loaded from SharedPrefs so we don't depend on BleViewModel
-    private val appPrefs by lazy {
-        getApplication<Application>().getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE)
-    }
     private val devicePrefs by lazy {
         getApplication<Application>().getSharedPreferences("known_devices_v1", android.content.Context.MODE_PRIVATE)
     }
@@ -75,15 +73,15 @@ class HistoryViewModel @Inject constructor(
     private val _activeDevice = MutableStateFlow<BleViewModel.SavedDevice?>(null)
     val activeDevice: StateFlow<BleViewModel.SavedDevice?> = _activeDevice.asStateFlow()
 
-    private val _dayStartHour = MutableStateFlow(4)
-    val dayStartHour: StateFlow<Int> = _dayStartHour.asStateFlow()
+    val dayStartHour: StateFlow<Int> = prefsRepo.userPreferencesFlow
+        .map { it.dayStartHour }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 4)
 
     private val _exportUri = MutableSharedFlow<Uri>(extraBufferCapacity = 1)
     val exportUri = _exportUri.asSharedFlow()
 
     init {
         _activeDevice.value = loadLastDevice()
-        _dayStartHour.value = appPrefs.getInt("day_start_hour", 4)
     }
 
     /** Called by fragments when activeDevice changes in BleViewModel. */
@@ -92,7 +90,9 @@ class HistoryViewModel @Inject constructor(
     }
 
     fun updateDayStartHour(hour: Int) {
-        _dayStartHour.value = hour
+        viewModelScope.launch {
+            prefsRepo.updateDayStartHour(hour)
+        }
     }
 
     // ── Raw queries ──
