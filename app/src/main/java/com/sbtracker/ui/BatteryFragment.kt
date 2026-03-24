@@ -21,7 +21,9 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class BatteryFragment : Fragment() {
-    private val vm: MainViewModel by activityViewModels()
+    private val bleVm: BleViewModel by activityViewModels()
+    private val historyVm: HistoryViewModel by activityViewModels()
+    private val batteryVm: BatteryViewModel by activityViewModels()
     private var _binding: FragmentBatteryBinding? = null
     private val binding get() = _binding!!
 
@@ -59,12 +61,12 @@ class BatteryFragment : Fragment() {
         val tvBattPeriodDay = binding.battGraphPeriodDay
         val tvBattPeriodWeek = binding.battGraphPeriodWeek
 
-        tvBattPeriodDay.setOnClickListener  { vm.setGraphPeriod(MainViewModel.GraphPeriod.DAY) }
-        tvBattPeriodWeek.setOnClickListener { vm.setGraphPeriod(MainViewModel.GraphPeriod.WEEK) }
+        tvBattPeriodDay.setOnClickListener  { historyVm.setGraphPeriod(HistoryViewModel.GraphPeriod.DAY) }
+        tvBattPeriodWeek.setOnClickListener { historyVm.setGraphPeriod(HistoryViewModel.GraphPeriod.WEEK) }
 
         viewLifecycleOwner.lifecycleScope.launch {
-            vm.graphPeriod.collect { p ->
-                val dayActive = p == MainViewModel.GraphPeriod.DAY
+            historyVm.graphPeriod.collect { p ->
+                val dayActive = p == HistoryViewModel.GraphPeriod.DAY
                 tvBattPeriodDay.setTextColor(ContextCompat.getColor(requireContext(), if (dayActive)  R.color.color_blue else R.color.color_gray_mid))
                 tvBattPeriodDay.setTypeface(null, if (dayActive)  android.graphics.Typeface.BOLD else android.graphics.Typeface.NORMAL)
                 tvBattPeriodDay.setBackgroundResource(if (dayActive)  R.drawable.bg_badge_blue else 0)
@@ -76,10 +78,10 @@ class BatteryFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             combine(
-                vm.graphStatuses,
-                vm.graphWindowStartMs,
-                vm.sessionStats,
-                vm.latestStatus
+                historyVm.graphStatuses,
+                historyVm.graphWindowStartMs,
+                bleVm.sessionStats,
+                bleVm.latestStatus
             ) { statuses, windowStart, stats, latest ->
                 val etaMin = stats.chargeEtaMinutes
                 val eta80Min = stats.chargeEta80Minutes
@@ -110,18 +112,18 @@ class BatteryFragment : Fragment() {
         val headerHealth = view.findViewById<View>(R.id.header_charge_health)
         val tvExpandHealth = view.findViewById<TextView>(R.id.tv_expand_health)
 
-        headerDrain.setOnClickListener { vm.toggleDrainCard() }
-        headerHealth.setOnClickListener { vm.toggleHealthCard() }
+        headerDrain.setOnClickListener { batteryVm.toggleDrainCard() }
+        headerHealth.setOnClickListener { batteryVm.toggleHealthCard() }
 
         viewLifecycleOwner.lifecycleScope.launch {
-            vm.drainCardExpanded.collect { expanded ->
+            batteryVm.drainCardExpanded.collect { expanded ->
                 contentDrain.visibility = if (expanded) View.VISIBLE else View.GONE
                 tvExpandDrain.text = if (expanded) "▼" else "◀"
             }
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
-            vm.healthCardExpanded.collect { expanded ->
+            batteryVm.healthCardExpanded.collect { expanded ->
                 contentHealth.visibility = if (expanded) View.VISIBLE else View.GONE
                 tvExpandHealth.text = if (expanded) "▼" else "◀"
             }
@@ -142,7 +144,7 @@ class BatteryFragment : Fragment() {
         val tvLongestRun = view.findViewById<TextView>(R.id.tv_stats_longest_run)
 
         viewLifecycleOwner.lifecycleScope.launch {
-            vm.latestStatus.collect { s ->
+            bleVm.latestStatus.collect { s ->
                 if (s == null) {
                     heroIdle.visibility = View.VISIBLE
                     heroCharging.visibility = View.GONE
@@ -170,7 +172,7 @@ class BatteryFragment : Fragment() {
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
-            vm.sessionStats.collect { ss ->
+            bleVm.sessionStats.collect { ss ->
                 // Hero Idle Data
                 tvHeroSessionsLeft.text = if (ss.sessionsRemaining > 0) "${ss.sessionsRemaining}" else "--"
                 if (ss.drainSampleCount >= 5 && ss.sessionsRemainingLow != ss.sessionsRemainingHigh) {
@@ -187,7 +189,7 @@ class BatteryFragment : Fragment() {
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
-            vm.batteryInsights.collect { bi ->
+            batteryVm.batteryInsights.collect { bi ->
                 tvAvgDrainAll.text = if (bi.allTimeAvgDrain > 0f) "%.1f%%".format(bi.allTimeAvgDrain) else "—"
                 tvAvgDrainRecent.text = if (bi.recentAvgDrain > 0f) "%.1f%%".format(bi.recentAvgDrain) else "—"
 
