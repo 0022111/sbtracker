@@ -30,7 +30,7 @@
 - **Fixed** Stabilized reconnection loop to prevent concurrent `connectGatt` collisions.
 
 ### [Unreleased]
-- **Added** (F-018/T-037) Capsule Weight and Default Pack Type settings rows wired to MainViewModel
+- **Added** (F-018/T-038) Health & Intake analytics card on History screen showing all-time/weekly grams and capsule split
 - **Added** (F-018/T-034) `capsuleWeightGrams` and `defaultIsCapsule` SharedPrefs-backed StateFlows + setters in `MainViewModel`
 - **Added** (F-048) Implemented an exponential backoff auto-reconnect loop (up to 30s intervals) that runs in the background if the device drops unexpectedly. Includes a 5-minute hard timeout to prevent endless battery drain if the device is permanently out of range.
 - **Added** (F-048) Updated `BleService` persistent notification to reflect active reconnection attempts.

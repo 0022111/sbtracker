@@ -26,10 +26,12 @@ import com.sbtracker.data.DeviceStatus
 import com.sbtracker.data.ExtendedData
 import com.sbtracker.data.Hit
 import com.sbtracker.data.Session
+import com.sbtracker.data.SessionMetadata
 import com.sbtracker.data.SessionSummary
 import com.sbtracker.analytics.BatteryInsights
 import com.sbtracker.analytics.DailyStats
 import com.sbtracker.analytics.HistoryStats
+import com.sbtracker.analytics.IntakeStats
 import com.sbtracker.analytics.PersonalRecords
 import com.sbtracker.analytics.ProfileStats
 import com.sbtracker.analytics.UsageInsights
@@ -408,6 +410,11 @@ class MainViewModel @Inject constructor(
             withContext(Dispatchers.IO) {
                 runCatching { backcompileSessionsFromLogsIfNeeded() }
             }
+        }
+
+        // Refresh intake stats whenever the active device changes.
+        viewModelScope.launch {
+            _activeDevice.collect { refreshIntakeStats() }
         }
     }
 
@@ -915,6 +922,34 @@ class MainViewModel @Inject constructor(
         combine(deviceSessionSummaries, _dayStartHour) { summaries, startHour ->
             analyticsRepo.computeUsageInsights(summaries, startHour)
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UsageInsights())
+
+    // ── Intake / dosage analytics ─────────────────────────────────────────────
+
+    private val _intakeStats = MutableStateFlow(IntakeStats())
+    val intakeStats: StateFlow<IntakeStats> = _intakeStats.asStateFlow()
+
+    private suspend fun refreshIntakeStats() {
+        withContext(Dispatchers.IO) {
+            val device = _activeDevice.value ?: return@withContext
+            val serial = device.serialNumber.ifEmpty { null }
+            val address = device.deviceAddress
+            val sessions = db.sessionDao().getRecentSessions(serial ?: "", address, Int.MAX_VALUE)
+            if (sessions.isEmpty()) return@withContext
+            val summaries = sessions.mapNotNull { session ->
+                analyticsRepo.getSessionSummary(session)
+            }
+            val ids = summaries.map { it.id }
+            val metaList = db.sessionMetadataDao().getMetadataForSessions(ids)
+            val metaMap = metaList.associateBy { it.sessionId }
+            val stats = analyticsRepo.computeIntakeStats(
+                summaries,
+                metaMap,
+                _capsuleWeightGrams.value,
+                _defaultIsCapsule.value
+            )
+            _intakeStats.value = stats
+        }
+    }
 
     // ── Battery insights — drain trend, charge patterns ───────────────────────
 
