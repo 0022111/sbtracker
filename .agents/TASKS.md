@@ -62,7 +62,7 @@ main  ← stable, merges only from dev
 | T-012 | `blocked` | Temperature Presets | [T-012](tasks/T-012-temperature-presets.md) | T-009 |
 | T-013 | `blocked` | History Search & Filtering | [T-013](tasks/T-013-history-filtering.md) | T-007 |
 | T-014 | `blocked` | Tolerance Break Tracker | [T-014](tasks/T-014-tolerance-break-tracker.md) | T-007 |
-| T-015 | `blocked` | Onboarding Flow | [T-015](tasks/T-015-onboarding-flow.md) | T-005 |
+| T-015 | `blocked` | Onboarding Flow | [T-015](tasks/T-015-onboarding-flow.md) | T-009 |
 | T-030 | `ready` | Migrate to Jetpack Compose | [T-030](tasks/T-030-migrate-to-jetpack-compose.md) | — |
 | T-031 | `ready` | Overhaul BLE State Machine | [T-031](tasks/T-031-overhaul-ble-state-machine.md) | — |
 | T-032 | `ready` | Consolidate Multi-Device Analytics | [T-032](tasks/T-032-consolidate-multi-device-analytics.md) | — |
