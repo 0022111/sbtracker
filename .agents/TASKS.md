@@ -77,7 +77,7 @@ main  ← stable, merges only from dev
 | T-031 | `done` | Overhaul BLE State Machine | [T-031](tasks/T-031-overhaul-ble-state-machine.md) | — |
 | T-032 | `ready` | Consolidate Multi-Device Analytics | [T-032](tasks/T-032-consolidate-multi-device-analytics.md) | — |
 | T-040 | `done` | Enhance Heat-up Estimation | [T-040](tasks/T-040-enhance-heat-up-estimation.md) | — |
-| T-041 | `ready` | Wire Enhanced Heat-up Estimation | [T-041](tasks/T-041-wire-enhanced-heat-up-estimation.md) | T-040 |
+| T-041 | `done` | Wire Enhanced Heat-up Estimation | [T-041](tasks/T-041-wire-enhanced-heat-up-estimation.md) | T-040 |
 
 ## Phase 3 — Release Readiness
 
