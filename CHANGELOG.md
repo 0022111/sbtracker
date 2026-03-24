@@ -1,5 +1,19 @@
 # SBTracker — Changelog
 
+### 2026-03-24 — T-007: Decompose MainViewModel (Morpheus)
+- **PR to `dev`** (Origin: T-007 / Phase 1 Foundation)
+- **Decomposed** `MainViewModel` (~1420 lines) into 5 focused ViewModels:
+  - `BleViewModel` — BLE connection lifecycle, data pipeline, device management, alerts, dim-on-charge
+  - `SessionViewModel` — Stateless device write commands (heater, temp, boost, hardware toggles)
+  - `HistoryViewModel` — Session list, filtering, sorting, analytics, graphs, CSV export, session rebuild
+  - `BatteryViewModel` — Battery insights, charge cycle history, card expand/collapse state
+  - `SettingsViewModel` — User preferences (day start hour, retention, capsule weight, pack type)
+- **Updated** all 5 fragments (`LandingFragment`, `SessionFragment`, `HistoryFragment`, `BatteryFragment`, `SettingsFragment`) to use `activityViewModels()` with new VMs
+- **Updated** `MainActivity` to coordinate cross-VM state sync (activeDevice, dayStartHour)
+- **Updated** `BleService` to reference `BleViewModel` instead of `MainViewModel`
+- **Retained** `MainViewModel` as empty Hilt shell for backward compatibility
+- **Unblocks** T-008, T-011, T-013, T-014
+
 ### 2026-03-24 — F-018 Task Planning + Workflow Hardening (Direct push to dev)
 - **Added** Task files T-034 through T-038 for F-018 Health & Dosage Tracking
 - **Hardened** `feature-work.md` and `orchestrate.md`: explicit PR-to-dev rules, `mcp__github__create_pull_request` replaces `gh pr create`, NEVER-push-to-dev-directly rule enforced in writing
