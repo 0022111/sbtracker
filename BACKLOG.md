@@ -60,11 +60,14 @@
 |---|---|---|---|---|
 | F-040 | `done` | Version Control | Git + GitHub setup | Repo initialized, remote linked, .gitignore in place |
 | F-041 | `done` | Project Docs | PROJECT.md, BACKLOG.md, CHANGELOG.md | Agent memory system works across sessions |
-| F-042 | `planned` | Unit Tests | Test analytics pure functions | AnalyticsRepository functions have test coverage |
-| F-043 | `planned` | ViewModel Decomposition | Break up 1074-line MainViewModel | Extract to feature-specific ViewModels or use cases |
+| F-042 | `ready` | Unit Tests | Test analytics pure functions | AnalyticsRepository functions have test coverage |
+| F-043 | `ready` | ViewModel Decomposition | Break up 1074-line MainViewModel | Extract to feature-specific ViewModels or use cases |
 | F-044 | `done` | MainActivity Decomposition | Break up 1169-line MainActivity | Extract Fragments or Compose screens |
 | F-045 | `done` | Agent Infrastructure | Document AI agent branch strategy, workflows, and workspace context | `AGENT_INFO.md` and `.agents/workflows/` exist |
 | F-046 | `done` | GitHub Integrity | Automate CI builds, PR templates, and enforced branching | `build.yml` automated, `PULL_REQUEST_TEMPLATE.md` exists |
+| F-047 | `planned` | Jetpack Compose Migration | Overhaul UI from programmatic Views to Compose | LandingFragment + Settings migrated to Compose |
+| F-048 | `planned` | BLE State Machine Overhaul | Refactor BLE layer for robust state tracking | BleManager uses sealed class states, backoff reconnection |
+| F-049 | `planned` | Multi-Device Analytics Consolidation | Unify cross-device tracking in AnalyticsRepository | Consistent aggregated metrics across all devices |
 
 ---
 
@@ -89,3 +92,4 @@
 | 2026-03-23 | AI Agent branch strategy (`claude/` prefix) | Separates automated agent work from manual development; uses `verify-git-access-BVVfi` for connectivity reference |
 | 2026-03-23 | GitHub Integrity & PR Workflow | Enforces build verification and structured documentation for all agent contributions |
 | 2026-03-24 | Multi-device infrastructure enhancements | Added synthetic test device and cross-device landing page aggregates for better testability and transparency. |
+| 2026-03-24 | Introduce Hilt Dependency Injection (T-006) | Standardized dependency management; unblocked ViewModel decomposition and testing. |

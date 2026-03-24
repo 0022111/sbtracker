@@ -1,8 +1,8 @@
 # T-007 — Decompose MainViewModel
 
-**Status**: blocked
+**Status**: ready
 **Phase**: 1
-**Blocked by**: T-006
+**Blocked by**: —
 **Blocks**: T-008, T-011, T-013, T-014
 
 ---
@@ -24,7 +24,11 @@ single-responsibility ViewModels.
 | `BatteryViewModel` | Charge cycle data, battery insights |
 | `SettingsViewModel` | All preference reads/writes |
 
-*(Fill in full steps when T-006 is done and this task is unblocked.)*
+1. **Create `BleViewModel`** and move connection state, scanning, and disconnect logic from `MainViewModel`.
+2. **Create `SessionViewModel`** and move active session stats, hit stream, and live temp observation.
+3. **Create `HistoryViewModel`** for session list observation and analytics queries.
+4. **Create `BatteryViewModel`** for charge cycle data and battery insights.
+5. **Create `SettingsViewModel`** for preferences (should wait for T-009).
 
 ## Do NOT touch
 - Analytics logic (keep in `AnalyticsRepository`)

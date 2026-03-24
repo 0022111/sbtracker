@@ -45,11 +45,11 @@ main  ← stable, merges only from dev
 
 | ID | Status | Title | Task File | Blocked by |
 |---|---|---|---|---|
-| T-006 | `ready` | Introduce Hilt DI | [T-006](tasks/T-006-introduce-hilt-di.md) | — |
-| T-007 | `blocked` | Decompose MainViewModel | [T-007](tasks/T-007-decompose-mainviewmodel.md) | T-006 |
+| T-006 | `done` | Introduce Hilt DI | [T-006](tasks/T-006-introduce-hilt-di.md) | — |
+| T-007 | `ready` | Decompose MainViewModel | [T-007](tasks/T-007-decompose-mainviewmodel.md) | — |
 | T-008 | `blocked` | Remove Fragment–Activity Casts | [T-008](tasks/T-008-remove-activity-casts.md) | T-007 |
-| T-009 | `blocked` | Preferences → DataStore | [T-009](tasks/T-009-preferences-datastore.md) | T-006 |
-| T-010 | `blocked` | Unit Tests | [T-010](tasks/T-010-unit-tests.md) | T-006 |
+| T-009 | `ready` | Preferences → DataStore | [T-009](tasks/T-009-preferences-datastore.md) | — |
+| T-010 | `ready` | Unit Tests | [T-010](tasks/T-010-unit-tests.md) | — |
 | T-026 | `done` | Enable ViewBinding | [T-026](tasks/T-026-enable-viewbinding.md) | — |
 | T-027 | `done` | Extract Hardcoded Colors to colors.xml | [T-027](tasks/T-027-extract-colors-xml.md) | — |
 
@@ -62,6 +62,9 @@ main  ← stable, merges only from dev
 | T-013 | `blocked` | History Search & Filtering | [T-013](tasks/T-013-history-filtering.md) | T-007 |
 | T-014 | `blocked` | Tolerance Break Tracker | [T-014](tasks/T-014-tolerance-break-tracker.md) | T-007 |
 | T-015 | `blocked` | Onboarding Flow | [T-015](tasks/T-015-onboarding-flow.md) | T-005 |
+| T-030 | `ready` | Migrate to Jetpack Compose | [T-030](tasks/T-030-migrate-to-jetpack-compose.md) | — |
+| T-031 | `ready` | Overhaul BLE State Machine | [T-031](tasks/T-031-overhaul-ble-state-machine.md) | — |
+| T-032 | `ready` | Consolidate Multi-Device Analytics | [T-032](tasks/T-032-consolidate-multi-device-analytics.md) | — |
 
 ## Phase 3 — Release Readiness
 

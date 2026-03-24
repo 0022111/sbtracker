@@ -1,8 +1,8 @@
 # T-009 — Migrate Preferences to DataStore
 
-**Status**: blocked
+**Status**: ready
 **Phase**: 1
-**Blocked by**: T-006
+**Blocked by**: —
 **Blocks**: T-012
 
 ---
@@ -24,7 +24,10 @@ Keys to migrate: `day_start_hour`, `phone_alerts_enabled`, `dim_on_charge`,
 4. Inject via Hilt (T-006 must be done first).
 5. Remove all `appPrefs.get*` / `appPrefs.edit()` calls from `MainViewModel`.
 
-*(Fill in full steps when T-006 is done.)*
+1. Add `androidx.datastore:datastore-preferences` dependency to `app/build.gradle`.
+2. Create `UserPreferencesRepository` class.
+3. Migrate `SharedPreferences` keys one by one.
+4. Inject the new repository into the new ViewModels (from T-007).
 
 ## Do NOT touch
 - Database schema

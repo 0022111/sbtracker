@@ -1,6 +1,7 @@
 # SBTracker — Changelog
 
 ### [Unreleased]
+- **Added** (Orchestration) Formalized overhaul tasks for `MainViewModel` decomposition, Jetpack Compose migration, and BLE state machine refactoring.
 - **Fixed** (T-028) Silent exceptions in `BleCommandQueue` and `MainViewModel` are now logged to logcat for easier troubleshooting.
 
 All notable changes to this project. Agents: append to the top of the relevant section after completing work.
@@ -29,6 +30,12 @@ All notable changes to this project. Agents: append to the top of the relevant s
 - **Added** `/orchestrate` and `/plan-feature` slash commands
 - **Changed** `feature-work.md` — updated branch target from `main` to `dev`
 - **Created** `dev` branch as integration target (all agent PRs now target `dev`, not `main`)
+
+### 2026-03-24 — Introduce Hilt DI
+- **Added** (T-006) Introduce Hilt Dependency Injection.
+- **Setup** `@HiltAndroidApp` in `SBTrackerApp`, created `AppModule` for database and manager providers.
+- **Migrated** `MainViewModel`, `MainActivity`, `SessionReportActivity`, and all UI fragments to Hilt.
+- **Removed** Manual singleton implementation in `AppDatabase`.
 
 ### 2026-03-24 — Phase 0: Stop the Bleeding
 - **Changed** Room dependency from `2.7.0-alpha13` to `2.6.1` (stable); drop alpha channel
