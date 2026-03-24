@@ -4,6 +4,22 @@
 
 ---
 
+## Roadmap to Alpha (v0.2.0)
+The current dev codebase (v0.1) is extremely close to a functional Alpha. To officially cut a stable release for early testers to use in the real world, the following items must be resolved:
+
+**Critical Path (Must-Haves for Alpha):**
+* **[B-010] Fix Temp Accuracy:** Resolve boost offset and target temp reporting. Since this is a vaporizer tracker, core temperature data must be explicitly trusted by users.
+* **[F-026] Data Backup / Restore:** Allow testers to export/import the `sbtracker.db` file. This protects their "god log" during early experimental schema iterations.
+* **Unblock DB Schema (F-018):** Finalize the database schema architecture for user-entered session metadata (like capsule tags) *before* testers start generating heavy real-world data.
+
+**Stability Path (Should-Haves for Alpha):**
+* **[F-048] BLE State Machine Overhaul:** Ensure robust backoff and reconnection so background tracking survives real-world Bluetooth flakiness (e.g., phones in pockets).
+* **[F-042] Analytics Unit Tests:** Validate the pure-function analytics layer so the UI doesn't accidentally display garbage data.
+
+*Note: Major architectural refactors (F-043 ViewModel Decomposition, F-047 Compose Migration) and P3 UI bugs should be deferred to the Beta/v1.0 phase so they don't block getting the app into testers' hands.*
+
+---
+
 ## Core Systems (P0 — Foundation)
 
 | ID | Status | Feature | Description | Acceptance Criteria |
