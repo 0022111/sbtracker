@@ -95,7 +95,13 @@ Steps:
 7. git fetch origin dev && git rebase origin/dev  (resolve conflicts if any)
 8. git push -u origin claude/T-XXX-<name>
 9. Create PR: mcp__github__create_pull_request owner=0022111 repo=sbtracker head=claude/T-XXX-<name> base=dev title="T-XXX — <Task Title>"
-10. git add .agents/TASKS.md && git commit -m "meta: T-XXX done" && git fetch origin dev && git push origin HEAD:dev
+10. # TASKS.md meta update — must be isolated from feature code:
+    git fetch origin dev
+    git checkout -b meta-T-XXX-done origin/dev
+    # Edit .agents/TASKS.md status to `done`
+    git add .agents/TASKS.md && git commit -m "meta: T-XXX done"
+    git push origin HEAD:dev
+    git checkout claude/T-XXX-<name> && git branch -d meta-T-XXX-done
 
 Do not go beyond these steps.
 === END KICKOFF ===
