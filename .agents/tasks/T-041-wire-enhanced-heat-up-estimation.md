@@ -2,16 +2,16 @@
 
 **Phase**: Phase 2 — User-Facing Features
 **Blocked by**: T-040
-**Estimated diff**: ~30 lines in 3 files
+**Estimated diff**: ~25 lines in 2 files
 
 ## Goal
-Connect the enhanced heat-up estimation to the UI by passing current battery %, time since last session, and device temperature to the estimation function.
+Connect the enhanced heat-up estimation to the UI by passing time since last session and current device temperature to the estimation function.
 
 ## Read these files first
 - `app/src/main/java/com/sbtracker/analytics/AnalyticsRepository.kt` — the enhanced `computeEstimatedHeatUpTime` signature (T-040)
 - `app/src/main/java/com/sbtracker/HistoryViewModel.kt` — the `estimatedHeatUpTimeSecs` function (lines ~125–130)
 - `app/src/main/java/com/sbtracker/ui/SessionFragment.kt` — where ETA is displayed during active session
-- `app/src/main/java/com/sbtracker/BleViewModel.kt` — understand how to access `latestStatus.batteryLevelPercent` and `latestStatus.currentTempC`
+- `app/src/main/java/com/sbtracker/BleViewModel.kt` — understand how to access `latestStatus.currentTempC`
 
 ## Change only these files
 - `app/src/main/java/com/sbtracker/HistoryViewModel.kt`
@@ -30,20 +30,18 @@ Connect the enhanced heat-up estimation to the UI by passing current battery %, 
        combine(
            deviceSessionSummaries,
            targetTemp,
-           bleViewModel.latestStatus,  // provides batteryLevelPercent, currentTempC
-           bleViewModel.activeDevice   // to find the last session
-       ) { summaries, target, status, device ->
+           bleViewModel.latestStatus
+       ) { summaries, target, status ->
            // Calculate time since last session
            val lastSession = summaries.lastOrNull()
            val timeSinceLast = if (lastSession != null) {
                System.currentTimeMillis() - lastSession.endTimeMs
            } else null
 
-           // Call enhanced estimation with all parameters
+           // Call enhanced estimation with time and temperature parameters
            val ms = analyticsRepo.computeEstimatedHeatUpTime(
                targetTempC = target,
                summaries = summaries,
-               currentBatteryPercent = status.batteryLevelPercent,
                timeSinceLastSessionMs = timeSinceLast,
                currentDeviceTempC = status.currentTempC
            )
@@ -70,9 +68,9 @@ Connect the enhanced heat-up estimation to the UI by passing current battery %, 
 
 ## Acceptance criteria
 - [ ] `estimatedHeatUpTimeSecsWithContext` exists in HistoryViewModel
-- [ ] Passes currentBatteryPercent, timeSinceLastSessionMs, and currentDeviceTempC to analytics repo
+- [ ] Passes timeSinceLastSessionMs and currentDeviceTempC to analytics repo
 - [ ] SessionFragment uses the new context-aware method
-- [ ] UI displays the enhanced ETA (should now be more accurate for back-to-back sessions and battery states)
+- [ ] UI displays the enhanced ETA (faster for back-to-back sessions, faster for warm devices)
 - [ ] Original `estimatedHeatUpTimeSecs` still exists (backward compat)
 - [ ] `./gradlew assembleDebug` passes
 
@@ -80,4 +78,4 @@ Connect the enhanced heat-up estimation to the UI by passing current battery %, 
 - Modify BleViewModel or any other ViewModels
 - Change SessionFragment's UI logic (only the data source)
 - Break the existing `estimatedHeatUpTimeSecs` method
-- Assume any specific device status fields exist beyond `batteryLevelPercent` and `currentTempC` (verify they exist first)
+- Assume any specific device status fields exist beyond `currentTempC` (verify they exist first)
