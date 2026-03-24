@@ -6,14 +6,22 @@
 
 ---
 
+## Branching model
+
+```
+main  ← stable, merges only from dev
+  └── dev  ← integration branch; all agent PRs target this
+        └── claude/T-XXX-...  ← your branch
+```
+
 ## How to pick up a task
 
 1. Find a `ready` task below with no agent assigned.
 2. Read `.agents/tasks/<task-file>.md` — that is your full scope.
-3. Create branch `claude/T-XXX-short-description` from `main`.
+3. Create branch `claude/T-XXX-short-description` from **`dev`**.
 4. Complete the steps in the task file.
 5. Run `./gradlew assembleDebug` — must pass before pushing.
-6. Open a PR and mark the task `done` here.
+6. Open a PR targeting **`dev`** (not `main`) and mark the task `done` here.
 
 ---
 
