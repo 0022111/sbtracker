@@ -2,6 +2,9 @@
 
 All notable changes to this project. Agents: append to the top of the relevant section after completing work.
 
+### 2026-03-24 — T-022: Fix "TARGET TARGET" Typo
+- **Fixed** copy-paste error in `fragment_session.xml` line 398 — changed `android:text="TARGET TARGET"` to `android:text="TARGET TEMP"`
+
 ### 2026-03-24 — Phase 0: Stop the Bleeding
 - **Changed** Room dependency from `2.7.0-alpha13` to `2.6.1` (stable); drop alpha channel
 - **Changed** `targetSdk`/`compileSdk` from 34 to 35 (Play Store requirement)
