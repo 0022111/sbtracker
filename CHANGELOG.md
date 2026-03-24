@@ -2,6 +2,10 @@
 
 All notable changes to this project. Agents: append to the top of the relevant section after completing work.
 
+### 2026-03-24 — Simplify Issue Intake: Auto-Priority + Drop `dream` Label
+- **Changed** Issue intake now triggers on `bug` + `enhancement` only (both built-in GitHub labels; `feature`/`dream` removed)
+- **Improved** Priority auto-inferred by Claude from issue content; explicit `p0`/`p1`/`p2` labels still override
+
 ### 2026-03-24 — Wire Boost Visualization Toggle
 - **Fixed** boost visualization switch in Settings was unresponsive; now wired to ViewModel
 
