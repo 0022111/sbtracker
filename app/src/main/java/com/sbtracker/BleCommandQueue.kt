@@ -1,5 +1,7 @@
 package com.sbtracker
 
+import android.util.Log
+
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -28,8 +30,8 @@ class BleCommandQueue {
             for (command in channel) {
                 try {
                     command()
-                } catch (_: Exception) {
-                    // Swallow individual command errors so the queue keeps running.
+                } catch (e: Exception) {
+                    Log.e("BleCommandQueue", "BLE command failed", e)
                 }
                 delay(50L) // Mandatory minimum gap between GATT operations.
             }
