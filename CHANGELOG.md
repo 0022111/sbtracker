@@ -1,5 +1,12 @@
 # SBTracker — Changelog
 
+### 2026-03-24 — Fix BLE Background Process Handoff (Direct push to dev)
+- **Fixed** `BleService` now `@AndroidEntryPoint` with direct `@Inject BleManager` — no longer depends on `MainViewModel` being alive to act
+- **Added** `BleManager.reconnectToAddress(address)` using `autoConnect = true` so Android's BT stack manages reconnection at the OS level, surviving process restarts
+- **Fixed** `BleService.onStartCommand` triggers `reconnectToAddress` on `START_STICKY` restarts, reading last known device from SharedPrefs
+- **Fixed** `serviceScope` changed from `Dispatchers.Main` to `Dispatchers.Default` (background service should not run on main thread)
+- **Improved** Notification shows "Waiting for device..." for OS-managed background reconnect (attempt 0) vs "Reconnecting (N)..." for active retry loop
+
 ### 2026-03-24 — Remove Duplicate CMD_FIRMWARE Constant (Direct push to dev)
 - **Fixed** Removed `CMD_FIRMWARE` (0x02) from `BleConstants` — was identical to `CMD_INITIAL_RESET` after protocol reconciliation in PR #26
 - **Updated** `BlePacket.parseFirmware()` and `BleManager` notification router to reference `CMD_INITIAL_RESET` instead

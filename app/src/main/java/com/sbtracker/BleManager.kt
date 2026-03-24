@@ -143,6 +143,35 @@ class BleManager(private val context: Context) {
         connect(device)
     }
 
+    /**
+     * Re-establish a connection to a previously paired device by address.
+     *
+     * Uses [BluetoothDevice.connectGatt] with [autoConnect] = true so Android's
+     * Bluetooth stack manages the reconnect at the OS level. This survives process
+     * restarts — the stack will call back [gattCallback] whenever the device comes
+     * back into range without any polling loop required.
+     *
+     * Called by [BleService] on [Service.onStartCommand] so a START_STICKY restart
+     * after a process kill immediately queues a background reconnect.
+     */
+    fun reconnectToAddress(address: String) {
+        if (address.isBlank() || isIntentionalDisconnect) return
+        if (_connectionState.value !is ConnectionState.Disconnected) return
+        deviceAddress = address
+        _connectionState.value = ConnectionState.Reconnecting(0)
+        managerScope.launch {
+            try {
+                val device = adapter()?.getRemoteDevice(address) ?: return@launch
+                // autoConnect = true: OS-managed reconnect, no polling needed
+                gatt = device.connectGatt(context, true, gattCallback, BluetoothDevice.TRANSPORT_LE)
+            } catch (_: SecurityException) {
+                _connectionState.value = ConnectionState.Disconnected
+            } catch (_: Exception) {
+                _connectionState.value = ConnectionState.Disconnected
+            }
+        }
+    }
+
     fun disconnect() {
         isIntentionalDisconnect = true
         reconnectJob?.cancel()

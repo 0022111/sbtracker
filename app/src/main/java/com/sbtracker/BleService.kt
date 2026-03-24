@@ -11,22 +11,32 @@ import android.os.Binder
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 /**
  * Foreground service to keep the BLE connection alive and handle background tasks
  * like charging ETA notifications and session tracking.
+ *
+ * Owns a direct reference to [BleManager] so it can independently trigger reconnection
+ * on [START_STICKY] restarts — i.e. when the process was killed and the OS brought the
+ * service back without MainActivity or MainViewModel being alive yet.
  */
+@AndroidEntryPoint
 class BleService : Service() {
 
+    @Inject lateinit var bleManager: BleManager
+
+    // Default dispatcher — not Main, this is a background service.
     private val serviceJob = SupervisorJob()
-    private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
-    
+    private val serviceScope = CoroutineScope(Dispatchers.Default + serviceJob)
+
     private var viewModel: MainViewModel? = null
 
     private val CHANNEL_ID = "ble_service_channel"
@@ -96,7 +106,7 @@ class BleService : Service() {
             is BleManager.ConnectionState.Connected -> "Device Online"
             is BleManager.ConnectionState.Connecting -> "Linking..."
             is BleManager.ConnectionState.Scanning -> "Scanning..."
-            is BleManager.ConnectionState.Reconnecting -> "Reconnecting (${state.attempt})..."
+            is BleManager.ConnectionState.Reconnecting -> if (state.attempt == 0) "Waiting for device..." else "Reconnecting (${state.attempt})..."
             else -> "Disconnected"
         }
 
@@ -112,6 +122,18 @@ class BleService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        // On a START_STICKY restart (process killed by OS), the ViewModel is gone but this
+        // service comes back. Trigger an OS-managed background reconnect to the last known
+        // device so tracking resumes as soon as the device is in range — no user interaction
+        // required. autoConnect = true (inside reconnectToAddress) lets the BT stack handle it.
+        if (bleManager.connectionState.value is BleManager.ConnectionState.Disconnected) {
+            val prefs = getSharedPreferences("known_devices_v1", Context.MODE_PRIVATE)
+            val lastSerial = prefs.getString("last_serial", null)
+            if (lastSerial != null) {
+                val address = prefs.getString("dev_${lastSerial}_addr", null)
+                if (!address.isNullOrBlank()) bleManager.reconnectToAddress(address)
+            }
+        }
         return START_STICKY
     }
 
