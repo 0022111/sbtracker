@@ -61,15 +61,15 @@ main  ← stable, merges only from dev
 | T-012 | `blocked` | Temperature Presets | [T-012](tasks/T-012-temperature-presets.md) | T-009 |
 | T-013 | `blocked` | History Search & Filtering | [T-013](tasks/T-013-history-filtering.md) | T-007 |
 | T-014 | `blocked` | Tolerance Break Tracker | [T-014](tasks/T-014-tolerance-break-tracker.md) | T-007 |
-| T-015 | `blocked` | Onboarding Flow | [T-015](tasks/T-015-onboarding-flow.md) | T-005 |
+| T-015 | `ready` | Onboarding Flow | [T-015](tasks/T-015-onboarding-flow.md) | ~~T-005~~ |
 
 ## Phase 3 — Release Readiness
 
 | ID | Status | Title | Task File | Blocked by |
 |---|---|---|---|---|
 | T-016 | `blocked` | Remove fallbackToDestructiveMigration | [T-016](tasks/T-016-remove-fallback-migration.md) | T-011 |
-| T-017 | `blocked` | Release Build Pipeline | [T-017](tasks/T-017-release-build-pipeline.md) | T-001 |
-| T-018 | `blocked` | Crash Reporting | [T-018](tasks/T-018-crash-reporting.md) | T-001 |
+| T-017 | `ready` | Release Build Pipeline | [T-017](tasks/T-017-release-build-pipeline.md) | ~~T-001~~ |
+| T-018 | `ready` | Crash Reporting | [T-018](tasks/T-018-crash-reporting.md) | ~~T-001~~ |
 | T-019 | `blocked` | Notification Action Buttons | [T-019](tasks/T-019-notification-actions.md) | T-008 |
 | T-020 | `blocked` | Quick Settings Tile | [T-020](tasks/T-020-quick-settings-tile.md) | T-008 |
 | T-021 | `blocked` | Localization Groundwork | [T-021](tasks/T-021-localization-groundwork.md) | T-008 |
