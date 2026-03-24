@@ -40,6 +40,8 @@ main  ← stable, merges only from dev
 | T-025 | `done` | Fix Day Start Hour Subtitle | [T-025](tasks/T-025-fix-day-start-subtitle.md) | — |
 | T-028 | `done` | Log Silent Exception Catches | [T-028](tasks/T-028-log-silent-exceptions.md) | — |
 | T-029 | `done` | Persist Battery Card Expand State | [T-029](tasks/T-029-persist-battery-expand-state.md) | — |
+| T-030 | `ready` | Harden R8/ProGuard Keep Rules | [T-030](tasks/T-030-harden-r8-keep-rules.md) | — |
+| T-031 | `ready` | Structured BLE Error Propagation | [T-031](tasks/T-031-ble-error-propagation.md) | — |
 
 ## Phase 1 — Foundation
 
@@ -52,6 +54,9 @@ main  ← stable, merges only from dev
 | T-010 | `blocked` | Unit Tests | [T-010](tasks/T-010-unit-tests.md) | T-006 |
 | T-026 | `done` | Enable ViewBinding | [T-026](tasks/T-026-enable-viewbinding.md) | — |
 | T-027 | `done` | Extract Hardcoded Colors to colors.xml | [T-027](tasks/T-027-extract-colors-xml.md) | — |
+| T-032 | `ready` | Migrate Graph Colors to colors.xml | [T-032](tasks/T-032-migrate-graph-colors.md) | — |
+| T-033 | `ready` | Extract UI Strings to strings.xml | [T-033](tasks/T-033-extract-ui-strings.md) | — |
+| T-034 | `ready` | Add Lint Configuration & Baseline | [T-034](tasks/T-034-add-lint-config.md) | — |
 
 ## Phase 2 — User-Facing Features
 
