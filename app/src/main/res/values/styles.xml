@@ -2,19 +2,22 @@
 <resources>
 
     <style name="Theme.SBTracker" parent="Theme.Material3.Dark.NoActionBar">
-        <item name="colorPrimary">#0A84FF</item>
-        <item name="colorOnPrimary">#FFFFFF</item>
-        <item name="colorPrimaryContainer">#003366</item>
-        <item name="colorOnPrimaryContainer">#D1E4FF</item>
+        <!-- Main Cyber Green Accent -->
+        <item name="colorPrimary">#00FF41</item>
+        <item name="colorOnPrimary">#000000</item>
+        <item name="colorPrimaryContainer">#004411</item>
+        <item name="colorOnPrimaryContainer">#88FFAA</item>
 
-        <item name="colorSecondary">#30D158</item>
-        <item name="colorOnSecondary">#003912</item>
+        <!-- Secondary color (slightly deeper green) -->
+        <item name="colorSecondary">#00D035</item>
+        <item name="colorOnSecondary">#000000</item>
 
+        <!-- Pure black background -->
         <item name="android:windowBackground">#000000</item>
-        <item name="colorSurface">#1C1C1E</item>
-        <item name="colorOnSurface">#E5E5EA</item>
-        <item name="colorSurfaceVariant">#2C2C2E</item>
-        <item name="colorOnSurfaceVariant">#8E8E93</item>
+        <item name="colorSurface">#0B110D</item> <!-- Very dark cyber green-tinted charcoal -->
+        <item name="colorOnSurface">#EAEFEA</item>
+        <item name="colorSurfaceVariant">#141E17</item> <!-- Slightly lighter for cards -->
+        <item name="colorOnSurfaceVariant">#80A88F</item> <!-- Greenish muted text -->
 
         <item name="android:statusBarColor">#000000</item>
         <item name="android:navigationBarColor">#000000</item>

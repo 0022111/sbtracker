@@ -46,6 +46,10 @@ interface DeviceInfoDao {
     @Query("SELECT * FROM device_info WHERE deviceAddress = :address LIMIT 1")
     suspend fun getByAddress(address: String): DeviceInfo?
 
+    /** All known devices, most recently seen first. */
+    @Query("SELECT * FROM device_info ORDER BY lastSeenMs DESC")
+    suspend fun getAll(): List<DeviceInfo>
+
     /** Delete all device_info for a device (user-initiated history clear). */
     @Query("DELETE FROM device_info WHERE deviceAddress = :address")
     suspend fun clearAll(address: String)

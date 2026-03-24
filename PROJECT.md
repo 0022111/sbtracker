@@ -116,12 +116,22 @@ The entire system follows an **event-sourcing pattern**. One table rules everyth
 
 ## Rules for Agents
 
-1. **Read this file first** before any code changes.
+1. **Start by displaying `BACKLOG.md`** — at the beginning of every session, show the user the current backlog to align on priorities.
+2. **Read this file (`PROJECT.md`) first** before any code changes.
 2. **Never store derived data** in the DB — compute from `device_status`.
 3. **Never skip schema versions** — always increment by 1.
 4. **Keep `fallbackToDestructiveMigration()`** during development.
 5. **Update `BACKLOG.md`** when starting and completing work.
 6. **Append to `CHANGELOG.md`** after completing changes.
-7. **Use feature branches** — `feature/F-XXX-description` or `fix/B-XXX-description`.
-8. **Run `./gradlew assembleDebug`** before committing to verify build.
+7. **Use agent branches** — use `claude/description` for AI agent work to separate from manual `feature/` or `fix/` branches. See [AGENT_INFO.md](file:///Users/a0110/AndroidStudioProjects/sbtracker/AGENT_INFO.md) for details.
+8. **Follow PR-based workflow** — create a branch, implement, verify, and submit a Pull Request. Never commit directly to `main`.
+9. **Verify build** — ensure the GitHub Actions build passes before merging (if applicable).
+10. **Follow standardized workflows** — use `/feature-work` and `/documentation-sync` for consistent process management.
+11. **Use internal artifacts** — maintain `task.md`, `implementation_plan.md`, and `walkthrough.md` in the artifact directory to keep the session context synchronized.
+12. **Run `./gradlew assembleDebug`** locally before pushing to verify the build.
 9. **Reference app** in `!gitignore.referenceonly-reactive-volcano-app-main/` is for protocol reference only — do not modify.
+
+---
+
+## Agent Infrastructure
+Detailed guidelines and branch strategies for AI assistants are maintained in [AGENT_INFO.md](file:///Users/a0110/AndroidStudioProjects/sbtracker/AGENT_INFO.md).

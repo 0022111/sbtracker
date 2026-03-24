@@ -21,6 +21,7 @@ class SettingsFragment : Fragment() {
         val vm = (requireActivity() as MainActivity).vm
         
         val swPhoneAlerts = view.findViewById<SwitchCompat>(R.id.switch_phone_alerts)
+        val swDimOnCharge = view.findViewById<SwitchCompat>(R.id.switch_dim_on_charge)
         val swHaptic = view.findViewById<SwitchCompat>(R.id.switch_vibration)
         val swCharge = view.findViewById<SwitchCompat>(R.id.switch_charge_opt)
         val swChargeLimit = view.findViewById<SwitchCompat>(R.id.switch_charge_limit)
@@ -37,7 +38,17 @@ class SettingsFragment : Fragment() {
         val tvFw = view.findViewById<TextView>(R.id.tv_settings_firmware)
         val tvColor = view.findViewById<TextView>(R.id.tv_settings_color)
 
+        val tvDayStartValue = view.findViewById<TextView>(R.id.tv_day_start_value)
+
         view.findViewById<View>(R.id.row_phone_alerts).setOnClickListener { vm.togglePhoneAlerts() }
+        view.findViewById<View>(R.id.row_dim_on_charge).setOnClickListener { vm.toggleDimOnCharge() }
+        view.findViewById<View>(R.id.row_day_start_hour).setOnClickListener {
+            val hours = Array(24) { i -> if (i == 0) "12 AM" else if (i < 12) "$i AM" else if (i == 12) "12 PM" else "${i - 12} PM" }
+            android.app.AlertDialog.Builder(requireContext())
+                .setTitle("Day Start Hour")
+                .setItems(hours) { _, which -> vm.setDayStartHour(which) }
+                .show()
+        }
         view.findViewById<View>(R.id.row_unit).setOnClickListener { vm.toggleUnit() }
         view.findViewById<View>(R.id.row_auto_shutdown).setOnClickListener { vm.adjustAutoShutdown(60) }
         view.findViewById<View>(R.id.row_vibration).setOnClickListener { vm.toggleVibrationLevel() }
@@ -51,6 +62,14 @@ class SettingsFragment : Fragment() {
                 vm.rebuildSessionHistoryFromLogs()
             }
         }
+        view.findViewById<Button>(R.id.btn_dev_inject_test_device).setOnClickListener {
+            vm.injectTestDevice()
+            android.widget.Toast.makeText(requireContext(), "Test Device Injected", android.widget.Toast.LENGTH_SHORT).show()
+        }
+        view.findViewById<Button>(R.id.btn_dev_remove_test_device).setOnClickListener {
+            vm.removeTestDevice()
+            android.widget.Toast.makeText(requireContext(), "Test Device Removed", android.widget.Toast.LENGTH_SHORT).show()
+        }
 
         sbBrightness.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
@@ -62,6 +81,17 @@ class SettingsFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             vm.phoneAlertsEnabled.collect { swPhoneAlerts.isChecked = it }
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            vm.dimOnChargeEnabled.collect { swDimOnCharge.isChecked = it }
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            vm.dayStartHour.collect { hour ->
+                val text = if (hour == 0) "12 AM" else if (hour < 12) "$hour AM" else if (hour == 12) "12 PM" else "${hour - 12} PM"
+                tvDayStartValue.text = text
+            }
         }
 
         viewLifecycleOwner.lifecycleScope.launch {

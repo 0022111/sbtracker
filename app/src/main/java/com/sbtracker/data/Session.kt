@@ -49,6 +49,14 @@ interface SessionDao {
     @Query("SELECT id FROM sessions WHERE deviceAddress = :address AND startTimeMs = :startMs AND endTimeMs = :endMs LIMIT 1")
     suspend fun getIdForBoundary(address: String, startMs: Long, endMs: Long): Long?
 
+    /**
+     * Finds an existing session that starts within a small tolerance of [startMs].
+     * Useful for deduplicating live-recorded vs reconstructed sessions which may
+     * have slightly different marker arrival times.
+     */
+    @Query("SELECT id FROM sessions WHERE deviceAddress = :address AND ABS(startTimeMs - :startMs) < 30000 LIMIT 1")
+    suspend fun findExistingSessionNear(address: String, startMs: Long): Long?
+
     @Query("SELECT COUNT(*) FROM sessions")
     suspend fun countAll(): Int
 

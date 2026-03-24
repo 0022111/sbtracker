@@ -276,16 +276,24 @@ class HistoryFragment : Fragment() {
 
         // ── Session History List ──────────────────────────────────────────────
         viewLifecycleOwner.lifecycleScope.launch {
-            vm.sessionHistory.collect { items ->
+            combine(vm.sessionHistory, vm.sessionFilter, vm.activeDevice) { items, filter, device ->
+                Triple(items, filter, device)
+            }.collect { (items, filter, device) ->
                 adapter.submitList(items)
                 val sessions = items.count { it is HistoryItem.SessionItem }
                 val charges  = items.count { it is HistoryItem.ChargeItem }
-                tvCount.text = when {
+                val countText = when {
                     sessions > 0 && charges > 0 -> "$sessions sessions · $charges charges"
                     sessions > 0 -> "$sessions sessions"
                     charges  > 0 -> "$charges charges"
                     else -> "No history"
                 }
+                // Show scope indicator when viewing all devices
+                val scopeText = if (filter == "all" && device != null) {
+                    val label = device.deviceType.ifEmpty { device.serialNumber.takeLast(6) }
+                    "$countText  ·  Stats for $label"
+                } else countText
+                tvCount.text = scopeText
             }
         }
 
