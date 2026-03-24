@@ -62,7 +62,7 @@ main  ← stable, merges only from dev
 | T-035 | `done` | IntakeStats analytics model + computeIntakeStats | [T-035](tasks/T-035-intake-analytics-model.md) | — |
 | T-036 | `done` | Session Report: Capsule / Free-Pack Toggle | [T-036](tasks/T-036-session-report-capsule-toggle.md) | — |
 | T-037 | `done`    | Settings UI: Capsule Weight + Default Pack Type | [T-037](tasks/T-037-settings-capsule-ui.md) | T-034 |
-| T-038 | `ready`   | History Screen: Health & Intake Card | [T-038](tasks/T-038-history-health-card.md) | T-034, T-035 |
+| T-038 | `done`    | History Screen: Health & Intake Card | [T-038](tasks/T-038-history-health-card.md) | T-034, T-035 |
 
 ## Phase 2 — User-Facing Features
 
