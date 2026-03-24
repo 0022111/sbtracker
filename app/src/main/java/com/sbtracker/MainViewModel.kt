@@ -320,7 +320,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                                 }
                             }
                         } catch (e: Exception) {
-                            // Ignore
+                            android.util.Log.e("MainViewModel", "Offline gap detection failed", e)
                         }
                     }
                 }
@@ -927,6 +927,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val graphPeriod: StateFlow<GraphPeriod> = _graphPeriod.asStateFlow()
 
     fun setGraphPeriod(p: GraphPeriod) { _graphPeriod.value = p }
+
+    private val _drainCardExpanded  = MutableStateFlow(true)
+    val drainCardExpanded: StateFlow<Boolean> = _drainCardExpanded.asStateFlow()
+
+    private val _healthCardExpanded = MutableStateFlow(false)
+    val healthCardExpanded: StateFlow<Boolean> = _healthCardExpanded.asStateFlow()
+
+    fun toggleDrainCard()  { _drainCardExpanded.value  = !_drainCardExpanded.value }
+    fun toggleHealthCard() { _healthCardExpanded.value = !_healthCardExpanded.value }
 
 
 
