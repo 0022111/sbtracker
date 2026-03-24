@@ -133,6 +133,25 @@ class MainViewModel @Inject constructor(
         appPrefs.edit().putInt("retention_days", days).apply()
     }
 
+    /** Global default capsule weight in grams. Range: 0.01–2.00. Default 0.10 (100 mg). */
+    private val _capsuleWeightGrams = MutableStateFlow(0.10f)
+    val capsuleWeightGrams: StateFlow<Float> = _capsuleWeightGrams.asStateFlow()
+
+    /** Whether new sessions default to capsule type. Default false (free pack). */
+    private val _defaultIsCapsule = MutableStateFlow(false)
+    val defaultIsCapsule: StateFlow<Boolean> = _defaultIsCapsule.asStateFlow()
+
+    fun setCapsuleWeight(grams: Float) {
+        val clamped = grams.coerceIn(0.01f, 2.00f)
+        _capsuleWeightGrams.value = clamped
+        appPrefs.edit().putFloat("capsule_weight_grams", clamped).apply()
+    }
+
+    fun setDefaultIsCapsule(isCapsule: Boolean) {
+        _defaultIsCapsule.value = isCapsule
+        appPrefs.edit().putBoolean("default_is_capsule", isCapsule).apply()
+    }
+
     // Alerts State
     private var lastSetpointReached = false
     private var lastCharge80Reached = false
@@ -179,6 +198,8 @@ class MainViewModel @Inject constructor(
         _dayStartHour.value       = appPrefs.getInt("day_start_hour", 4)
         _retentionDays.value      = appPrefs.getInt("retention_days", 90)
         preDimBrightness          = appPrefs.getInt("pre_dim_brightness", -1)
+        _capsuleWeightGrams.value = appPrefs.getFloat("capsule_weight_grams", 0.10f)
+        _defaultIsCapsule.value   = appPrefs.getBoolean("default_is_capsule", false)
 
         viewModelScope.launch {
             analyticsRepo.pruneOldData(_retentionDays.value)
