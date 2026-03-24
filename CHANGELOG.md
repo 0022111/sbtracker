@@ -5,6 +5,9 @@
 
 All notable changes to this project. Agents: append to the top of the relevant section after completing work.
 
+### 2026-03-24 — Wire Factory Reset Button
+- **Added** confirmation dialog for factory reset button in Settings
+
 ### 2026-03-24 — Hierarchical Agent System
 - **Added** `orchestrate.md` workflow — top-level orchestrator that reads project state, unblocks tasks, and generates worker kickoff prompts
 - **Added** `plan-feature.md` workflow — planner that decomposes a backlog feature into atomic scoped task files

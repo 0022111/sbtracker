@@ -66,6 +66,14 @@ class SettingsFragment : Fragment() {
         view.findViewById<View>(R.id.row_perm_ble).setOnClickListener { vm.togglePermanentBle() }
         view.findViewById<View>(R.id.row_boost_timeout).setOnClickListener { vm.toggleBoostTimeout() }
         view.findViewById<Button>(R.id.btn_find_device).setOnClickListener { vm.findDevice() }
+        view.findViewById<Button>(R.id.btn_factory_reset).setOnClickListener {
+            android.app.AlertDialog.Builder(requireContext())
+                .setTitle("Factory Reset Device")
+                .setMessage("This will reset the device to factory defaults. Are you sure?")
+                .setPositiveButton("Reset") { _, _ -> vm.factoryReset() }
+                .setNegativeButton("Cancel", null)
+                .show()
+        }
         view.findViewById<Button>(R.id.btn_dev_rebuild_history).setOnClickListener {
             viewLifecycleOwner.lifecycleScope.launch {
                 vm.rebuildSessionHistoryFromLogs()
