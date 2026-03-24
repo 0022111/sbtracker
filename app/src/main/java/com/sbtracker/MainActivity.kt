@@ -40,6 +40,7 @@ import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.sbtracker.data.SessionSummary
 import com.sbtracker.SessionTracker
+import com.sbtracker.databinding.ActivityMainPagedBinding
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -57,9 +58,8 @@ import com.sbtracker.ui.SettingsFragment
 class MainActivity : AppCompatActivity() {
 
     lateinit var vm: MainViewModel
-    private lateinit var viewPager: ViewPager2
-    private lateinit var bottomNav: BottomNavigationView
-    
+    private lateinit var binding: ActivityMainPagedBinding
+
     private var bleService: BleService? = null
     private var isBound = false
 
@@ -91,40 +91,38 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main_paged)
+        binding = ActivityMainPagedBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         vm = ViewModelProvider(this)[MainViewModel::class.java]
 
-        viewPager = findViewById(R.id.view_pager)
-        bottomNav = findViewById(R.id.bottom_navigation)
-
         val adapter = PagedAdapter(this)
-        viewPager.adapter = adapter
-        (viewPager.getChildAt(0) as? RecyclerView)?.isNestedScrollingEnabled = false
+        binding.viewPager.adapter = adapter
+        (binding.viewPager.getChildAt(0) as? RecyclerView)?.isNestedScrollingEnabled = false
 
-        viewPager.isUserInputEnabled = true // Enabled horizontal swipe
+        binding.viewPager.isUserInputEnabled = true // Enabled horizontal swipe
 
-        bottomNav.setOnItemSelectedListener { item ->
+        binding.bottomNavigation.setOnItemSelectedListener { item ->
             when (item.itemId) {
-                R.id.nav_overview -> viewPager.currentItem = 0
-                R.id.nav_session  -> viewPager.currentItem = 1
-                R.id.nav_history  -> viewPager.currentItem = 2
-                R.id.nav_battery  -> viewPager.currentItem = 3
-                R.id.nav_settings -> viewPager.currentItem = 4
+                R.id.nav_overview -> binding.viewPager.currentItem = 0
+                R.id.nav_session  -> binding.viewPager.currentItem = 1
+                R.id.nav_history  -> binding.viewPager.currentItem = 2
+                R.id.nav_battery  -> binding.viewPager.currentItem = 3
+                R.id.nav_settings -> binding.viewPager.currentItem = 4
             }
             true
         }
 
-        viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+        binding.viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
-                bottomNav.menu.getItem(position).isChecked = true
+                binding.bottomNavigation.menu.getItem(position).isChecked = true
             }
         })
 
         lifecycleScope.launch {
             vm.latestStatus.collect { s ->
-                if (s != null && s.heaterMode > 0 && viewPager.currentItem == 0) {
-                    viewPager.currentItem = 1
+                if (s != null && s.heaterMode > 0 && binding.viewPager.currentItem == 0) {
+                    binding.viewPager.currentItem = 1
                 }
             }
         }
@@ -186,7 +184,7 @@ class MainActivity : AppCompatActivity() {
 
     /** Navigate to a tab from any fragment (0=Landing, 1=Session, 2=History, 3=Battery, 4=Settings). */
     fun navigateTo(tab: Int) {
-        viewPager.currentItem = tab
+        binding.viewPager.currentItem = tab
     }
 
     private inner class PagedAdapter(fa: AppCompatActivity) : FragmentStateAdapter(fa) {

@@ -61,6 +61,8 @@ class SettingsFragment : Fragment() {
         view.findViewById<View>(R.id.row_unit).setOnClickListener { vm.toggleUnit() }
         view.findViewById<View>(R.id.row_auto_shutdown).setOnClickListener { vm.adjustAutoShutdown(60) }
         view.findViewById<View>(R.id.row_vibration).setOnClickListener { vm.toggleVibrationLevel() }
+        val swBoostViz = view.findViewById<SwitchCompat>(R.id.switch_boost_viz)
+        view.findViewById<View>(R.id.row_boost_viz).setOnClickListener { vm.toggleBoostVisualization() }
         view.findViewById<View>(R.id.row_charge_opt).setOnClickListener { vm.toggleChargeCurrentOpt() }
         view.findViewById<View>(R.id.row_charge_limit).setOnClickListener { vm.toggleChargeVoltageLimit() }
         view.findViewById<View>(R.id.row_perm_ble).setOnClickListener { vm.togglePermanentBle() }
@@ -118,6 +120,7 @@ class SettingsFragment : Fragment() {
                 swPermBle.isChecked = s.permanentBluetooth
                 tvUnit.text = if (s.isCelsius) "°C" else "°F"
                 tvShutdown.text = "${s.autoShutdownSeconds / 60}m"
+                swBoostViz.isChecked = s.boostVisualization
             }
         }
 
