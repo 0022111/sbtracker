@@ -11,16 +11,28 @@ object BleConstants {
 
     val SERVICE_UUID:        UUID = UUID.fromString("00000000-5354-4f52-5a26-4249434b454c")
     val CHARACTERISTIC_UUID: UUID = UUID.fromString("00000001-5354-4f52-5a26-4249434b454c")
+
+    // Crafty/Mighty+ (older or traditional protocol)
+    val CRAFTY_SERVICE_1:    UUID = UUID.fromString("00000001-4c45-4b43-4942-265a524f5453")
+    val CRAFTY_SERVICE_2:    UUID = UUID.fromString("00000002-4c45-4b43-4942-265a524f5453")
+    val CRAFTY_SERVICE_3:    UUID = UUID.fromString("00000003-4c45-4b43-4942-265a524f5453")
+
+    // Volcano Hybrid
+    val VOLCANO_STATE_SVC:   UUID = UUID.fromString("10100000-5354-4f52-5a26-4249434b454c")
+    val VOLCANO_CTRL_SVC:    UUID = UUID.fromString("10110000-5354-4f52-5a26-4249434b454c")
+
     val CCCD_UUID:           UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
 
     // ── Command bytes (byte 0) ────────────────────────────────────────────────
 
     const val CMD_STATUS:               Byte = 0x01
+    const val CMD_INITIAL_RESET:        Byte = 0x02
     const val CMD_FIRMWARE:             Byte = 0x02
     const val CMD_EXTENDED:             Byte = 0x04
     const val CMD_IDENTITY:             Byte = 0x05
     const val CMD_BRIGHTNESS_VIBRATION: Byte = 0x06
     const val CMD_FIND_DEVICE:          Byte = 0x0D
+    const val CMD_INITIAL_STATUS:       Byte = 0x1D
     const val CMD_DEVICE_NOTIFICATION:  Byte = 0x29.toByte()
 
     // ── Byte sizes ────────────────────────────────────────────────────────────

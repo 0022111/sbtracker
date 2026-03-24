@@ -13,6 +13,9 @@ object BlePacket {
     fun buildRequest(cmd: Byte): ByteArray =
         ByteArray(BleConstants.PACKET_SIZE).also { it[0] = cmd }
 
+    fun buildBrightnessVibrationRequest(): ByteArray =
+        ByteArray(BleConstants.BRIGHTNESS_PACKET_SIZE).also { it[0] = BleConstants.CMD_BRIGHTNESS_VIBRATION }
+
     fun parseStatus(
         bytes: ByteArray,
         address: String,

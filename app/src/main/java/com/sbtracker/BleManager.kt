@@ -193,11 +193,14 @@ class BleManager(private val context: Context) {
         txChar = null
 
         if (isIntentionalDisconnect || deviceAddress.isEmpty()) {
+            reconnectJob?.cancel(); reconnectJob = null
             _connectionState.value = ConnectionState.Disconnected
             return
         }
 
-        reconnectJob?.cancel()
+        // If we're already trying to reconnect, don't spawn a new job nested inside
+        if (reconnectJob?.isActive == true) return
+
         reconnectJob = managerScope.launch {
             var attempt = 1
             val startTime = System.currentTimeMillis()
@@ -210,16 +213,18 @@ class BleManager(private val context: Context) {
                 }
                 
                 _connectionState.value = ConnectionState.Reconnecting(attempt)
-                val delayMs = (1000L * (1L shl minOf(attempt, 6).toInt())).coerceAtMost(30000L) // up to 30s
                 
-                // Try connecting
-                val device = try { adapter()?.getRemoteDevice(deviceAddress) } catch(_:Exception){ null }
-                if (device != null) {
-                    try {
-                        gatt = device.connectGatt(context, false, gattCallback, BluetoothDevice.TRANSPORT_LE)
-                    } catch(_: SecurityException) {}
+                // Try connecting only if not already connected/connecting
+                if (gatt == null) {
+                    val device = try { adapter()?.getRemoteDevice(deviceAddress) } catch(_:Exception){ null }
+                    if (device != null) {
+                        try {
+                            gatt = device.connectGatt(context, false, gattCallback, BluetoothDevice.TRANSPORT_LE)
+                        } catch(_: SecurityException) {}
+                    }
                 }
                 
+                val delayMs = (1000L * (1L shl minOf(attempt, 6).toInt())).coerceAtMost(30000L) // up to 30s
                 delay(delayMs)
                 attempt++
             }
@@ -247,8 +252,22 @@ class BleManager(private val context: Context) {
                 handleUnexpectedDisconnect()
                 return 
             }
-            val svc  = gatt.getService(BleConstants.SERVICE_UUID) ?: run { handleUnexpectedDisconnect(); return }
-            val char = svc.getCharacteristic(BleConstants.CHARACTERISTIC_UUID) ?: run { handleUnexpectedDisconnect(); return }
+            
+            // Try default S&B service (Venty, Veazy, new Crafty+)
+            var svc = gatt.getService(BleConstants.SERVICE_UUID)
+            var char = svc?.getCharacteristic(BleConstants.CHARACTERISTIC_UUID)
+            
+            // Fallback to Crafty primary service if default not found
+            if (svc == null || char == null) {
+                svc = gatt.getService(BleConstants.CRAFTY_SERVICE_2) ?: gatt.getService(BleConstants.CRAFTY_SERVICE_1)
+                char = svc?.getCharacteristic(BleConstants.CHARACTERISTIC_UUID)
+            }
+
+            if (svc == null || char == null) {
+                handleUnexpectedDisconnect()
+                return
+            }
+            
             txChar = char
             try {
                 gatt.setCharacteristicNotification(char, true)
@@ -303,11 +322,26 @@ class BleManager(private val context: Context) {
         _connectionState.value = ConnectionState.Connected(name, gatt.device.address)
 
         commandQueue.enqueue {
-            sendAndReceive(BlePacket.buildRequest(BleConstants.CMD_BRIGHTNESS_VIBRATION))
-                ?.let { bytes -> _displaySettingsBytes.emit(bytes) }
+            // Reference app sequence: CMD 0x02 (Reset), then 0x1D (Status), 0x01 (Basic), 0x04 (Extended)
             
-            sendAndReceive(BlePacket.buildRequest(BleConstants.CMD_FIRMWARE))
+            // CMD 0x02 - Initialization / Firmware request
+            sendAndReceive(BlePacket.buildRequest(BleConstants.CMD_INITIAL_RESET))
                 ?.let { bytes -> _firmwareBytes.emit(bytes) }
+
+            // CMD 0x1D - Handshake status request
+            sendAndReceive(BlePacket.buildRequest(BleConstants.CMD_INITIAL_STATUS))
+
+            // CMD 0x01 - Initial status poll
+            sendAndReceive(BlePacket.buildRequest(BleConstants.CMD_STATUS))
+                ?.let { bytes -> _statusBytes.emit(bytes to gatt.device.address) }
+
+            // CMD 0x04 - Initial extended data poll
+            sendAndReceive(BlePacket.buildRequest(BleConstants.CMD_EXTENDED))
+                ?.let { bytes -> _extendedBytes.emit(bytes to gatt.device.address) }
+
+            // CMD 0x06 - Request brightness/vibration (requires 7-byte packet)
+            sendAndReceive(BlePacket.buildBrightnessVibrationRequest())
+                ?.let { bytes -> _displaySettingsBytes.emit(bytes) }
         }
 
         startPolling()
