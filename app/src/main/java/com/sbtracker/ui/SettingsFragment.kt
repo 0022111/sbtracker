@@ -11,46 +11,58 @@ import androidx.appcompat.widget.SwitchCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.sbtracker.*
+import com.sbtracker.databinding.FragmentSettingsBinding
 import kotlinx.coroutines.launch
 
 class SettingsFragment : Fragment() {
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
-        inflater.inflate(R.layout.fragment_settings, container, false)
+    private var _binding: FragmentSettingsBinding? = null
+    private val binding get() = _binding!!
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _binding = FragmentSettingsBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val vm = (requireActivity() as MainActivity).vm
-        
-        val swPhoneAlerts = view.findViewById<SwitchCompat>(R.id.switch_phone_alerts)
-        val swDimOnCharge = view.findViewById<SwitchCompat>(R.id.switch_dim_on_charge)
-        val swHaptic = view.findViewById<SwitchCompat>(R.id.switch_vibration)
-        val swCharge = view.findViewById<SwitchCompat>(R.id.switch_charge_opt)
-        val swChargeLimit = view.findViewById<SwitchCompat>(R.id.switch_charge_limit)
-        val swPermBle = view.findViewById<SwitchCompat>(R.id.switch_perm_ble)
-        val swBoostTimeout = view.findViewById<SwitchCompat>(R.id.switch_boost_timeout)
 
-        val tvUnit = view.findViewById<TextView>(R.id.tv_unit_value)
-        val tvShutdown = view.findViewById<TextView>(R.id.tv_auto_shutdown_value)
-        val sbBrightness = view.findViewById<SeekBar>(R.id.seek_brightness)
+        val swPhoneAlerts = binding.switchPhoneAlerts
+        val swDimOnCharge = binding.switchDimOnCharge
+        val swHaptic = binding.switchVibration
+        val swCharge = binding.switchChargeOpt
+        val swChargeLimit = binding.switchChargeLimit
+        val swPermBle = binding.switchPermBle
+        val swBoostTimeout = binding.switchBoostTimeout
 
-        val tvModel = view.findViewById<TextView>(R.id.tv_settings_model)
-        val tvSerial = view.findViewById<TextView>(R.id.tv_settings_serial)
-        val tvMac = view.findViewById<TextView>(R.id.tv_settings_mac)
-        val tvFw = view.findViewById<TextView>(R.id.tv_settings_firmware)
-        val tvColor = view.findViewById<TextView>(R.id.tv_settings_color)
+        val tvUnit = binding.tvUnitValue
+        val tvShutdown = binding.tvAutoShutdownValue
+        val sbBrightness = binding.seekBrightness
 
-        val tvDayStartValue = view.findViewById<TextView>(R.id.tv_day_start_value)
-        val tvRetentionValue = view.findViewById<TextView>(R.id.tv_retention_value)
+        val tvModel = binding.tvSettingsModel
+        val tvSerial = binding.tvSettingsSerial
+        val tvMac = binding.tvSettingsMac
+        val tvFw = binding.tvSettingsFirmware
+        val tvColor = binding.tvSettingsColor
 
-        view.findViewById<View>(R.id.row_phone_alerts).setOnClickListener { vm.togglePhoneAlerts() }
-        view.findViewById<View>(R.id.row_dim_on_charge).setOnClickListener { vm.toggleDimOnCharge() }
-        view.findViewById<View>(R.id.row_day_start_hour).setOnClickListener {
+        val tvDayStartValue = binding.tvDayStartValue
+        val tvDayStartSubtitle = binding.tvDayStartSubtitle
+        val tvRetentionValue = binding.tvRetentionValue
+
+        binding.rowPhoneAlerts.setOnClickListener { vm.togglePhoneAlerts() }
+        binding.rowDimOnCharge.setOnClickListener { vm.toggleDimOnCharge() }
+        binding.rowDayStartHour.setOnClickListener {
             val hours = Array(24) { i -> if (i == 0) "12 AM" else if (i < 12) "$i AM" else if (i == 12) "12 PM" else "${i - 12} PM" }
             android.app.AlertDialog.Builder(requireContext())
                 .setTitle("Day Start Hour")
                 .setItems(hours) { _, which -> vm.setDayStartHour(which) }
                 .show()
         }
-        view.findViewById<View>(R.id.row_retention_days).setOnClickListener {
+        binding.rowRetentionDays.setOnClickListener {
             val options = arrayOf("30 days", "60 days", "90 days", "180 days", "Never")
             val values  = intArrayOf(30, 60, 90, 180, Int.MAX_VALUE)
             android.app.AlertDialog.Builder(requireContext())
@@ -58,24 +70,34 @@ class SettingsFragment : Fragment() {
                 .setItems(options) { _, which -> vm.setRetentionDays(values[which]) }
                 .show()
         }
-        view.findViewById<View>(R.id.row_unit).setOnClickListener { vm.toggleUnit() }
-        view.findViewById<View>(R.id.row_auto_shutdown).setOnClickListener { vm.adjustAutoShutdown(60) }
-        view.findViewById<View>(R.id.row_vibration).setOnClickListener { vm.toggleVibrationLevel() }
-        view.findViewById<View>(R.id.row_charge_opt).setOnClickListener { vm.toggleChargeCurrentOpt() }
-        view.findViewById<View>(R.id.row_charge_limit).setOnClickListener { vm.toggleChargeVoltageLimit() }
-        view.findViewById<View>(R.id.row_perm_ble).setOnClickListener { vm.togglePermanentBle() }
-        view.findViewById<View>(R.id.row_boost_timeout).setOnClickListener { vm.toggleBoostTimeout() }
-        view.findViewById<Button>(R.id.btn_find_device).setOnClickListener { vm.findDevice() }
-        view.findViewById<Button>(R.id.btn_dev_rebuild_history).setOnClickListener {
+        binding.rowUnit.setOnClickListener { vm.toggleUnit() }
+        binding.rowAutoShutdown.setOnClickListener { vm.adjustAutoShutdown(60) }
+        binding.rowVibration.setOnClickListener { vm.toggleVibrationLevel() }
+        val swBoostViz = binding.switchBoostViz
+        binding.rowBoostViz.setOnClickListener { vm.toggleBoostVisualization() }
+        binding.rowChargeOpt.setOnClickListener { vm.toggleChargeCurrentOpt() }
+        binding.rowChargeLimit.setOnClickListener { vm.toggleChargeVoltageLimit() }
+        binding.rowPermBle.setOnClickListener { vm.togglePermanentBle() }
+        binding.rowBoostTimeout.setOnClickListener { vm.toggleBoostTimeout() }
+        binding.btnFindDevice.setOnClickListener { vm.findDevice() }
+        binding.btnFactoryReset.setOnClickListener {
+            android.app.AlertDialog.Builder(requireContext())
+                .setTitle("Factory Reset Device")
+                .setMessage("This will reset the device to factory defaults. Are you sure?")
+                .setPositiveButton("Reset") { _, _ -> vm.factoryReset() }
+                .setNegativeButton("Cancel", null)
+                .show()
+        }
+        binding.btnDevRebuildHistory.setOnClickListener {
             viewLifecycleOwner.lifecycleScope.launch {
                 vm.rebuildSessionHistoryFromLogs()
             }
         }
-        view.findViewById<Button>(R.id.btn_dev_inject_test_device).setOnClickListener {
+        binding.btnDevInjectTestDevice.setOnClickListener {
             vm.injectTestDevice()
             android.widget.Toast.makeText(requireContext(), "Test Device Injected", android.widget.Toast.LENGTH_SHORT).show()
         }
-        view.findViewById<Button>(R.id.btn_dev_remove_test_device).setOnClickListener {
+        binding.btnDevRemoveTestDevice.setOnClickListener {
             vm.removeTestDevice()
             android.widget.Toast.makeText(requireContext(), "Test Device Removed", android.widget.Toast.LENGTH_SHORT).show()
         }
@@ -100,6 +122,7 @@ class SettingsFragment : Fragment() {
             vm.dayStartHour.collect { hour ->
                 val text = if (hour == 0) "12 AM" else if (hour < 12) "$hour AM" else if (hour == 12) "12 PM" else "${hour - 12} PM"
                 tvDayStartValue.text = text
+                tvDayStartSubtitle.text = "Day view begins at $text"
             }
         }
 
@@ -118,6 +141,7 @@ class SettingsFragment : Fragment() {
                 swPermBle.isChecked = s.permanentBluetooth
                 tvUnit.text = if (s.isCelsius) "°C" else "°F"
                 tvShutdown.text = "${s.autoShutdownSeconds / 60}m"
+                swBoostViz.isChecked = s.boostVisualization
             }
         }
 
