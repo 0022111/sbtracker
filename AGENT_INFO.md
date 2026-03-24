@@ -56,6 +56,27 @@ To provide the best possible assistance, agents must maintain several internal a
 
 These artifacts are *session-local* but critical for maintaining state during complex multi-step tasks.
 
+## GitHub Issue Labels
+
+Issues filed on GitHub (including from mobile) are automatically ingested into `BACKLOG.md` via the `issue-intake.yml` workflow. Apply the right labels and the rest is handled.
+
+| Label | Effect |
+|---|---|
+| `bug` | Creates a **B-XXX** row in the Bugs table |
+| `enhancement` or `feature` | Creates an **F-XXX** row in the most relevant feature category |
+| `dream` | Creates an **F-XXX** row in the **Dreams & Wishlist** section (P2) |
+| `p0` / `p1` / `p2` | Overrides default priority (default is P1 for features, P2 for dreams) |
+
+**How it works:**
+1. You file an issue on GitHub (mobile or desktop) with one of the above labels
+2. The Actions workflow fires, calls Claude to classify and write the BACKLOG row
+3. Claude commits the row to `dev` and posts a comment on your issue confirming the ID assigned
+4. When you're ready to build it, run `/plan-feature F-XXX` to decompose into tasks
+
+**Required secret:** `ANTHROPIC_API_KEY` must be set in the repo's GitHub Actions secrets.
+
+---
+
 ## Standard Workflows
 
 Agents should follow the standardized workflows located in `.agents/workflows/`:
