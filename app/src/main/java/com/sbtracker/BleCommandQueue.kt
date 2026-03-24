@@ -1,5 +1,7 @@
 package com.sbtracker
 
+import android.util.Log
+
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -29,7 +31,7 @@ class BleCommandQueue {
                 try {
                     command()
                 } catch (e: Exception) {
-                    android.util.Log.e("BleCommandQueue", "BLE command failed", e)
+                    Log.e("BleCommandQueue", "BLE command failed", e)
                 }
                 delay(50L) // Mandatory minimum gap between GATT operations.
             }

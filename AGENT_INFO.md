@@ -14,7 +14,7 @@ To maintain a clear distinction between automated agent work and manual develope
 ### Guidelines for Agents
 1. **Always** create a new branch with the `claude/` prefix for any non-trivial work.
 2. **Follow** a Pull Request (PR) workflow: Create branch -> Implement -> Verify -> Submit PR.
-3. **Sync** with `main` regularly.
+3. **Sync** with `dev` regularly.
 4. **Reference** task IDs from `BACKLOG.md` in branch names and PR descriptions (e.g., `claude/F-045-agent-docs`).
 
 ## GitHub Integrity

@@ -1,5 +1,8 @@
 # SBTracker — Changelog
 
+### [Unreleased]
+- **Fixed** (T-028) Silent exceptions in `BleCommandQueue` and `MainViewModel` are now logged to logcat for easier troubleshooting.
+
 All notable changes to this project. Agents: append to the top of the relevant section after completing work.
 
 ### 2026-03-24 — Wire Factory Reset Button
@@ -33,6 +36,8 @@ All notable changes to this project. Agents: append to the top of the relevant s
 - **Added** data retention pruning — `DeviceStatusDao.deleteRowsOlderThan()`, `AnalyticsRepository.pruneOldData()`, called on app startup; configurable 30/60/90/180/Never days in Settings (default 90)
 - **Verified** targetSdk 35 compat: `foregroundServiceType`, `POST_NOTIFICATIONS` runtime permission, and `VibratorManager` API guards were already correct
 - **Changed** build toolchain from JetBrains JDK 17 to JDK 21 (AGP 9.x requirement); updated CI workflow accordingly
+- **Fixed** "TARGET TARGET" typo in `fragment_session.xml` (T-022)
+- **Fixed** Day Start Hour subtitle in `SettingsFragment.kt` to update dynamically (T-025)
 
 ### 2026-03-24 01:00 — Multi-Device Infrastructure (Antigravity)
 - **Implemented** synthetic test device injector in Settings to simulate multi-device scenarios without extra hardware.
