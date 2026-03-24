@@ -30,6 +30,8 @@
 | T-023 | `ready` | Wire Boost Visualization Toggle | [T-023](tasks/T-023-wire-boost-viz-toggle.md) | — |
 | T-024 | `ready` | Wire Factory Reset Button | [T-024](tasks/T-024-wire-factory-reset-button.md) | — |
 | T-025 | `ready` | Fix Day Start Hour Subtitle | [T-025](tasks/T-025-fix-day-start-subtitle.md) | — |
+| T-028 | `ready` | Log Silent Exception Catches | [T-028](tasks/T-028-log-silent-exceptions.md) | — |
+| T-029 | `ready` | Persist Battery Card Expand State | [T-029](tasks/T-029-persist-battery-expand-state.md) | — |
 
 ## Phase 1 — Foundation
 
@@ -40,6 +42,8 @@
 | T-008 | `blocked` | Remove Fragment–Activity Casts | [T-008](tasks/T-008-remove-activity-casts.md) | T-007 |
 | T-009 | `blocked` | Preferences → DataStore | [T-009](tasks/T-009-preferences-datastore.md) | T-006 |
 | T-010 | `blocked` | Unit Tests | [T-010](tasks/T-010-unit-tests.md) | T-006 |
+| T-026 | `ready` | Enable ViewBinding | [T-026](tasks/T-026-enable-viewbinding.md) | — |
+| T-027 | `ready` | Extract Hardcoded Colors to colors.xml | [T-027](tasks/T-027-extract-colors-xml.md) | — |
 
 ## Phase 2 — User-Facing Features
 
