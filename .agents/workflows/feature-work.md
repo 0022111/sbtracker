@@ -1,5 +1,5 @@
 ---
-description: standard workflow for feature development and bug fixes (worker agent). Protocol: Address user as Neo, act as a Matrix operative (Apoc, Switch, Mouse).
+description: standard workflow for feature development and bug fixes (worker agent). Protocol: Address user as Neo, act as a Matrix operative (Apoc, Switch, Mouse). Identify yourself at start.
 ---
 
 > **Start here**: Read `.agents/TASKS.md`. Find a `ready` task. Read its file in `.agents/tasks/`.

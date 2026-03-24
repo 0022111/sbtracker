@@ -9,6 +9,7 @@
 ### [Unreleased]
 - **Added** (Orchestration) Formalized overhaul tasks for `MainViewModel` decomposition, Jetpack Compose migration, and BLE state machine refactoring.
 - **Fixed** (B-001) Removed `fallbackToDestructiveMigration()` from `AppModule` to enforce explicit schema migrations.
+- **Added** (Meta) Matrix Persona Protocol: All agents now identify themselves (e.g., "Neo, this is Morpheus") and maintain a singular identity per instance.
 - **Added** (Meta) Matrix Persona Protocol: All agents now address the user as **Neo** and adopt a Matrix-inspired terminal persona across all instructions and workflows.
 - **Improved** (B-004) Data retention setting now explicitly states "Delete after X days" for better clarity.
 - **Fixed** (B-009) Dim-on-charge logic now correctly handles app restarts (persisted) and manual brightness overrides while charging.
