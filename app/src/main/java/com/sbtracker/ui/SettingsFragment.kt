@@ -10,7 +10,9 @@ import android.widget.TextView
 import androidx.appcompat.widget.SwitchCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.sbtracker.*
 import com.sbtracker.databinding.FragmentSettingsBinding
 import dagger.hilt.android.AndroidEntryPoint
@@ -166,6 +168,49 @@ class SettingsFragment : Fragment() {
         }
         viewLifecycleOwner.lifecycleScope.launch {
             vm.firmwareVersion.collect { f -> tvFw.text = "Firmware: ${f ?: "---"}" }
+        }
+
+        val tvDefaultPackType = binding.tvDefaultPackTypeValue
+        val tvCapsuleWeight   = binding.tvCapsuleWeightValue
+
+        // Observe and display current values
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    vm.defaultIsCapsule.collect { isCapsule ->
+                        tvDefaultPackType.text = if (isCapsule) "Capsule" else "Free Pack"
+                    }
+                }
+                launch {
+                    vm.capsuleWeightGrams.collect { grams ->
+                        tvCapsuleWeight.text = "%.2f g".format(grams)
+                    }
+                }
+            }
+        }
+
+        // Click: toggle pack type
+        binding.rowDefaultPackType.setOnClickListener {
+            vm.setDefaultIsCapsule(!vm.defaultIsCapsule.value)
+        }
+
+        // Click: edit capsule weight
+        binding.rowCapsuleWeight.setOnClickListener {
+            val input = android.widget.EditText(requireContext()).apply {
+                inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
+                setText("%.2f".format(vm.capsuleWeightGrams.value))
+                selectAll()
+            }
+            android.app.AlertDialog.Builder(requireContext())
+                .setTitle("Capsule Weight (grams)")
+                .setMessage("Enter weight in grams (0.01 – 2.00)")
+                .setView(input)
+                .setPositiveButton("Save") { _, _ ->
+                    val grams = input.text.toString().toFloatOrNull()
+                    if (grams != null) vm.setCapsuleWeight(grams)
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
         }
     }
 }
