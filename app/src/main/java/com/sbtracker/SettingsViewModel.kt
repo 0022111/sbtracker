@@ -6,11 +6,12 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.sbtracker.analytics.AnalyticsRepository
 import com.sbtracker.data.AppDatabase
+import com.sbtracker.data.UserPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -22,55 +23,55 @@ import javax.inject.Inject
 class SettingsViewModel @Inject constructor(
     private val db: AppDatabase,
     private val analyticsRepo: AnalyticsRepository,
+    private val prefsRepo: UserPreferencesRepository,
     application: Application
 ) : AndroidViewModel(application) {
 
-    private val appPrefs by lazy {
-        getApplication<Application>().getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
-    }
+    val dayStartHour: StateFlow<Int> = prefsRepo.userPreferencesFlow
+        .map { it.dayStartHour }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 4)
 
-    private val _dayStartHour = MutableStateFlow(4)
-    val dayStartHour: StateFlow<Int> = _dayStartHour.asStateFlow()
+    val retentionDays: StateFlow<Int> = prefsRepo.userPreferencesFlow
+        .map { it.retentionDays }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 90)
 
-    private val _retentionDays = MutableStateFlow(90)
-    val retentionDays: StateFlow<Int> = _retentionDays.asStateFlow()
+    val capsuleWeightGrams: StateFlow<Float> = prefsRepo.userPreferencesFlow
+        .map { it.capsuleWeightGrams }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.10f)
 
-    private val _capsuleWeightGrams = MutableStateFlow(0.10f)
-    val capsuleWeightGrams: StateFlow<Float> = _capsuleWeightGrams.asStateFlow()
-
-    private val _defaultIsCapsule = MutableStateFlow(false)
-    val defaultIsCapsule: StateFlow<Boolean> = _defaultIsCapsule.asStateFlow()
+    val defaultIsCapsule: StateFlow<Boolean> = prefsRepo.userPreferencesFlow
+        .map { it.defaultIsCapsule }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     init {
-        _dayStartHour.value = appPrefs.getInt("day_start_hour", 4)
-        _retentionDays.value = appPrefs.getInt("retention_days", 90)
-        _capsuleWeightGrams.value = appPrefs.getFloat("capsule_weight_grams", 0.10f)
-        _defaultIsCapsule.value = appPrefs.getBoolean("default_is_capsule", false)
-
         viewModelScope.launch {
-            analyticsRepo.pruneOldData(_retentionDays.value)
+            prefsRepo.userPreferencesFlow.collect { prefs ->
+                analyticsRepo.pruneOldData(prefs.retentionDays)
+            }
         }
     }
 
     fun setDayStartHour(hour: Int) {
-        val next = hour.coerceIn(0, 23)
-        _dayStartHour.value = next
-        appPrefs.edit().putInt("day_start_hour", next).apply()
+        viewModelScope.launch {
+            prefsRepo.updateDayStartHour(hour.coerceIn(0, 23))
+        }
     }
 
     fun setRetentionDays(days: Int) {
-        _retentionDays.value = days
-        appPrefs.edit().putInt("retention_days", days).apply()
+        viewModelScope.launch {
+            prefsRepo.updateRetentionDays(days)
+        }
     }
 
     fun setCapsuleWeight(grams: Float) {
-        val clamped = grams.coerceIn(0.01f, 2.00f)
-        _capsuleWeightGrams.value = clamped
-        appPrefs.edit().putFloat("capsule_weight_grams", clamped).apply()
+        viewModelScope.launch {
+            prefsRepo.updateCapsuleWeight(grams.coerceIn(0.01f, 2.00f))
+        }
     }
 
     fun setDefaultIsCapsule(isCapsule: Boolean) {
-        _defaultIsCapsule.value = isCapsule
-        appPrefs.edit().putBoolean("default_is_capsule", isCapsule).apply()
+        viewModelScope.launch {
+            prefsRepo.updateDefaultIsCapsule(isCapsule)
+        }
     }
 }

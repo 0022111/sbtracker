@@ -28,24 +28,23 @@ import javax.inject.Inject
 class BatteryViewModel @Inject constructor(
     private val db: AppDatabase,
     private val analyticsRepo: AnalyticsRepository,
+    private val prefsRepo: UserPreferencesRepository,
     application: Application
 ) : AndroidViewModel(application) {
 
     private val devicePrefs by lazy {
         getApplication<Application>().getSharedPreferences("known_devices_v1", android.content.Context.MODE_PRIVATE)
     }
-    private val appPrefs by lazy {
-        getApplication<Application>().getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE)
-    }
 
     private val _activeDevice = MutableStateFlow<BleViewModel.SavedDevice?>(null)
     val activeDevice: StateFlow<BleViewModel.SavedDevice?> = _activeDevice.asStateFlow()
 
-    private val _dayStartHour = MutableStateFlow(4)
+    private val _dayStartHour = prefsRepo.userPreferencesFlow
+        .map { it.dayStartHour }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 4)
 
     init {
         _activeDevice.value = loadLastDevice()
-        _dayStartHour.value = appPrefs.getInt("day_start_hour", 4)
     }
 
     fun updateActiveDevice(device: BleViewModel.SavedDevice?) {
@@ -53,7 +52,9 @@ class BatteryViewModel @Inject constructor(
     }
 
     fun updateDayStartHour(hour: Int) {
-        _dayStartHour.value = hour
+        viewModelScope.launch {
+            prefsRepo.updateDayStartHour(hour)
+        }
     }
 
     // ── Device session summaries ──
