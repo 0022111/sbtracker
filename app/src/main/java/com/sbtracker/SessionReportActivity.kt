@@ -1,5 +1,8 @@
 package com.sbtracker
 
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
+
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
@@ -20,7 +23,10 @@ import java.util.Locale
  * loaded from the database, so this view is always consistent with the current
  * hit-detection algorithm — there is no separate path for stats vs. graph data.
  */
+@AndroidEntryPoint
 class SessionReportActivity : AppCompatActivity() {
+
+    @Inject lateinit var db: AppDatabase
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,7 +40,6 @@ class SessionReportActivity : AppCompatActivity() {
         val graph      = findViewById<SessionGraphView>(R.id.report_graph)
 
         lifecycleScope.launch {
-            val db = AppDatabase.getInstance(applicationContext)
 
             val session = withContext(Dispatchers.IO) { db.sessionDao().getById(sessionId) }
             if (session == null) {

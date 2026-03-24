@@ -9,12 +9,16 @@ import android.widget.SeekBar
 import android.widget.TextView
 import androidx.appcompat.widget.SwitchCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.sbtracker.*
 import com.sbtracker.databinding.FragmentSettingsBinding
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class SettingsFragment : Fragment() {
+    private val vm: MainViewModel by activityViewModels()
     private var _binding: FragmentSettingsBinding? = null
     private val binding get() = _binding!!
 
@@ -29,7 +33,6 @@ class SettingsFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val vm = (requireActivity() as MainActivity).vm
 
         val swPhoneAlerts = binding.switchPhoneAlerts
         val swDimOnCharge = binding.switchDimOnCharge

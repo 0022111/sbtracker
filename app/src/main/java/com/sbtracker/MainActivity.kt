@@ -1,5 +1,7 @@
 package com.sbtracker
 
+import dagger.hilt.android.AndroidEntryPoint
+
 import android.Manifest
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
@@ -55,6 +57,8 @@ import com.sbtracker.ui.SessionFragment
 import com.sbtracker.ui.HistoryFragment
 import com.sbtracker.ui.BatteryFragment
 import com.sbtracker.ui.SettingsFragment
+
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     lateinit var vm: MainViewModel

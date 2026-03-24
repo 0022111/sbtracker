@@ -10,15 +10,19 @@ import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.sbtracker.*
 import com.sbtracker.databinding.FragmentLandingBinding
+import dagger.hilt.android.AndroidEntryPoint
 import com.sbtracker.util.formatDurationShort
 import com.sbtracker.util.relativeDate
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class LandingFragment : Fragment() {
+    private val vm: MainViewModel by activityViewModels()
     private var _binding: FragmentLandingBinding? = null
     private val binding get() = _binding!!
 
@@ -35,7 +39,6 @@ class LandingFragment : Fragment() {
     @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val activity = requireActivity() as MainActivity
-        val vm = activity.vm
 
         // Header
         val tvDeviceInfo = binding.tvCmdDeviceInfo

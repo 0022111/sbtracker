@@ -10,13 +10,17 @@ import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.sbtracker.*
 import com.sbtracker.databinding.FragmentSessionBinding
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class SessionFragment : Fragment() {
+    private val vm: MainViewModel by activityViewModels()
     private var _binding: FragmentSessionBinding? = null
     private val binding get() = _binding!!
 
@@ -31,7 +35,6 @@ class SessionFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val vm = (requireActivity() as MainActivity).vm
 
         val tvTemp = binding.sessionTvTemp
         val tvStatus = binding.sessionTvStatus

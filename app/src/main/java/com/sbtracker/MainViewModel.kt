@@ -16,8 +16,8 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.viewModelScope
+import com.sbtracker.analytics.AnalyticsRepository
 import com.sbtracker.data.AppDatabase
 import com.sbtracker.data.ChargeCycle
 import com.sbtracker.data.DeviceInfo
@@ -52,17 +52,20 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import javax.inject.Inject
+import dagger.hilt.android.lifecycle.HiltViewModel
 
 /**
  * Bridges [BleManager] (BLE layer) with the database, session analytics, and UI.
  */
-class MainViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val bleManager: BleManager = BleManager(application)
-    private val db = AppDatabase.getInstance(application)
-
+@HiltViewModel
+class MainViewModel @Inject constructor(
+    private val bleManager: BleManager,
+    private val db: AppDatabase,
     /** Analytics engine — owns all stat computation and the session summary cache. */
-    val analyticsRepo = AnalyticsRepository(db)
+    val analyticsRepo: AnalyticsRepository,
+    application: Application
+) : AndroidViewModel(application) {
 
     val connectionState: StateFlow<BleManager.ConnectionState> = bleManager.connectionState
 

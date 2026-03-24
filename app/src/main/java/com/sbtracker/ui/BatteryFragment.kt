@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -16,8 +17,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class BatteryFragment : Fragment() {
+    private val vm: MainViewModel by activityViewModels()
     private var _binding: FragmentBatteryBinding? = null
     private val binding get() = _binding!!
 
@@ -32,7 +36,6 @@ class BatteryFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val vm = (requireActivity() as MainActivity).vm
 
         // Hero state containers
         val heroIdle = binding.heroIdle
