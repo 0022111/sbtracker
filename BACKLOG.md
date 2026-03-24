@@ -71,7 +71,7 @@ The current dev codebase (v0.1) is extremely close to a functional Alpha. To off
 | F-034 | `done` | History Timeline | Visual timeline of sessions | `HistoryTimelineView` renders |
 | F-035 | `done` | UI Polish Pass | Consistent styling, colours, spacing | All screens feel cohesive and premium |
 | F-036 | `done` | Settings Screen | Dedicated settings (day start hour, units, alerts) | Currently scattered in ViewModel, needs proper UI |
-| F-051 | `planned` | Heat-up Calculation Enhancement | Improve F-017 with real-time weighted calculation based on proximity to last session; back-to-back sessions are more efficient | ETA accounts for device temperature, time since last session, average heat-up history |
+| F-051 | `in-progress` | Heat-up Calculation Enhancement | Improve F-017 with real-time weighted calculation based on proximity to last session; back-to-back sessions are more efficient | ETA accounts for device temperature, time since last session, average heat-up history |
 | F-052 | `planned` | Analytics Display Refactoring | Reorganize confusing analytics: frequency focus, hit analysis (large hits, many sips, temperature-based achievements), clear dose/session/cycle insights | Analytics clearly categorized by use pattern, dose amounts visible, hit achievements shown |
 | F-053 | `planned` | Session Battery Starting Level | Show starting battery level during active session for battery drain context | Session screen displays starting battery alongside current drain |
 | F-054 | `planned` | Session Page Complete Redesign | Full rework of session detail: extraction log with clear labels, context for raw data (not just numbers) | Session report shows labeled data, extraction timeline is human-readable |

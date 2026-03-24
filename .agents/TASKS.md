@@ -76,6 +76,9 @@ main  ← stable, merges only from dev
 | T-030 | `ready` | Migrate to Jetpack Compose | [T-030](tasks/T-030-migrate-to-jetpack-compose.md) | — |
 | T-031 | `done` | Overhaul BLE State Machine | [T-031](tasks/T-031-overhaul-ble-state-machine.md) | — |
 | T-032 | `ready` | Consolidate Multi-Device Analytics | [T-032](tasks/T-032-consolidate-multi-device-analytics.md) | — |
+| T-039 | `ready` | Battery Phase Multiplier Utility | [T-039](tasks/T-039-battery-phase-multiplier.md) | — |
+| T-040 | `blocked` | Enhance Heat-up Estimation | [T-040](tasks/T-040-enhance-heat-up-estimation.md) | T-039 |
+| T-041 | `blocked` | Wire Enhanced Heat-up Estimation | [T-041](tasks/T-041-wire-enhanced-heat-up-estimation.md) | T-040 |
 
 ## Phase 3 — Release Readiness
 
