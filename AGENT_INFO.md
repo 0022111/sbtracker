@@ -63,9 +63,8 @@ Issues filed on GitHub (including from mobile) are automatically ingested into `
 | Label | Effect |
 |---|---|
 | `bug` | Creates a **B-XXX** row in the Bugs table |
-| `enhancement` or `feature` | Creates an **F-XXX** row in the most relevant feature category |
-| `dream` | Creates an **F-XXX** row in the **Dreams & Wishlist** section (P2) |
-| `p0` / `p1` / `p2` | Overrides default priority (default is P1 for features, P2 for dreams) |
+| `enhancement` | Creates an **F-XXX** row in the most relevant feature category |
+| `p0` / `p1` / `p2` | Overrides priority — otherwise Claude infers it from the issue content |
 
 **How it works:**
 1. You file an issue on GitHub (mobile or desktop) with one of the above labels

@@ -12,9 +12,7 @@ jobs:
     # Only run when the issue carries at least one routing label
     if: |
       contains(github.event.issue.labels.*.name, 'bug') ||
-      contains(github.event.issue.labels.*.name, 'enhancement') ||
-      contains(github.event.issue.labels.*.name, 'feature') ||
-      contains(github.event.issue.labels.*.name, 'dream')
+      contains(github.event.issue.labels.*.name, 'enhancement')
     runs-on: ubuntu-latest
     permissions:
       contents: write      # push BACKLOG.md update to dev

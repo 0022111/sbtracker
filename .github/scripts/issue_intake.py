@@ -8,6 +8,9 @@ Required env vars:
   ISSUE_NUMBER, ISSUE_TITLE, ISSUE_BODY, ISSUE_LABELS (JSON array of strings)
   GH_TOKEN  (for posting the comment back)
   GITHUB_REPOSITORY  (e.g. "0022111/sbtracker", set automatically by Actions)
+
+Priority is auto-determined by Claude unless overridden by a p0/p1/p2 label.
+Triggering labels: bug, enhancement
 """
 
 import json
@@ -20,16 +23,6 @@ from pathlib import Path
 import anthropic
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
-
-CATEGORY_SECTIONS = [
-    "## Core Systems",
-    "## Data Insight",
-    "## Device Management",
-    "## UI & Visualization",
-    "## Quality & Infra",
-    "## Dreams & Wishlist",
-    "## Bugs",
-]
 
 
 def get_highest_ids(backlog: str) -> tuple[int, int]:
@@ -55,7 +48,6 @@ def insert_row_into_section(backlog: str, section_header: str, row: str) -> str:
             (i for i, l in enumerate(lines) if l.strip().startswith("## Notes")),
             len(lines),
         )
-        header_name = section_header.replace("## ", "")
         is_bug = "Bugs" in section_header
         new_section = [
             "",
@@ -74,11 +66,10 @@ def insert_row_into_section(backlog: str, section_header: str, row: str) -> str:
     # Find the last table row in this section
     last_row_line = section_line
     for i in range(section_line + 1, len(lines)):
-        l = lines[i]
-        if l.startswith("|"):
+        if lines[i].startswith("|"):
             last_row_line = i
-        elif l.startswith("## ") or l.strip() == "---":
-            break  # hit next section
+        elif lines[i].startswith("## ") or lines[i].strip() == "---":
+            break
 
     lines.insert(last_row_line + 1, row)
     return "\n".join(lines)
@@ -119,45 +110,52 @@ def main() -> None:
     backlog_path = REPO_ROOT / "BACKLOG.md"
     project_path = REPO_ROOT / "PROJECT.md"
     backlog = backlog_path.read_text()
-    project = project_path.read_text()[:3000]  # cap context size
+    project = project_path.read_text()[:3000]
 
-    # Skip if already processed
     if already_ingested(backlog, issue_number):
         print(f"Issue #{issue_number} already in BACKLOG.md — skipping.")
         sys.exit(0)
 
-    # Determine type
     is_bug = "bug" in labels_lower
-    is_dream = "dream" in labels_lower or "wishlist" in labels_lower
 
-    # Determine priority from label, fallback to defaults
+    # Priority: explicit label wins; otherwise Claude decides from content
+    forced_priority = None
     if "p0" in labels_lower:
-        priority = "P0"
-    elif "p2" in labels_lower or is_dream:
-        priority = "P2"
-    else:
-        priority = "P1"
+        forced_priority = "P0"
+    elif "p1" in labels_lower:
+        forced_priority = "P1"
+    elif "p2" in labels_lower:
+        forced_priority = "P2"
 
     max_f, max_b = get_highest_ids(backlog)
     next_id = f"B-{max_b + 1:03d}" if is_bug else f"F-{max_f + 1:03d}"
 
     client = anthropic.Anthropic()
 
-    type_hint = (
-        "BUG — add to the Bugs table"
-        if is_bug
+    priority_instruction = (
+        f"Priority is forced to **{forced_priority}** by label — use it exactly."
+        if forced_priority
         else (
-            "DREAM / WISHLIST — add to the Dreams & Wishlist section (P2, speculative)"
-            if is_dream
-            else "FEATURE or IMPROVEMENT — add to the most relevant feature category table"
+            "Priority is NOT specified — you must infer it from the content:\n"
+            "  P0 = blocking / core system / crashes\n"
+            "  P1 = meaningful user-facing improvement\n"
+            "  P2 = nice-to-have / low urgency\n"
+            "Output your chosen priority on the PRIORITY line."
         )
     )
 
-    row_format = (
-        f"| {next_id} | `planned` | {priority} | <one-sentence description> (#{{issue_number}}) |"
-        if is_bug
-        else f"| {next_id} | `planned` | <Short Title> | <one-sentence description> (#{{issue_number}}) | <2-3 bullet acceptance criteria> |"
-    )
+    if is_bug:
+        row_template = f"| {next_id} | `planned` | <PRIORITY> | <one-sentence description> (#{issue_number}) |"
+        section_choices = "  ## Bugs"
+    else:
+        row_template = f"| {next_id} | `planned` | <Short Title> | <one-sentence description> (#{issue_number}) | <2-3 bullet acceptance criteria> |"
+        section_choices = (
+            "  ## Core Systems\n"
+            "  ## Data Insight\n"
+            "  ## Device Management\n"
+            "  ## UI & Visualization\n"
+            "  ## Quality & Infra"
+        )
 
     prompt = f"""You are the Intake Agent for SBTracker, an Android BLE app that tracks vaporizer sessions.
 
@@ -166,7 +164,7 @@ BACKLOG.md (current):
 {backlog}
 </backlog>
 
-PROJECT.md excerpt (architecture context):
+PROJECT.md excerpt:
 <project>
 {project}
 </project>
@@ -177,25 +175,17 @@ New GitHub issue:
   Labels : {", ".join(labels) or "none"}
   Body   : {issue_body or "(no body)"}
 
-Classification: {type_hint}
+Type: {"BUG" if is_bug else "FEATURE / ENHANCEMENT"}
 Assigned ID: {next_id}
-Priority: {priority}
+{priority_instruction}
 
-Write exactly ONE table row in this format:
-{row_format.format(issue_number=issue_number)}
+Write exactly ONE table row:
+{row_template}
 
-Also output on a second line the exact section header to insert it under, chosen from:
-  ## Core Systems
-  ## Data Insight
-  ## Device Management
-  ## UI & Visualization
-  ## Quality & Infra
-  ## Dreams & Wishlist
-  ## Bugs
-
-Output format (two lines, nothing else):
-ROW: <the table row>
-SECTION: <the section header>"""
+Output exactly three lines, nothing else:
+ROW: <the completed table row>
+SECTION: <chosen from:{" ## Bugs" if is_bug else chr(10) + section_choices}>
+PRIORITY: <P0|P1|P2>"""
 
     msg = client.messages.create(
         model="claude-opus-4-6",
@@ -205,28 +195,30 @@ SECTION: <the section header>"""
     response = msg.content[0].text.strip()
     print(f"Claude response:\n{response}")
 
-    # Parse output
-    row = next_section = None
+    row = next_section = priority = None
     for line in response.splitlines():
         if line.startswith("ROW:"):
             row = line[4:].strip()
         elif line.startswith("SECTION:"):
             next_section = line[8:].strip()
+        elif line.startswith("PRIORITY:"):
+            priority = line[9:].strip()
 
-    if not row or not next_section:
+    if not row or not next_section or not priority:
         print("Could not parse Claude output — aborting.")
         print(response)
         sys.exit(1)
 
-    # Insert into BACKLOG.md
+    # Substitute <PRIORITY> placeholder in row (bugs only)
+    row = row.replace("<PRIORITY>", priority)
+
     updated = insert_row_into_section(backlog, next_section, row)
     backlog_path.write_text(updated)
-    print(f"Inserted {next_id} into '{next_section}'")
+    print(f"Inserted {next_id} ({priority}) into '{next_section}'")
 
-    # Post comment on the issue
     comment = (
-        f"**Intake complete** — assigned **{next_id}** and added to `BACKLOG.md` "
-        f"under _{next_section.lstrip('# ')}_.\n\n"
+        f"**Intake complete** — assigned **{next_id}** ({priority}), "
+        f"added to `BACKLOG.md` under _{next_section.lstrip('# ')}_.\n\n"
         f"```\n{row}\n```\n\n"
         f"Run `/plan-feature {next_id}` to decompose into tasks when ready."
     )
