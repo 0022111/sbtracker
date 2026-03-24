@@ -18,7 +18,9 @@ local.properties
 .kotlin/
 
 # Agent working dirs (session-specific, not project code)
-.claude/
+.claude/settings.json
+.claude/settings.local.json
+# .claude/commands/ is tracked — project slash commands belong in the repo
 .cursor/
 .gemini/
 
