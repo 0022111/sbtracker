@@ -20,6 +20,7 @@ local.properties
 # Agent working dirs (session-specific, not project code)
 .claude/settings.json
 .claude/settings.local.json
+.claude/worktrees/
 # .claude/commands/ is tracked — project slash commands belong in the repo
 .cursor/
 .gemini/

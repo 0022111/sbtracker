@@ -13,8 +13,11 @@ description: standard workflow for feature development and bug fixes (worker age
 4. Run `./gradlew assembleDebug` — must pass before committing.
 5. Commit with message referencing the task ID: `T-XXX: description of change`.
 6. Append one line to `CHANGELOG.md` under `[Unreleased]`.
-7. Mark the task `done` in `.agents/TASKS.md`.
-8. Push and open a PR: `gh pr create --base dev --title "T-XXX — Task Title"`
+7. **Rebase onto latest `dev` before pushing**: `git fetch origin dev && git rebase origin/dev`
+   - Resolve any conflicts, then `git rebase --continue`.
+   - This keeps history linear and ensures the PR is conflict-free when it lands.
+8. Mark the task `done` in `.agents/TASKS.md`.
+9. Push and open a PR: `git push -u origin <branch> && gh pr create --base dev --title "T-XXX — Task Title"`
 
 ---
 
