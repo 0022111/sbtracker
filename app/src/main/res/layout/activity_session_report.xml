@@ -212,6 +212,35 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
+            <!-- Capsule / Free-Pack toggle -->
+            <LinearLayout
+                android:id="@+id/report_pack_type_row"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="4dp">
+
+                <Button
+                    android:id="@+id/report_btn_capsule"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="CAPSULE"
+                    android:layout_marginEnd="4dp" />
+
+                <Button
+                    android:id="@+id/report_btn_free_pack"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="4dp"
+                    android:text="FREE PACK" />
+
+            </LinearLayout>
+
             <!-- Technical Breakdown -->
             <TextView
                 android:layout_width="wrap_content"

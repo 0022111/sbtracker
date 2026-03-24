@@ -36,8 +36,10 @@ class SessionReportActivity : AppCompatActivity() {
         val isCelsius = getSharedPreferences("app_prefs", MODE_PRIVATE)
             .getBoolean("is_celsius", true)
 
-        val hitLogView = findViewById<TextView>(R.id.report_tv_hit_log)
-        val graph      = findViewById<SessionGraphView>(R.id.report_graph)
+        val hitLogView  = findViewById<TextView>(R.id.report_tv_hit_log)
+        val graph       = findViewById<SessionGraphView>(R.id.report_graph)
+        val btnCapsule  = findViewById<Button>(R.id.report_btn_capsule)
+        val btnFreePack = findViewById<Button>(R.id.report_btn_free_pack)
 
         lifecycleScope.launch {
 
@@ -109,6 +111,32 @@ class SessionReportActivity : AppCompatActivity() {
                 SessionGraphView.HitMarker(h.startTimeMs, h.durationMs / 1000, h.peakTempC)
             }
             graph.setSessionData(points, hitMarkers, session.startTimeMs, session.endTimeMs, isCelsius)
+        }
+
+        lifecycleScope.launch {
+            db.sessionMetadataDao().observeMetadataForSession(sessionId).collect { meta ->
+                val isCapsule = meta?.isCapsule ?: false
+                btnCapsule.isEnabled  = !isCapsule
+                btnFreePack.isEnabled = isCapsule
+                btnCapsule.alpha  = if (isCapsule) 1.0f else 0.5f
+                btnFreePack.alpha = if (!isCapsule) 1.0f else 0.5f
+            }
+        }
+
+        btnCapsule.setOnClickListener {
+            lifecycleScope.launch(Dispatchers.IO) {
+                db.sessionMetadataDao().insertOrUpdate(
+                    com.sbtracker.data.SessionMetadata(sessionId = sessionId, isCapsule = true)
+                )
+            }
+        }
+
+        btnFreePack.setOnClickListener {
+            lifecycleScope.launch(Dispatchers.IO) {
+                db.sessionMetadataDao().insertOrUpdate(
+                    com.sbtracker.data.SessionMetadata(sessionId = sessionId, isCapsule = false)
+                )
+            }
         }
 
         findViewById<Button>(R.id.report_btn_close).setOnClickListener { finish() }
