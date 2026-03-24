@@ -17,7 +17,8 @@ description: standard workflow for feature development and bug fixes (worker age
    - Resolve any conflicts, then `git rebase --continue`.
    - This keeps history linear and ensures the PR is conflict-free when it lands.
 8. Mark the task `done` in `.agents/TASKS.md`.
-9. Push and open a PR: `git push -u origin <branch> && gh pr create --base dev --title "T-XXX — Task Title"`
+   - **Immediately push this change to `dev`**: `git add .agents/TASKS.md && git commit -m "meta: T-XXX done" && git fetch origin dev && git push origin HEAD:dev`
+9. Push the functional branch and open a PR: `git push -u origin <branch> && gh pr create --base dev --title "T-XXX — Task Title"`
 
 ---
 

@@ -1,5 +1,11 @@
 # SBTracker — Changelog
 
+### 2026-03-24 13:15 — Meta-file Live Sync (Antigravity)
+- **Direct push to `dev`** (Origin: Orchestration)
+- **Added** "Meta-file Live Sync" policy to ensure core project state (`BACKLOG.md`, `TASKS.md`, agent instructions) is always current on `dev` across all branches.
+- **Updated** `AGENT_INFO.md`, `CLAUDE.md`, `.cursorrules`, and all `.agents/workflows/` to enforce immediate syncing of meta-files.
+- **Note**: Simultaneous edits to these files get out of hand fast; direct syncing to `dev` minimizes fragmentation.
+
 ### [Unreleased]
 - **Added** (Orchestration) Formalized overhaul tasks for `MainViewModel` decomposition, Jetpack Compose migration, and BLE state machine refactoring.
 - **Fixed** (B-001) Removed `fallbackToDestructiveMigration()` from `AppModule` to enforce explicit schema migrations.

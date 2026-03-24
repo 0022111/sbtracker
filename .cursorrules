@@ -6,11 +6,13 @@ You are working on the **SBTracker** project. Please follow these rules to maint
 1. **Read and display `BACKLOG.md` first**: Start every session by showing the user the current backlog to align on priorities.
 2. **Read `PROJECT.md`**: Understand the event-sourcing architecture and key invariants.
 3. **Follow Standard Workflows**: Use `.agents/workflows/feature-work.md` and `documentation-sync.md`.
-3. **Maintain Living Docs**: Always update `PROJECT.md`, `BACKLOG.md`, and `CHANGELOG.md` upon completion.
+3. **Maintain Living Docs**: ALWAYS update `PROJECT.md`, `BACKLOG.md`, and `CHANGELOG.md` upon completion. Include detailed timestamps (YYYY-MM-DD HH:MM) and authorship in `CHANGELOG.md`.
+4. **Changelog Priority**: Update the changelog immediately and push directly to `dev` to avoid fragmentation from simultaneous edits.
 
 ## Branching & PRs
 - **Branch Prefix**: Always use `claude/` for agent work.
 - **Workflow**: Create a branch -> Implement -> Verify -> Submit Pull Request.
+- **Meta-files**: Always push updates to `BACKLOG.md`, `TASKS.md`, and agent instructions directly to `dev`. See **[Meta-file Live Sync](file:///Users/a0110/AndroidStudioProjects/sbtracker/AGENT_INFO.md#meta-file-live-sync)**.
 - **CI Verification**: Ensure the GitHub Actions build passes before merging (if applicable).
 
 ## Internal State (Brain)

@@ -21,8 +21,23 @@ Each task gets its own isolated branch. That branch proposes changes to `dev` vi
 **Practical rules:**
 1. Always `git fetch origin dev && git checkout -b claude/T-XXX-name origin/dev` — never branch from another feature branch
 2. One task per branch — keep scope narrow to minimize conflicts
-3. Open a PR to `dev` as the last step; do not push directly to `dev` or `main`
+3. Open a PR to `dev` for functional code changes; **always push Meta-files directly to `dev`**.
 4. If your branch is behind `dev` (other PRs merged while you worked), rebase: `git fetch origin dev && git rebase origin/dev`
+
+### Meta-file Live Sync
+
+To ensure a "universal bucket" of information across all agents, all updates to core project state must be pushed directly to the `dev` branch immediately. This bypasses the PR flow for these specific files only.
+
+**Meta-files include:**
+- `BACKLOG.md`, `PROJECT.md`, `CHANGELOG.md`
+- `AGENT_INFO.md`, `CLAUDE.md`, `.cursorrules`
+- `.agents/TASKS.md`, `.agents/tasks/T-*.md`, `.agents/implementation_plan.md`
+
+**The Sync Workflow:**
+1. Make the change to the meta-file.
+2. Commit it separately: `git add [meta-file] && git commit -m "meta: sync [meta-file]"`
+3. Push straight to `dev`: `git fetch origin dev && git push origin HEAD:dev`
+4. If push fails (out of sync), rebase that commit onto `origin/dev` and retry.
 
 ### Naming convention
 - **Prefix**: `claude/` for all agent branches
@@ -45,6 +60,13 @@ At the start of every new session or task, the agent **must**:
 ## Agent Role
 
 Agents are responsible for maintaining the project's "living documentation" (`PROJECT.md`, `BACKLOG.md`, `CHANGELOG.md`) to ensure context persistence across different sessions.
+
+### Changelog Requirements
+
+You MUST **always** update `CHANGELOG.md` immediately upon completing any work, including documentation and orchestration changes. 
+
+- **Detailed Metadata**: Include the current timestamp (YYYY-MM-DD HH:MM), authorship (e.g., Antigravity), and origin (e.g., "Direct push to dev" or "PR to dev").
+- **Simultaneous Edits**: Be extremely diligent about this; multiple agents working in parallel cause fragmentation if the changelog isn't kept perfectly in sync. Direct syncing of meta-files to `dev` is specifically designed to mitigate this.
 
 ### Internal Agent State (Brain)
 

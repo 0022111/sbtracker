@@ -16,14 +16,11 @@
 
 Requires JDK 21. The CI workflow mirrors these commands.
 
-## Changelog
+`CHANGELOG.md` exists at the repo root. **After completing ANY work (even meta-updates), you MUST append an entry to the top of the relevant section.** 
 
-`CHANGELOG.md` exists at the repo root. **After completing any work, append an entry to the top of the `[Unreleased]` section** using the existing format:
-
-```
-### YYYY-MM-DD — Short Title
-- **Fixed/Added/Changed/Improved** description
-```
+- **Format**: `### YYYY-MM-DD HH:MM — Short Title (Author)`
+- **Metadata**: Include origin (e.g., `Direct push to dev`) and detailed changes.
+- **Rule**: Updates to `CHANGELOG.md` are Meta-files and must be pushed directly to `dev` to prevent sync issues between parallel agents.
 
 
 # Agent Rules & Guidelines
@@ -39,6 +36,7 @@ You are working on the **SBTracker** project. Please follow these rules to maint
 ## Branching & PRs
 - **Branch Prefix**: Always use `claude/` for agent work.
 - **Workflow**: Create a branch -> Implement -> Verify -> Submit Pull Request.
+- **Meta-files**: Always push updates to `BACKLOG.md`, `TASKS.md`, and agent instructions directly to `dev`. See **[Meta-file Live Sync](file:///Users/a0110/AndroidStudioProjects/sbtracker/AGENT_INFO.md#meta-file-live-sync)**.
 - **CI Verification**: Ensure the GitHub Actions build passes before merging (if applicable).
 
 ## Internal State (Brain)

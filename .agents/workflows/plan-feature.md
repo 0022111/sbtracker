@@ -100,10 +100,12 @@ Change the feature status from `planned` → `in-progress` in `BACKLOG.md`.
 
 ---
 
-## Step 6 — Report
+## Step 6 — Sync to dev
+1. Commit all new and modified meta-files: `git add .agents/tasks/ BACKLOG.md .agents/TASKS.md && git commit -m "meta: plan feature F-XXX"`
+2. Push directly to `dev`: `git fetch origin dev && git push origin HEAD:dev`
 
-Output:
-- Feature decomposed: F-XXX
-- Tasks created: T-XXX, T-XXX, T-XXX
-- Dependency order (if any)
-- "Ready for workers" or "Waiting on T-YYY first"
+## Step 7 — Report
+106: - Feature decomposed: F-XXX
+107: - Tasks created: T-XXX, T-XXX, T-XXX
+108: - Dependency order (if any)
+109: - "Ready for workers" or "Waiting on T-YYY first"
