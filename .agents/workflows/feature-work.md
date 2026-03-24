@@ -14,7 +14,7 @@ description: standard workflow for feature development and bug fixes (worker age
 5. Commit with message referencing the task ID: `T-XXX: description of change`.
 6. Append one line to `CHANGELOG.md` under `[Unreleased]`.
 7. Mark the task `done` in `.agents/TASKS.md`.
-8. Push and open a PR targeting **`dev`**. Title: `T-XXX — Task Title`.
+8. Push and open a PR: `gh pr create --base dev --title "T-XXX — Task Title"`
 
 ---
 

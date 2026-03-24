@@ -72,7 +72,7 @@ Your ONLY job is T-XXX.
 5. Commit: "T-XXX: <one-line description>"
 6. Append one line to CHANGELOG.md under [Unreleased].
 7. git push -u origin claude/T-XXX-<name>
-8. Open a PR targeting `dev`. Title: "T-XXX — <Task Title>"
+8. gh pr create --base dev --title "T-XXX — <Task Title>" --body "Closes T-XXX"
 9. In `.agents/TASKS.md` mark T-XXX status `done`.
 
 Do not go beyond these steps.
