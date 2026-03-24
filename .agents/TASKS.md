@@ -37,7 +37,7 @@ main  ← stable, merges only from dev
 | T-022 | `done` | Fix "TARGET TARGET" Typo | [T-022](tasks/T-022-fix-target-target-typo.md) | — |
 | T-023 | `ready` | Wire Boost Visualization Toggle | [T-023](tasks/T-023-wire-boost-viz-toggle.md) | — |
 | T-024 | `ready` | Wire Factory Reset Button | [T-024](tasks/T-024-wire-factory-reset-button.md) | — |
-| T-025 | `ready` | Fix Day Start Hour Subtitle | [T-025](tasks/T-025-fix-day-start-subtitle.md) | — |
+| T-025 | `done` | Fix Day Start Hour Subtitle | [T-025](tasks/T-025-fix-day-start-subtitle.md) | — |
 | T-028 | `ready` | Log Silent Exception Catches | [T-028](tasks/T-028-log-silent-exceptions.md) | — |
 | T-029 | `ready` | Persist Battery Card Expand State | [T-029](tasks/T-029-persist-battery-expand-state.md) | — |
 

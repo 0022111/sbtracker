@@ -2,6 +2,12 @@
 
 All notable changes to this project. Agents: append to the top of the relevant section after completing work.
 
+### 2026-03-24 — Fix Day Start Hour Subtitle
+- **Fixed** day start subtitle was static; now updates dynamically with selected hour
+
+### 2026-03-24 — Log Silent Exception Catches
+- **Improved** silent exception catches in BleCommandQueue and MainViewModel now log to logcat
+
 ### 2026-03-24 — Fix TARGET TARGET Typo
 - **Fixed** copy-paste typo in session layout: "TARGET TARGET" → "TARGET TEMP"
 
