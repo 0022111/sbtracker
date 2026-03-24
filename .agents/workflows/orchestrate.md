@@ -41,7 +41,10 @@ note which tasks are now unblocked. Stop. Report what you unblocked.
 
 ### B — Spawn workers (preferred when ready tasks exist)
 Pick up to **3 ready tasks** that are independent of each other (no shared files).
-For each, produce a worker kickoff prompt using the template below.
+**Before selecting tasks**, check each task file's "Change only these files" list.
+If two tasks share any file, do NOT spawn them in parallel — serialize them instead
+(spawn the higher-priority one; the other stays `ready` for the next orchestration cycle).
+For each selected task, produce a worker kickoff prompt using the template below.
 Output them clearly labelled so the user can paste them into new agent windows.
 
 ### C — Spawn a planner (when no ready tasks remain but planned backlog items exist)
@@ -71,8 +74,9 @@ Your ONLY job is T-XXX.
 4. ./gradlew assembleDebug — must pass. Fix any errors, do not skip.
 5. Commit: "T-XXX: <one-line description>"
 6. Append one line to CHANGELOG.md under [Unreleased].
-7. git push -u origin claude/T-XXX-<name>
-8. gh pr create --base dev --title "T-XXX — <Task Title>" --body "Closes T-XXX"
+7. git fetch origin dev && git rebase origin/dev  ← rebase before push, resolve any conflicts
+8. git push -u origin claude/T-XXX-<name>
+9. gh pr create --base dev --title "T-XXX — <Task Title>" --body "Closes T-XXX"
 9. In `.agents/TASKS.md` mark T-XXX status `done`.
 
 Do not go beyond these steps.
