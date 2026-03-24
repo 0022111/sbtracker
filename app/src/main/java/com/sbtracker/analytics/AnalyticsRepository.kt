@@ -501,7 +501,8 @@ class AnalyticsRepository(private val db: AppDatabase) {
     fun computeIntakeStats(
         summaries: List<SessionSummary>,
         metadataMap: Map<Long, SessionMetadata>,
-        defaultWeightGrams: Float
+        defaultWeightGrams: Float,
+        defaultIsCapsule: Boolean = false
     ): IntakeStats {
         if (summaries.isEmpty()) return IntakeStats()
 
@@ -517,7 +518,7 @@ class AnalyticsRepository(private val db: AppDatabase) {
 
         for (summary in summaries) {
             val meta = metadataMap[summary.id]
-            val isCapsule = meta?.isCapsule ?: false
+            val isCapsule = meta?.isCapsule ?: defaultIsCapsule
 
             if (isCapsule) {
                 val weight = meta?.capsuleWeightGrams?.takeIf { it > 0f } ?: defaultWeightGrams
