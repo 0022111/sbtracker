@@ -47,8 +47,8 @@ main  ← stable, merges only from dev
 | ID | Status | Title | Task File | Blocked by |
 |---|---|---|---|---|
 | T-006 | `done` | Introduce Hilt DI | [T-006](tasks/T-006-introduce-hilt-di.md) | — |
-| T-007 | `ready` | Decompose MainViewModel | [T-007](tasks/T-007-decompose-mainviewmodel.md) | — |
-| T-008 | `blocked` | Remove Fragment–Activity Casts | [T-008](tasks/T-008-remove-activity-casts.md) | T-007 |
+| T-007 | `done` | Decompose MainViewModel | [T-007](tasks/T-007-decompose-mainviewmodel.md) | — |
+| T-008 | `ready` | Remove Fragment–Activity Casts | [T-008](tasks/T-008-remove-activity-casts.md) | T-007 |
 | T-009 | `ready` | Preferences → DataStore | [T-009](tasks/T-009-preferences-datastore.md) | — |
 | T-010 | `ready` | Unit Tests | [T-010](tasks/T-010-unit-tests.md) | — |
 | T-026 | `done` | Enable ViewBinding | [T-026](tasks/T-026-enable-viewbinding.md) | — |
@@ -68,10 +68,10 @@ main  ← stable, merges only from dev
 
 | ID | Status | Title | Task File | Blocked by |
 |---|---|---|---|---|
-| T-011 | `blocked` | Session Notes + Rating | [T-011](tasks/T-011-session-notes-rating.md) | T-007 |
+| T-011 | `ready` | Session Notes + Rating | [T-011](tasks/T-011-session-notes-rating.md) | T-007 |
 | T-012 | `blocked` | Temperature Presets | [T-012](tasks/T-012-temperature-presets.md) | T-009 |
-| T-013 | `blocked` | History Search & Filtering | [T-013](tasks/T-013-history-filtering.md) | T-007 |
-| T-014 | `blocked` | Tolerance Break Tracker | [T-014](tasks/T-014-tolerance-break-tracker.md) | T-007 |
+| T-013 | `ready` | History Search & Filtering | [T-013](tasks/T-013-history-filtering.md) | T-007 |
+| T-014 | `ready` | Tolerance Break Tracker | [T-014](tasks/T-014-tolerance-break-tracker.md) | T-007 |
 | T-015 | `blocked` | Onboarding Flow | [T-015](tasks/T-015-onboarding-flow.md) | T-009 |
 | T-030 | `ready` | Migrate to Jetpack Compose | [T-030](tasks/T-030-migrate-to-jetpack-compose.md) | — |
 | T-031 | `done` | Overhaul BLE State Machine | [T-031](tasks/T-031-overhaul-ble-state-machine.md) | — |
