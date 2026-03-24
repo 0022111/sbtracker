@@ -76,15 +76,15 @@
 
 | ID | Status | Priority | Description |
 |---|---|---|---|
-| B-001 | `planned` | P1 | `fallbackToDestructiveMigration()` must be removed before public release |
+| B-001 | `done` | P1 | `fallbackToDestructiveMigration()` must be removed before public release |
 | B-002 | `done` | P2 | History Page vertical scroll locked by unwieldy charts |
 | B-003 | `done` | P1 | Battery Page crashes on load due to narrow graph segments |
-| B-004 | `planned` | P3 | Data retention setting has inconsistent text, says keep history for x days when it should say delete after x days |
+| B-004 | `done` | P3 | Data retention setting has inconsistent text, says keep history for x days when it should say delete after x days |
 | B-005 | `planned` | P3 | All graphs should collapse dead space, especially on history graph. even long periods of slow discharge should be condensed. event items are most interesting. |
 | B-006 | `planned` | P3 | Graphs are not zoomable or alterable in scope except for hard toggles |
 | B-007 | `planned` | P3 | Entire UI needs modernization and dynamicization, probably less of a bug and more of an enhancement |
 | B-008 | `planned` | P3 | Autoshutdown in settings doesnt show full granularity of data |
-| B-009 | `planned` | P2 | Dim LED while charging doesnt restore to previous level, and acts funny if LED level is changed manually while charging. |
+| B-009 | `done` | P2 | Dim LED while charging doesnt restore to previous level, and acts funny if LED level is changed manually while charging. |
 | B-010 | `planned` | P2 | Boost offset does not seem correct, or target temp is reporting incorrectly. is effective temp really the best method? |
 
 ---

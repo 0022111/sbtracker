@@ -23,7 +23,7 @@ object AppModule {
             context,
             AppDatabase::class.java,
             "sbtracker.db"
-        ).fallbackToDestructiveMigration().build()
+        ).build()
     }
 
     @Provides
