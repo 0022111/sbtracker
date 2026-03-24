@@ -10,7 +10,7 @@ The current dev codebase (v0.1) is extremely close to a functional Alpha. To off
 **Critical Path (Must-Haves for Alpha):**
 * **[B-010] Fix Temp Accuracy:** Resolve boost offset and target temp reporting. Since this is a vaporizer tracker, core temperature data must be explicitly trusted by users.
 * **[F-026] Data Backup / Restore:** Allow testers to export/import the `sbtracker.db` file. This protects their "god log" during early experimental schema iterations.
-* **Unblock DB Schema (F-018):** Finalize the database schema architecture for user-entered session metadata (like capsule tags) *before* testers start generating heavy real-world data.
+* **[F-018] Health & Dosage Tracking:** Finalize the UI and Analytics layer now that the DB schema for `SessionMetadata` is unblocked and implemented.
 
 **Stability Path (Should-Haves for Alpha):**
 * **[F-048] BLE State Machine Overhaul:** Ensure robust backoff and reconnection so background tracking survives real-world Bluetooth flakiness (e.g., phones in pockets).
@@ -45,7 +45,7 @@ The current dev codebase (v0.1) is extremely close to a functional Alpha. To off
 | F-015 | `done` | Daily Stats | Per-day aggregates for trend charts | DailyStats list drives bar chart |
 | F-016 | `done` | Profile Stats | Lifetime totals (sessions, hits, heater hours) | ProfileStats card reads correctly |
 | F-017 | `done` | Heat-up Estimation | Estimate time to heat based on target temp and history | Session screen shows ETA |
-| F-018 | `blocked` | Health & Dosage | Track capsule vs free-pack per session, calculate intake weight, habit analysis. **Blocked by DB schema problems & Session Report overhaul.** | Settings for capsule weight, session toggle, intake stats |
+| F-018 | `in-progress` | Health & Dosage | Track capsule vs free-pack per session, calculate intake weight, habit analysis. | Settings for capsule weight, session toggle, intake stats |
 
 ## Device Management (P1 — Polish)
 
@@ -124,17 +124,15 @@ The current dev codebase (v0.1) is extremely close to a functional Alpha. To off
 ## Draft Feature Specs
 
 ### F-018: Health & Dosage Tracking
-*Status: Blocked by database schema problems and session report overhaul.*
+*Status: Partially unblocked! Database Schema for `SessionMetadata` successfully merged in schema v3.*
 
 **Release-Complete Implementation Plan:**
 
-1. **Unblock Phase:**
-   * **Database Schema Fix:** Ensure the architecture allows for user-provided data (like whether a session used a capsule) to persist even when sessions are reconstructed from the `device_status` "god log". A new table like `session_metadata` mapping to `session_id` is the safest way to prevent destructive loss during rebuilds.
-   * **UI Prep:** Ensure the session report screen and settings are either migrated to Compose or stabilized enough to accept new UI elements without creating merge conflicts.
+1. **Unblock Phase (COMPLETED):**
+   * **Database Schema Fix:** Created `session_metadata` mapping to `session_id`. Safely isolates user-provided data from destructive session rebuilds. Migration v2->v3 fully tested.
+   * **UI Prep (Pending):** Ensure the session report screen and settings are either migrated to Compose or stabilized enough to accept new UI elements without creating merge conflicts.
 
 2. **Data Layer Implementation:**
-   * Create the `SessionMetadata` entity and corresponding Room DAO (or update `Session` entity if the DB approach changes).
-   * Write Room migrations (e.g., v3) to add the new tables/columns.
    * Update the DataStore/SharedPreferences repository to support saving/reading `capsule_weight_grams` and `default_session_type`.
 
 3. **Analytics Integration:**

@@ -1,8 +1,6 @@
 package com.sbtracker.data
 
-import android.content.Context
 import androidx.room.Database
-import androidx.room.Room
 import androidx.room.RoomDatabase
 
 /**
@@ -27,9 +25,10 @@ import androidx.room.RoomDatabase
         DeviceInfo::class,
         Session::class,
         ChargeCycle::class,
-        Hit::class
+        Hit::class,
+        SessionMetadata::class
     ],
-    version      = 2,
+    version      = 3,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -40,4 +39,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun sessionDao():      SessionDao
     abstract fun chargeCycleDao():  ChargeCycleDao
     abstract fun hitDao():          HitDao
+    abstract fun sessionMetadataDao(): SessionMetadataDao
 }
