@@ -9,6 +9,20 @@ Your job is to read state, make decisions, and delegate.
 
 ---
 
+## ⚠️ BRANCHING RULES (enforce in every kickoff prompt)
+
+```
+main   ← NEVER touch. Stable releases only.
+dev    ← NEVER push feature code directly. PRs only.
+  └── claude/T-XXX-...  ← worker branches, always from dev
+```
+
+- Workers submit PRs to `dev`. Never to `main`. Never direct pushes.
+- The ONLY direct-to-dev push a worker makes is the meta-file status update (`.agents/TASKS.md`) after their PR is open.
+- Spawn workers only for tasks that share NO files. If tasks share a file, serialize them.
+
+---
+
 ## Step 1 — Read current state (all required)
 
 Read these files in order:
@@ -40,10 +54,8 @@ If dependencies just became `done`, update statuses in `.agents/TASKS.md` and
 note which tasks are now unblocked. Stop. Report what you unblocked.
 
 ### B — Spawn workers (preferred when ready tasks exist)
-Pick up to **3 ready tasks** that are independent of each other (no shared files).
-**Before selecting tasks**, check each task file's "Change only these files" list.
-If two tasks share any file, do NOT spawn them in parallel — serialize them instead
-(spawn the higher-priority one; the other stays `ready` for the next orchestration cycle).
+Pick **independent** ready tasks (no shared files in their "Change only these files" lists).
+Check each task file before spawning — if two tasks share any file, serialize them.
 For each selected task, produce a worker kickoff prompt using the template below.
 Output them clearly labelled so the user can paste them into new agent windows.
 
@@ -65,19 +77,25 @@ For each worker task, output exactly this block (filled in):
 === WORKER KICKOFF: T-XXX — <Task Title> ===
 
 You are a worker agent for the SBTracker Android project at /home/user/sbtracker.
-Your ONLY job is T-XXX.
+Your ONLY job is T-XXX. Do not touch anything outside your task file's scope.
 
-1. Read `.agents/tasks/T-XXX-<name>.md` — your complete scope.
-   Follow it exactly. Do not read or change anything not listed there.
+BRANCHING RULES (mandatory):
+- Branch FROM dev: git fetch origin dev && git checkout -b claude/T-XXX-<name> origin/dev
+- PR TO dev (never main): use mcp__github__create_pull_request with base="dev"
+- NEVER push feature code directly to dev or main
+- Only direct-to-dev push allowed: meta status update to .agents/TASKS.md after PR is open
+
+Steps:
+1. Read `.agents/tasks/T-XXX-<name>.md` — your complete scope. Follow it exactly.
 2. git fetch origin dev && git checkout -b claude/T-XXX-<name> origin/dev
 3. Make only the changes in the task file.
-4. ./gradlew assembleDebug — must pass. Fix any errors, do not skip.
-5. Commit: "T-XXX: <one-line description>"
-6. Append one line to CHANGELOG.md under [Unreleased].
-7. git fetch origin dev && git rebase origin/dev  ← rebase before push, resolve any conflicts
+4. ./gradlew assembleDebug — must pass. Fix errors, do not skip.
+5. git add <changed files> && git commit -m "T-XXX: <one-line description>"
+6. Append one line to CHANGELOG.md under [Unreleased], commit on your branch.
+7. git fetch origin dev && git rebase origin/dev  (resolve conflicts if any)
 8. git push -u origin claude/T-XXX-<name>
-9. gh pr create --base dev --title "T-XXX — <Task Title>" --body "Closes T-XXX"
-9. In `.agents/TASKS.md` mark T-XXX status `done`.
+9. Create PR: mcp__github__create_pull_request owner=0022111 repo=sbtracker head=claude/T-XXX-<name> base=dev title="T-XXX — <Task Title>"
+10. git add .agents/TASKS.md && git commit -m "meta: T-XXX done" && git fetch origin dev && git push origin HEAD:dev
 
 Do not go beyond these steps.
 === END KICKOFF ===

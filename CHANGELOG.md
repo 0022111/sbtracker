@@ -1,5 +1,10 @@
 # SBTracker — Changelog
 
+### 2026-03-24 — F-018 Task Planning + Workflow Hardening (Direct push to dev)
+- **Added** Task files T-034 through T-038 for F-018 Health & Dosage Tracking
+- **Hardened** `feature-work.md` and `orchestrate.md`: explicit PR-to-dev rules, `mcp__github__create_pull_request` replaces `gh pr create`, NEVER-push-to-dev-directly rule enforced in writing
+- **Verified** Matrix persona protocol in `AGENT_INFO.md` — complete and correct
+
 ### 2026-03-24 — Fix BLE Background Process Handoff (Direct push to dev)
 - **Fixed** `BleService` now `@AndroidEntryPoint` with direct `@Inject BleManager` — no longer depends on `MainViewModel` being alive to act
 - **Added** `BleManager.reconnectToAddress(address)` using `autoConnect = true` so Android's BT stack manages reconnection at the OS level, surviving process restarts

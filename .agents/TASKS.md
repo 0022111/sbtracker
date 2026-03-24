@@ -54,6 +54,16 @@ main  ← stable, merges only from dev
 | T-026 | `done` | Enable ViewBinding | [T-026](tasks/T-026-enable-viewbinding.md) | — |
 | T-027 | `done` | Extract Hardcoded Colors to colors.xml | [T-027](tasks/T-027-extract-colors-xml.md) | — |
 
+## Phase 2 — F-018 Health & Dosage Tracking
+
+| ID | Status | Title | Task File | Blocked by |
+|---|---|---|---|---|
+| T-034 | `ready` | Intake Prefs: capsule_weight + default_is_capsule in VM | [T-034](tasks/T-034-intake-prefs-viewmodel.md) | — |
+| T-035 | `ready` | IntakeStats analytics model + computeIntakeStats | [T-035](tasks/T-035-intake-analytics-model.md) | — |
+| T-036 | `ready` | Session Report: Capsule / Free-Pack Toggle | [T-036](tasks/T-036-session-report-capsule-toggle.md) | — |
+| T-037 | `blocked` | Settings UI: Capsule Weight + Default Pack Type | [T-037](tasks/T-037-settings-capsule-ui.md) | T-034 |
+| T-038 | `blocked` | History Screen: Health & Intake Card | [T-038](tasks/T-038-history-health-card.md) | T-034, T-035 |
+
 ## Phase 2 — User-Facing Features
 
 | ID | Status | Title | Task File | Blocked by |
