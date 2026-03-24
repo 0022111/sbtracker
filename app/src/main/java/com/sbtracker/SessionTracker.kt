@@ -23,7 +23,6 @@ class SessionTracker {
         private const val CRITICAL_BATTERY_LEVEL = 15
         private const val TAPER_START       = 70
 
-        private const val TEMP_DIP_THRESHOLD = 2 // 2°C dip starts a hit
     }
 
     enum class State { IDLE, ACTIVE }

@@ -30,7 +30,6 @@ data class PendingHit(
  */
 object HitDetector {
 
-    private const val TEMP_DIP_THRESHOLD = 2 // °C — must match SessionTracker
 
     /**
      * Detect all hits within the given list of status rows.
@@ -74,7 +73,7 @@ object HitDetector {
 
             val tempDipTrigger = s.setpointReached &&
                     lastBaselineTemp > 0 &&
-                    (lastBaselineTemp - s.currentTempC) >= TEMP_DIP_THRESHOLD
+                    (lastBaselineTemp - s.currentTempC) >= BleConstants.TEMP_DIP_THRESHOLD_C
 
             if (timerResetTrigger || tempDipTrigger) {
                 if (!hitInProgress) {

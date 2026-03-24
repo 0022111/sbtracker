@@ -21,17 +21,17 @@
 
 | ID | Status | Title | Task File | Blocks |
 |---|---|---|---|---|
-| T-001 | `ready` | Upgrade Dependencies | [T-001](tasks/T-001-upgrade-dependencies.md) | T-006, T-007 |
-| T-002 | `ready` | Enable R8 Minification | [T-002](tasks/T-002-enable-r8-minification.md) | — |
-| T-003 | `ready` | Fix Constant Duplication | [T-003](tasks/T-003-fix-temp-threshold-constant.md) | — |
-| T-004 | `ready` | Data Retention / Pruning | [T-004](tasks/T-004-data-retention-pruning.md) | — |
-| T-005 | `ready` | targetSdk 35 Compat Pass | [T-005](tasks/T-005-targetsdk35-compat.md) | — |
+| T-001 | `done` | Upgrade Dependencies | [T-001](tasks/T-001-upgrade-dependencies.md) | T-006, T-007 |
+| T-002 | `done` | Enable R8 Minification | [T-002](tasks/T-002-enable-r8-minification.md) | — |
+| T-003 | `done` | Fix Constant Duplication | [T-003](tasks/T-003-fix-temp-threshold-constant.md) | — |
+| T-004 | `done` | Data Retention / Pruning | [T-004](tasks/T-004-data-retention-pruning.md) | — |
+| T-005 | `done` | targetSdk 35 Compat Pass | [T-005](tasks/T-005-targetsdk35-compat.md) | — |
 
 ## Phase 1 — Foundation
 
 | ID | Status | Title | Task File | Blocked by |
 |---|---|---|---|---|
-| T-006 | `blocked` | Introduce Hilt DI | [T-006](tasks/T-006-introduce-hilt-di.md) | T-001 |
+| T-006 | `ready` | Introduce Hilt DI | [T-006](tasks/T-006-introduce-hilt-di.md) | — |
 | T-007 | `blocked` | Decompose MainViewModel | [T-007](tasks/T-007-decompose-mainviewmodel.md) | T-006 |
 | T-008 | `blocked` | Remove Fragment–Activity Casts | [T-008](tasks/T-008-remove-activity-casts.md) | T-007 |
 | T-009 | `blocked` | Preferences → DataStore | [T-009](tasks/T-009-preferences-datastore.md) | T-006 |

@@ -2,6 +2,16 @@
 
 All notable changes to this project. Agents: append to the top of the relevant section after completing work.
 
+### 2026-03-24 — Phase 0: Stop the Bleeding
+- **Changed** Room dependency from `2.7.0-alpha13` to `2.6.1` (stable); drop alpha channel
+- **Changed** `targetSdk`/`compileSdk` from 34 to 35 (Play Store requirement)
+- **Upgraded** `lifecycle` 2.7.0 → 2.8.7, `coroutines` 1.7.3 → 1.9.0, `core-ktx` 1.12.0 → 1.15.0, `appcompat` 1.6.1 → 1.7.0, `material` 1.11.0 → 1.12.0
+- **Enabled** R8 minification and resource shrinking for release builds (`minifyEnabled true`, `shrinkResources true`)
+- **Fixed** `TEMP_DIP_THRESHOLD` constant duplication — moved to `BleConstants.TEMP_DIP_THRESHOLD_C` as single source of truth
+- **Added** data retention pruning — `DeviceStatusDao.deleteRowsOlderThan()`, `AnalyticsRepository.pruneOldData()`, called on app startup; configurable 30/60/90/180/Never days in Settings (default 90)
+- **Verified** targetSdk 35 compat: `foregroundServiceType`, `POST_NOTIFICATIONS` runtime permission, and `VibratorManager` API guards were already correct
+- **Changed** build toolchain from JetBrains JDK 17 to JDK 21 (AGP 9.x requirement); updated CI workflow accordingly
+
 ### 2026-03-24 01:00 — Multi-Device Infrastructure (Antigravity)
 - **Implemented** synthetic test device injector in Settings to simulate multi-device scenarios without extra hardware.
 - **Improved** landing page with aggregated session and battery data across all known devices.

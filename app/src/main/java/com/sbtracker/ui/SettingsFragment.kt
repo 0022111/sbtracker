@@ -39,6 +39,7 @@ class SettingsFragment : Fragment() {
         val tvColor = view.findViewById<TextView>(R.id.tv_settings_color)
 
         val tvDayStartValue = view.findViewById<TextView>(R.id.tv_day_start_value)
+        val tvRetentionValue = view.findViewById<TextView>(R.id.tv_retention_value)
 
         view.findViewById<View>(R.id.row_phone_alerts).setOnClickListener { vm.togglePhoneAlerts() }
         view.findViewById<View>(R.id.row_dim_on_charge).setOnClickListener { vm.toggleDimOnCharge() }
@@ -47,6 +48,14 @@ class SettingsFragment : Fragment() {
             android.app.AlertDialog.Builder(requireContext())
                 .setTitle("Day Start Hour")
                 .setItems(hours) { _, which -> vm.setDayStartHour(which) }
+                .show()
+        }
+        view.findViewById<View>(R.id.row_retention_days).setOnClickListener {
+            val options = arrayOf("30 days", "60 days", "90 days", "180 days", "Never")
+            val values  = intArrayOf(30, 60, 90, 180, Int.MAX_VALUE)
+            android.app.AlertDialog.Builder(requireContext())
+                .setTitle("Data Retention")
+                .setItems(options) { _, which -> vm.setRetentionDays(values[which]) }
                 .show()
         }
         view.findViewById<View>(R.id.row_unit).setOnClickListener { vm.toggleUnit() }
@@ -91,6 +100,12 @@ class SettingsFragment : Fragment() {
             vm.dayStartHour.collect { hour ->
                 val text = if (hour == 0) "12 AM" else if (hour < 12) "$hour AM" else if (hour == 12) "12 PM" else "${hour - 12} PM"
                 tvDayStartValue.text = text
+            }
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            vm.retentionDays.collect { days ->
+                tvRetentionValue.text = if (days == Int.MAX_VALUE) "Never" else "$days days"
             }
         }
 

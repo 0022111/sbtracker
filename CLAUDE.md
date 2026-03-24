@@ -14,7 +14,7 @@
 ./gradlew lint
 ```
 
-Requires JDK 17 (JetBrains distribution). The CI workflow mirrors these commands.
+Requires JDK 21. The CI workflow mirrors these commands.
 
 ## Changelog
 

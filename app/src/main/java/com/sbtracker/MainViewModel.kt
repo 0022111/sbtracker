@@ -118,6 +118,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         appPrefs.edit().putInt("day_start_hour", next).apply()
     }
 
+    /**
+     * How many days of device_status rows to retain. [Int.MAX_VALUE] means "Never prune".
+     * Options: 30 / 60 / 90 / 180 / Never. Default: 90.
+     */
+    private val _retentionDays = MutableStateFlow(90)
+    val retentionDays: StateFlow<Int> = _retentionDays.asStateFlow()
+
+    fun setRetentionDays(days: Int) {
+        _retentionDays.value = days
+        appPrefs.edit().putInt("retention_days", days).apply()
+    }
+
     // Alerts State
     private var lastSetpointReached = false
     private var lastCharge80Reached = false
@@ -162,6 +174,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         _dimOnChargeEnabled.value = appPrefs.getBoolean("dim_on_charge", false)
         _isCelsius.value          = appPrefs.getBoolean("is_celsius", true)
         _dayStartHour.value       = appPrefs.getInt("day_start_hour", 4)
+        _retentionDays.value      = appPrefs.getInt("retention_days", 90)
+
+        viewModelScope.launch {
+            analyticsRepo.pruneOldData(_retentionDays.value)
+        }
 
         // Restore last-known device so history is accessible before connecting
         _activeDevice.value = loadLastDevice()
