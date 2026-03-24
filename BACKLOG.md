@@ -10,7 +10,7 @@ The current dev codebase (v0.1) is extremely close to a functional Alpha. To off
 **Critical Path (Must-Haves for Alpha):**
 * **[B-010] Fix Temp Accuracy:** Resolve boost offset and target temp reporting. Since this is a vaporizer tracker, core temperature data must be explicitly trusted by users.
 * **[F-026] Data Backup / Restore:** Allow testers to export/import the `sbtracker.db` file. This protects their "god log" during early experimental schema iterations.
-* **[F-018] Health & Dosage Tracking:** Finalize the UI and Analytics layer now that the DB schema for `SessionMetadata` is unblocked and implemented.
+* **[F-018] Health & Dosage Tracking:** *(Done)* Finalized the UI and Analytics layer; capsule weight settings, session type toggle, and intake card now fully functional.
 
 **Stability Path (Should-Haves for Alpha):**
 * **[F-048] BLE State Machine Overhaul:** Ensure robust backoff and reconnection so background tracking survives real-world Bluetooth flakiness (e.g., phones in pockets). *(Done)*
@@ -45,7 +45,7 @@ The current dev codebase (v0.1) is extremely close to a functional Alpha. To off
 | F-015 | `done` | Daily Stats | Per-day aggregates for trend charts | DailyStats list drives bar chart |
 | F-016 | `done` | Profile Stats | Lifetime totals (sessions, hits, heater hours) | ProfileStats card reads correctly |
 | F-017 | `done` | Heat-up Estimation | Estimate time to heat based on target temp and history | Session screen shows ETA |
-| F-018 | `in-progress` | Health & Dosage | Track capsule vs free-pack per session, calculate intake weight, habit analysis. | Settings for capsule weight, session toggle, intake stats |
+| F-018 | `done` | Health & Dosage | Track capsule vs free-pack per session, calculate intake weight, habit analysis. | Settings for capsule weight, session toggle, intake stats |
 
 ## Device Management (P1 — Polish)
 
@@ -85,7 +85,7 @@ The current dev codebase (v0.1) is extremely close to a functional Alpha. To off
 | F-040 | `done` | Version Control | Git + GitHub setup | Repo initialized, remote linked, .gitignore in place |
 | F-041 | `done` | Project Docs | PROJECT.md, BACKLOG.md, CHANGELOG.md | Agent memory system works across sessions |
 | F-042 | `ready` | Unit Tests | Test analytics pure functions | AnalyticsRepository functions have test coverage |
-| F-043 | `ready` | ViewModel Decomposition | Break up 1074-line MainViewModel | Extract to feature-specific ViewModels or use cases |
+| F-043 | `done` | ViewModel Decomposition | Break up 1074-line MainViewModel | Extract to feature-specific ViewModels or use cases |
 | F-044 | `done` | MainActivity Decomposition | Break up 1169-line MainActivity | Extract Fragments or Compose screens |
 | F-045 | `done` | Agent Infrastructure | Document AI agent branch strategy, workflows, and workspace context | `AGENT_INFO.md` and `.agents/workflows/` exist |
 | F-046 | `done` | GitHub Integrity | Automate CI builds, PR templates, and enforced branching | `build.yml` automated, `PULL_REQUEST_TEMPLATE.md` exists |
