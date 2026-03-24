@@ -7,6 +7,10 @@
 - **Note**: Simultaneous edits to these files get out of hand fast; direct syncing to `dev` minimizes fragmentation.
 
 ### [Unreleased]
+- **Fixed** (F-048) Completely overhauled the BLE connection layer. Replaced fragile connection states with a robust sealed class state machine featuring a `Reconnecting` state.
+- **Added** (F-048) Implemented an exponential backoff auto-reconnect loop (up to 30s intervals) that runs in the background if the device drops unexpectedly. Includes a 5-minute hard timeout to prevent endless battery drain if the device is permanently out of range.
+- **Added** (F-048) Updated `BleService` persistent notification to reflect active reconnection attempts.
+- **Added** (F-018) Unblocked Health & Dosage tracking by creating the `session_metadata` Room table and explicitly migrating the database from v2 to v3. This safely isolates user-entered data from destructive session rebuilds.
 - **Added** (Orchestration) Formalized overhaul tasks for `MainViewModel` decomposition, Jetpack Compose migration, and BLE state machine refactoring.
 - **Fixed** (B-001) Removed `fallbackToDestructiveMigration()` from `AppModule` to enforce explicit schema migrations.
 - **Added** (Meta) Matrix Persona Protocol: All agents now identify themselves (e.g., "Neo, this is Morpheus") and maintain a singular identity per instance.

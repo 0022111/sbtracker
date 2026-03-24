@@ -135,6 +135,13 @@ class LandingFragment : Fragment() {
                         tvBtnConnectText.text = "Cancel Connect"
                         tvBtnConnectText.setTextColor(ContextCompat.getColor(requireContext(), R.color.color_red))
                     }
+                    is BleManager.ConnectionState.Reconnecting -> {
+                        tvScanStatus.text = "Connection lost. Reconnecting (Attempt ${state.attempt})..."
+                        tvBtnConnectText.text = "Cancel Reconnect"
+                        tvBtnConnectText.setTextColor(ContextCompat.getColor(requireContext(), R.color.color_red))
+                        layoutOffline.visibility = View.VISIBLE
+                        layoutOnline.visibility = View.GONE
+                    }
                     is BleManager.ConnectionState.Connected -> {}
                 }
             }
