@@ -1,5 +1,8 @@
 # SBTracker — Changelog
 
+### 2026-03-24 — T-036 Capsule / Free-Pack toggle on session report screen (claude/T-036-session-report-capsule-toggle)
+- **Added** (F-018/T-036) Capsule / Free-Pack toggle on session report screen, persisted to session_metadata table
+
 ### 2026-03-24 — F-018 Task Planning + Workflow Hardening (Direct push to dev)
 - **Added** Task files T-034 through T-038 for F-018 Health & Dosage Tracking
 - **Hardened** `feature-work.md` and `orchestrate.md`: explicit PR-to-dev rules, `mcp__github__create_pull_request` replaces `gh pr create`, NEVER-push-to-dev-directly rule enforced in writing
