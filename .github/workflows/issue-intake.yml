@@ -1,0 +1,54 @@
+name: Issue Intake
+
+# Runs whenever an issue is opened or a label is added.
+# Requires: ANTHROPIC_API_KEY secret in repo settings.
+
+on:
+  issues:
+    types: [opened, labeled]
+
+jobs:
+  intake:
+    # Only run when the issue carries at least one routing label
+    if: |
+      contains(github.event.issue.labels.*.name, 'bug') ||
+      contains(github.event.issue.labels.*.name, 'enhancement')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write      # push BACKLOG.md update to dev
+      issues: write        # post comment on the issue
+
+    steps:
+      - name: Checkout dev
+        uses: actions/checkout@v4
+        with:
+          ref: dev
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install anthropic
+
+      - name: Run intake script
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_LABELS: ${{ toJson(github.event.issue.labels.*.name) }}
+        run: python .github/scripts/issue_intake.py
+
+      - name: Commit BACKLOG.md update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add BACKLOG.md
+          git diff --staged --quiet && echo "No changes to commit" && exit 0
+          git commit -m "Intake: add issue #${{ github.event.issue.number }} to BACKLOG.md"
+          git push origin dev

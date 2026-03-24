@@ -1,49 +1,60 @@
 package com.sbtracker.ui
 
-import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.sbtracker.*
+import com.sbtracker.databinding.FragmentBatteryBinding
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 class BatteryFragment : Fragment() {
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
-        inflater.inflate(R.layout.fragment_battery, container, false)
+    private var _binding: FragmentBatteryBinding? = null
+    private val binding get() = _binding!!
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _binding = FragmentBatteryBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val vm = (requireActivity() as MainActivity).vm
 
         // Hero state containers
-        val heroIdle = view.findViewById<View>(R.id.hero_idle)
-        val heroCharging = view.findViewById<View>(R.id.hero_charging)
+        val heroIdle = binding.heroIdle
+        val heroCharging = binding.heroCharging
 
         // Hero Idle Views
-        val tvHeroSessionsLeft = view.findViewById<TextView>(R.id.tv_hero_sessions_left)
-        val tvHeroIdleSubtext = view.findViewById<TextView>(R.id.tv_hero_idle_subtext)
+        val tvHeroSessionsLeft = binding.tvHeroSessionsLeft
+        val tvHeroIdleSubtext = binding.tvHeroIdleSubtext
 
         // Hero Charging Views
-        val tvHeroEta80 = view.findViewById<TextView>(R.id.tv_hero_eta_80)
-        val tvHeroEtaFull = view.findViewById<TextView>(R.id.tv_hero_eta_full)
-        val tvHeroChargeRate = view.findViewById<TextView>(R.id.tv_hero_charge_rate)
+        val tvHeroEta80 = binding.tvHeroEta80
+        val tvHeroEtaFull = binding.tvHeroEtaFull
+        val tvHeroChargeRate = binding.tvHeroChargeRate
 
         // Status row
-        val tvPercent = view.findViewById<TextView>(R.id.batt_tv_percent)
-        val tvStatus = view.findViewById<TextView>(R.id.batt_tv_status)
+        val tvPercent = binding.battTvPercent
+        val tvStatus = binding.battTvStatus
 
         // Graph
-        val graph = view.findViewById<BatteryGraphView>(R.id.batt_graph)
-        val tvBattPeriodDay = view.findViewById<TextView>(R.id.batt_graph_period_day)
-        val tvBattPeriodWeek = view.findViewById<TextView>(R.id.batt_graph_period_week)
+        val graph = binding.battGraph
+        val tvBattPeriodDay = binding.battGraphPeriodDay
+        val tvBattPeriodWeek = binding.battGraphPeriodWeek
 
         tvBattPeriodDay.setOnClickListener  { vm.setGraphPeriod(MainViewModel.GraphPeriod.DAY) }
         tvBattPeriodWeek.setOnClickListener { vm.setGraphPeriod(MainViewModel.GraphPeriod.WEEK) }
@@ -51,10 +62,10 @@ class BatteryFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             vm.graphPeriod.collect { p ->
                 val dayActive = p == MainViewModel.GraphPeriod.DAY
-                tvBattPeriodDay.setTextColor(Color.parseColor(if (dayActive)  "#0A84FF" else "#636366"))
+                tvBattPeriodDay.setTextColor(ContextCompat.getColor(requireContext(), if (dayActive)  R.color.color_blue else R.color.color_gray_mid))
                 tvBattPeriodDay.setTypeface(null, if (dayActive)  android.graphics.Typeface.BOLD else android.graphics.Typeface.NORMAL)
                 tvBattPeriodDay.setBackgroundResource(if (dayActive)  R.drawable.bg_badge_blue else 0)
-                tvBattPeriodWeek.setTextColor(Color.parseColor(if (!dayActive) "#0A84FF" else "#636366"))
+                tvBattPeriodWeek.setTextColor(ContextCompat.getColor(requireContext(), if (!dayActive) R.color.color_blue else R.color.color_gray_mid))
                 tvBattPeriodWeek.setTypeface(null, if (!dayActive) android.graphics.Typeface.BOLD else android.graphics.Typeface.NORMAL)
                 tvBattPeriodWeek.setBackgroundResource(if (!dayActive) R.drawable.bg_badge_blue else 0)
             }
@@ -133,10 +144,10 @@ class BatteryFragment : Fragment() {
                     heroCharging.visibility = View.GONE
                     tvPercent.text = "--"
                     tvStatus.text = "OFFLINE"
-                    tvStatus.setTextColor(Color.parseColor("#636366"))
+                    tvStatus.setTextColor(ContextCompat.getColor(requireContext(), R.color.color_gray_mid))
                     return@collect
                 }
-                
+
                 heroIdle.visibility = if (s.isCharging) View.GONE else View.VISIBLE
                 heroCharging.visibility = if (s.isCharging) View.VISIBLE else View.GONE
 
@@ -147,9 +158,9 @@ class BatteryFragment : Fragment() {
                     else -> "IDLE"
                 }
                 tvStatus.setTextColor(when {
-                    s.isCharging -> Color.parseColor("#30D158")
-                    s.heaterMode > 0 -> Color.parseColor("#FFD60A")
-                    else -> Color.parseColor("#8E8E93")
+                    s.isCharging -> ContextCompat.getColor(requireContext(), R.color.color_green)
+                    s.heaterMode > 0 -> ContextCompat.getColor(requireContext(), R.color.color_yellow)
+                    else -> ContextCompat.getColor(requireContext(), R.color.color_gray_dim)
                 })
             }
         }
@@ -175,20 +186,20 @@ class BatteryFragment : Fragment() {
             vm.batteryInsights.collect { bi ->
                 tvAvgDrainAll.text = if (bi.allTimeAvgDrain > 0f) "%.1f%%".format(bi.allTimeAvgDrain) else "—"
                 tvAvgDrainRecent.text = if (bi.recentAvgDrain > 0f) "%.1f%%".format(bi.recentAvgDrain) else "—"
-                
+
                 val trendText  = when {
                     bi.drainTrend == 0f || (bi.drainTrend > -0.5f && bi.drainTrend < 0.5f) -> "Stable"
                     bi.drainTrend > 0f -> "+%.1f%%".format(bi.drainTrend)
                     else               -> "%.1f%%".format(bi.drainTrend)
                 }
                 val trendColor = when {
-                    bi.drainTrend > 0.5f  -> Color.parseColor("#FF453A")
-                    bi.drainTrend < -0.5f -> Color.parseColor("#30D158")
-                    else                  -> Color.parseColor("#8E8E93")
+                    bi.drainTrend > 0.5f  -> ContextCompat.getColor(requireContext(), R.color.color_red)
+                    bi.drainTrend < -0.5f -> ContextCompat.getColor(requireContext(), R.color.color_green)
+                    else                  -> ContextCompat.getColor(requireContext(), R.color.color_gray_dim)
                 }
                 tvDrainTrend.text = trendText
                 tvDrainTrend.setTextColor(trendColor)
-                
+
                 tvDrainMedian.text = if (bi.medianDrain > 0f) "%.1f%%".format(bi.medianDrain) else "—"
                 tvDrainStdDev.text = if (bi.drainStdDev > 0f) "±%.1f%%".format(bi.drainStdDev) else "—"
                 tvSessionsPerCharge.text = if (bi.sessionsPerChargeCycle > 0f) "%.1f".format(bi.sessionsPerChargeCycle) else "—"

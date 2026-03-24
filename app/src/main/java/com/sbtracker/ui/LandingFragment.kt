@@ -8,17 +8,29 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.sbtracker.*
+import com.sbtracker.databinding.FragmentLandingBinding
 import com.sbtracker.util.formatDurationShort
 import com.sbtracker.util.relativeDate
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 class LandingFragment : Fragment() {
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
-        inflater.inflate(R.layout.fragment_landing, container, false)
+    private var _binding: FragmentLandingBinding? = null
+    private val binding get() = _binding!!
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _binding = FragmentLandingBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
 
     @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -26,40 +38,40 @@ class LandingFragment : Fragment() {
         val vm = activity.vm
 
         // Header
-        val tvDeviceInfo = view.findViewById<TextView>(R.id.tv_cmd_device_info)
+        val tvDeviceInfo = binding.tvCmdDeviceInfo
 
         // Hero
-        val layoutOffline = view.findViewById<View>(R.id.layout_cmd_offline)
-        val tvScanStatus = view.findViewById<TextView>(R.id.tv_cmd_scan_status)
-        val btnConnect = view.findViewById<View>(R.id.btn_cmd_connect)
-        val tvBtnConnectText = view.findViewById<TextView>(R.id.tv_btn_connect_text)
+        val layoutOffline = binding.layoutCmdOffline
+        val tvScanStatus = binding.tvCmdScanStatus
+        val btnConnect = binding.btnCmdConnect
+        val tvBtnConnectText = binding.tvBtnConnectText
 
-        val layoutOnline = view.findViewById<View>(R.id.layout_cmd_online)
-        val tvLiveStatus = view.findViewById<TextView>(R.id.tv_cmd_live_status)
-        val btnDisconnect = view.findViewById<View>(R.id.btn_cmd_disconnect)
-        val tvLiveTemp = view.findViewById<TextView>(R.id.tv_cmd_live_temp)
-        val tvLiveTarget = view.findViewById<TextView>(R.id.tv_cmd_live_target)
-        val cardHero = view.findViewById<androidx.cardview.widget.CardView>(R.id.card_cmd_hero)
-        val btnHeater = view.findViewById<View>(R.id.btn_cmd_heater)
-        val tvBtnHeaterText = view.findViewById<TextView>(R.id.tv_btn_heater_text)
+        val layoutOnline = binding.layoutCmdOnline
+        val tvLiveStatus = binding.tvCmdLiveStatus
+        val btnDisconnect = binding.btnCmdDisconnect
+        val tvLiveTemp = binding.tvCmdLiveTemp
+        val tvLiveTarget = binding.tvCmdLiveTarget
+        val cardHero = binding.cardCmdHero
+        val btnHeater = binding.btnCmdHeater
+        val tvBtnHeaterText = binding.tvBtnHeaterText
 
         // Tiles
-        val tileSession = view.findViewById<View>(R.id.tile_session)
-        val tvTileSessionVal = view.findViewById<TextView>(R.id.tv_tile_session_val)
+        val tileSession = binding.tileSession
+        val tvTileSessionVal = binding.tvTileSessionVal
 
-        val tileBattery = view.findViewById<View>(R.id.tile_battery)
-        val tvTileBatteryVal = view.findViewById<TextView>(R.id.tv_tile_battery_val)
+        val tileBattery = binding.tileBattery
+        val tvTileBatteryVal = binding.tvTileBatteryVal
 
-        val tileAnalytics = view.findViewById<View>(R.id.tile_analytics)
-        val tvTileAnalyticsVal = view.findViewById<TextView>(R.id.tv_tile_analytics_val)
+        val tileAnalytics = binding.tileAnalytics
+        val tvTileAnalyticsVal = binding.tvTileAnalyticsVal
 
-        val tileSettings = view.findViewById<View>(R.id.tile_settings)
-        val tvTileSettingsVal = view.findViewById<TextView>(R.id.tv_tile_settings_val)
+        val tileSettings = binding.tileSettings
+        val tvTileSettingsVal = binding.tvTileSettingsVal
 
         // Last Activity
-        val cardLastSession = view.findViewById<View>(R.id.card_cmd_last_session)
-        val tvLastDate = view.findViewById<TextView>(R.id.tv_cmd_last_date)
-        val tvLastSummary = view.findViewById<TextView>(R.id.tv_cmd_last_summary)
+        val cardLastSession = binding.cardCmdLastSession
+        val tvLastDate = binding.tvCmdLastDate
+        val tvLastSummary = binding.tvCmdLastSummary
 
         // ── Navigation ──
         tileSession.setOnClickListener { activity.navigateTo(1) }
@@ -85,7 +97,7 @@ class LandingFragment : Fragment() {
         }
 
         // ── UI Updates ──
-        
+
         // Device Info (Header) & Settings Tile
         viewLifecycleOwner.lifecycleScope.launch {
             combine(vm.latestInfo, vm.activeDevice) { info, device -> info to device }.collect { (info, device) ->
@@ -105,20 +117,20 @@ class LandingFragment : Fragment() {
                     is BleManager.ConnectionState.Disconnected -> {
                         tvScanStatus.text = "Tap to search for your device"
                         tvBtnConnectText.text = "Search Devices"
-                        tvBtnConnectText.setTextColor(Color.parseColor("#0A84FF"))
+                        tvBtnConnectText.setTextColor(ContextCompat.getColor(requireContext(), R.color.color_blue))
                         layoutOffline.visibility = View.VISIBLE
                         layoutOnline.visibility = View.GONE
-                        cardHero.setCardBackgroundColor(Color.parseColor("#111113"))
+                        cardHero.setCardBackgroundColor(ContextCompat.getColor(requireContext(), R.color.color_background))
                     }
                     is BleManager.ConnectionState.Scanning -> {
                         tvScanStatus.text = "Looking for devices..."
                         tvBtnConnectText.text = "Cancel Search"
-                        tvBtnConnectText.setTextColor(Color.parseColor("#FF453A"))
+                        tvBtnConnectText.setTextColor(ContextCompat.getColor(requireContext(), R.color.color_red))
                     }
                     is BleManager.ConnectionState.Connecting -> {
                         tvScanStatus.text = "Connecting to device..."
                         tvBtnConnectText.text = "Cancel Connect"
-                        tvBtnConnectText.setTextColor(Color.parseColor("#FF453A"))
+                        tvBtnConnectText.setTextColor(ContextCompat.getColor(requireContext(), R.color.color_red))
                     }
                     is BleManager.ConnectionState.Connected -> {}
                 }
@@ -148,37 +160,37 @@ class LandingFragment : Fragment() {
 
                 layoutOffline.visibility = View.GONE
                 layoutOnline.visibility = View.VISIBLE
-                
+
                 tvLiveTemp.text = s.currentTempC.toDisplayTemp(celsius).toString()
                 tvLiveTarget.text = "/ ${s.targetTempC.toDisplayTemp(celsius)}${celsius.unitSuffix()}"
-                
+
                 val isOn = s.heaterMode > 0
                 if (isOn) {
                     tvBtnHeaterText.text = "Stop Heater"
-                    tvBtnHeaterText.setTextColor(Color.parseColor("#FF453A"))
+                    tvBtnHeaterText.setTextColor(ContextCompat.getColor(requireContext(), R.color.color_red))
                     btnHeater.setBackgroundResource(R.drawable.bg_badge_red)
-                    
+
                     if (!s.setpointReached) {
                         tvLiveStatus.text = "HEATING"
-                        tvLiveStatus.setTextColor(Color.parseColor("#FF9F0A"))
-                        cardHero.setCardBackgroundColor(Color.parseColor("#261905")) // subtle orange tint
+                        tvLiveStatus.setTextColor(ContextCompat.getColor(requireContext(), R.color.color_orange))
+                        cardHero.setCardBackgroundColor(ContextCompat.getColor(requireContext(), R.color.color_tint_orange)) // subtle orange tint
                     } else {
                         tvLiveStatus.text = "READY"
-                        tvLiveStatus.setTextColor(Color.parseColor("#30D158"))
-                        cardHero.setCardBackgroundColor(Color.parseColor("#091F0D")) // subtle green tint
+                        tvLiveStatus.setTextColor(ContextCompat.getColor(requireContext(), R.color.color_green))
+                        cardHero.setCardBackgroundColor(ContextCompat.getColor(requireContext(), R.color.color_tint_green)) // subtle green tint
                     }
                 } else {
                     tvBtnHeaterText.text = "Start Heater"
-                    tvBtnHeaterText.setTextColor(Color.parseColor("#30D158"))
+                    tvBtnHeaterText.setTextColor(ContextCompat.getColor(requireContext(), R.color.color_green))
                     btnHeater.setBackgroundResource(R.drawable.bg_badge_green)
-                    
+
                     tvLiveStatus.text = "IDLE"
-                    tvLiveStatus.setTextColor(Color.parseColor("#636366"))
-                    cardHero.setCardBackgroundColor(Color.parseColor("#111113"))
+                    tvLiveStatus.setTextColor(ContextCompat.getColor(requireContext(), R.color.color_gray_mid))
+                    cardHero.setCardBackgroundColor(ContextCompat.getColor(requireContext(), R.color.color_background))
                 }
-                
+
                 tvTileBatteryVal.text = "${s.batteryLevel}%"
-                tvTileBatteryVal.setTextColor(if (s.batteryLevel <= 20) Color.parseColor("#FF453A") else Color.parseColor("#30D158"))
+                tvTileBatteryVal.setTextColor(if (s.batteryLevel <= 20) ContextCompat.getColor(requireContext(), R.color.color_red) else ContextCompat.getColor(requireContext(), R.color.color_green))
             }
         }
 
@@ -188,11 +200,11 @@ class LandingFragment : Fragment() {
                 Triple(ss, s, conn)
             }.collect { (ss, s, conn) ->
                 val isConnected = conn is BleManager.ConnectionState.Connected
-                
+
                 if (isConnected && s != null && s.heaterMode > 0) {
                     val sec = ss.durationSeconds
                     tvTileSessionVal.text = "%02d:%02d".format(sec / 60, sec % 60)
-                    tvTileSessionVal.setTextColor(Color.parseColor("#FF9F0A"))
+                    tvTileSessionVal.setTextColor(ContextCompat.getColor(requireContext(), R.color.color_orange))
                 } else {
                     tvTileSessionVal.text = "Ready"
                     tvTileSessionVal.setTextColor(Color.WHITE)
@@ -225,7 +237,7 @@ class LandingFragment : Fragment() {
                     val lastBat = lastSession?.endBattery
                     if (lastBat != null && lastBat > 0) {
                         tvTileBatteryVal.text = "${lastBat}%"
-                        tvTileBatteryVal.setTextColor(if (lastBat <= 20) Color.parseColor("#FF453A") else Color.WHITE)
+                        tvTileBatteryVal.setTextColor(if (lastBat <= 20) ContextCompat.getColor(requireContext(), R.color.color_red) else Color.WHITE)
                     } else {
                         tvTileBatteryVal.text = "--%"
                         tvTileBatteryVal.setTextColor(Color.WHITE)
@@ -235,7 +247,7 @@ class LandingFragment : Fragment() {
         }
 
         // Device battery snapshots (visible when 2+ devices known)
-        val llDeviceStatusRow = view.findViewById<android.widget.LinearLayout>(R.id.ll_device_status_row)
+        val llDeviceStatusRow = binding.llDeviceStatusRow
         viewLifecycleOwner.lifecycleScope.launch {
             vm.knownDeviceBatteries.collect { snapshots ->
                 if (snapshots.size < 2) {
@@ -248,7 +260,7 @@ class LandingFragment : Fragment() {
                 // Header
                 val header = TextView(requireContext()).apply {
                     text = "DEVICES"
-                    setTextColor(Color.parseColor("#636366"))
+                    setTextColor(ContextCompat.getColor(requireContext(), R.color.color_gray_mid))
                     textSize = 13f
                     letterSpacing = 0.1f
                     setTypeface(null, android.graphics.Typeface.BOLD)
@@ -272,8 +284,8 @@ class LandingFragment : Fragment() {
                         val bat = snapshot.lastBattery
                         text = if (bat != null) "${bat}%" else "--%"
                         setTextColor(
-                            if (bat != null && bat <= 20) Color.parseColor("#FF453A")
-                            else Color.parseColor("#80A88F")
+                            if (bat != null && bat <= 20) ContextCompat.getColor(requireContext(), R.color.color_red)
+                            else ContextCompat.getColor(requireContext(), R.color.color_battery_ok)
                         )
                         textSize = 14f
                         setTypeface(null, android.graphics.Typeface.BOLD)
@@ -281,7 +293,7 @@ class LandingFragment : Fragment() {
                     val seenLabel = TextView(requireContext()).apply {
                         val ms = snapshot.lastSeenMs
                         text = if (ms != null) " · ${relativeDate(ms)}" else ""
-                        setTextColor(Color.parseColor("#636366"))
+                        setTextColor(ContextCompat.getColor(requireContext(), R.color.color_gray_mid))
                         textSize = 12f
                     }
                     row.addView(nameLabel)

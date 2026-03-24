@@ -1,6 +1,5 @@
 package com.sbtracker.ui
 
-import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,58 +8,70 @@ import android.widget.Button
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.cardview.widget.CardView
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.sbtracker.*
+import com.sbtracker.databinding.FragmentSessionBinding
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 class SessionFragment : Fragment() {
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
-        inflater.inflate(R.layout.fragment_session, container, false)
+    private var _binding: FragmentSessionBinding? = null
+    private val binding get() = _binding!!
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _binding = FragmentSessionBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val vm = (requireActivity() as MainActivity).vm
-        
-        val tvTemp = view.findViewById<TextView>(R.id.session_tv_temp)
-        val tvStatus = view.findViewById<TextView>(R.id.session_tv_status)
-        val tvHits = view.findViewById<TextView>(R.id.session_tv_hits)
-        val tvDrain = view.findViewById<TextView>(R.id.session_tv_drain)
-        val tvTime = view.findViewById<TextView>(R.id.session_tv_time)
-        val tvBattery = view.findViewById<TextView>(R.id.session_tv_battery)
-        val tvHeatUp = view.findViewById<TextView>(R.id.session_tv_heat_up)
-        val tvReadyTime = view.findViewById<TextView>(R.id.session_tv_ready_time)
-        val tvHeatUpEstimate = view.findViewById<TextView>(R.id.session_tv_heat_up_estimate)
-        
-        val rowRunningStats = view.findViewById<View>(R.id.session_running_stats_row)
-        val gridStats = view.findViewById<View>(R.id.stats_grid)
-        val btnEnd = view.findViewById<View>(R.id.btn_end_session)
-        val btnStartNormal = view.findViewById<View>(R.id.btn_start_normal)
+
+        val tvTemp = binding.sessionTvTemp
+        val tvStatus = binding.sessionTvStatus
+        val tvHits = binding.sessionTvHits
+        val tvDrain = binding.sessionTvDrain
+        val tvTime = binding.sessionTvTime
+        val tvBattery = binding.sessionTvBattery
+        val tvHeatUp = binding.sessionTvHeatUp
+        val tvReadyTime = binding.sessionTvReadyTime
+        val tvHeatUpEstimate = binding.sessionTvHeatUpEstimate
+
+        val rowRunningStats = binding.sessionRunningStatsRow
+        val gridStats = binding.statsGrid
+        val btnEnd = binding.btnEndSession
+        val btnStartNormal = binding.btnStartNormal
 
         // Hit / Breath Tracking UI
-        val cardActiveHit = view.findViewById<CardView>(R.id.card_active_hit)
-        val tvHitTimer = view.findViewById<TextView>(R.id.tv_hit_timer)
+        val cardActiveHit = binding.cardActiveHit
+        val tvHitTimer = binding.tvHitTimer
 
         // Controls
-        val tvTargetBase = view.findViewById<TextView>(R.id.tv_target_temp)
-        val tvBoostOffset = view.findViewById<TextView>(R.id.tv_boost_offset)
-        val tvSuperBoostOffset = view.findViewById<TextView>(R.id.tv_superboost_offset)
-        val groupModeSelection = view.findViewById<View>(R.id.mode_selection_group)
-        val groupBoostControls = view.findViewById<View>(R.id.group_boost_controls)
+        val tvTargetBase = binding.tvTargetTemp
+        val tvBoostOffset = binding.tvBoostOffset
+        val tvSuperBoostOffset = binding.tvSuperboostOffset
+        val groupModeSelection = binding.modeSelectionGroup
+        val groupBoostControls = binding.groupBoostControls
 
-        val btnNormal = view.findViewById<Button>(R.id.btn_mode_normal)
-        val btnBoost = view.findViewById<Button>(R.id.btn_mode_boost)
-        val btnSuper = view.findViewById<Button>(R.id.btn_mode_superboost)
+        val btnNormal = binding.btnModeNormal
+        val btnBoost = binding.btnModeBoost
+        val btnSuper = binding.btnModeSuperboost
 
         btnStartNormal.setOnClickListener { vm.startSession() }
         btnEnd.setOnClickListener { vm.setHeater(false) }
 
-        view.findViewById<ImageButton>(R.id.btn_temp_plus).setOnClickListener { vm.adjustTemp(1) }
-        view.findViewById<ImageButton>(R.id.btn_temp_minus).setOnClickListener { vm.adjustTemp(-1) }
-        view.findViewById<ImageButton>(R.id.btn_boost_plus).setOnClickListener { vm.adjustBoost(1) }
-        view.findViewById<ImageButton>(R.id.btn_boost_minus).setOnClickListener { vm.adjustBoost(-1) }
-        view.findViewById<ImageButton>(R.id.btn_superboost_plus).setOnClickListener { vm.adjustSuperBoost(1) }
-        view.findViewById<ImageButton>(R.id.btn_superboost_minus).setOnClickListener { vm.adjustSuperBoost(-1) }
+        binding.btnTempPlus.setOnClickListener { vm.adjustTemp(1) }
+        binding.btnTempMinus.setOnClickListener { vm.adjustTemp(-1) }
+        binding.btnBoostPlus.setOnClickListener { vm.adjustBoost(1) }
+        binding.btnBoostMinus.setOnClickListener { vm.adjustBoost(-1) }
+        binding.btnSuperboostPlus.setOnClickListener { vm.adjustSuperBoost(1) }
+        binding.btnSuperboostMinus.setOnClickListener { vm.adjustSuperBoost(-1) }
 
         btnNormal.setOnClickListener { vm.setHeaterMode(1) }
         btnBoost.setOnClickListener { vm.setHeaterMode(2) }
@@ -78,23 +89,23 @@ class SessionFragment : Fragment() {
                 if (s == null) {
                     tvTemp.text = "---°"
                     tvStatus.text = "OFFLINE"
-                    tvStatus.setTextColor(Color.parseColor("#8E8E93"))
+                    tvStatus.setTextColor(ContextCompat.getColor(requireContext(), R.color.color_gray_dim))
                     return@collect
                 }
 
                 tvTemp.text = "${s.currentTempC.toDisplayTemp(celsius)}°"
                 tvBattery.text = "${s.batteryLevel}%"
                 tvStatus.text = if (s.heaterMode == 0) "IDLE" else if (s.setpointReached) "READY" else "HEATING"
-                tvStatus.setTextColor(if (s.heaterMode == 0) Color.parseColor("#8E8E93") else if (s.setpointReached) Color.parseColor("#30D158") else Color.parseColor("#FFD60A"))
+                tvStatus.setTextColor(if (s.heaterMode == 0) ContextCompat.getColor(requireContext(), R.color.color_gray_dim) else if (s.setpointReached) ContextCompat.getColor(requireContext(), R.color.color_green) else ContextCompat.getColor(requireContext(), R.color.color_yellow))
 
                 // Boost offsets are deltas — no +32 offset, just scale
                 tvBoostOffset.text = "+${s.boostOffsetC.toDisplayTempDelta(celsius)}°"
                 tvSuperBoostOffset.text = "+${s.superBoostOffsetC.toDisplayTempDelta(celsius)}°"
 
                 // Update mode button states
-                btnNormal.setBackgroundTintList(android.content.res.ColorStateList.valueOf(if (s.heaterMode == 1) Color.parseColor("#0A84FF") else Color.parseColor("#2C2C2E")))
-                btnBoost.setBackgroundTintList(android.content.res.ColorStateList.valueOf(if (s.heaterMode == 2) Color.parseColor("#FFD60A") else Color.parseColor("#2C2C2E")))
-                btnSuper.setBackgroundTintList(android.content.res.ColorStateList.valueOf(if (s.heaterMode == 3) Color.parseColor("#FF9F0A") else Color.parseColor("#2C2C2E")))
+                btnNormal.setBackgroundTintList(android.content.res.ColorStateList.valueOf(ContextCompat.getColor(requireContext(), if (s.heaterMode == 1) R.color.color_blue else R.color.color_surface)))
+                btnBoost.setBackgroundTintList(android.content.res.ColorStateList.valueOf(ContextCompat.getColor(requireContext(), if (s.heaterMode == 2) R.color.color_yellow else R.color.color_surface)))
+                btnSuper.setBackgroundTintList(android.content.res.ColorStateList.valueOf(ContextCompat.getColor(requireContext(), if (s.heaterMode == 3) R.color.color_orange else R.color.color_surface)))
             }
         }
 
