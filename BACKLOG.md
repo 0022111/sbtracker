@@ -13,7 +13,7 @@ The current dev codebase (v0.1) is extremely close to a functional Alpha. To off
 * **[F-018] Health & Dosage Tracking:** Finalize the UI and Analytics layer now that the DB schema for `SessionMetadata` is unblocked and implemented.
 
 **Stability Path (Should-Haves for Alpha):**
-* **[F-048] BLE State Machine Overhaul:** Ensure robust backoff and reconnection so background tracking survives real-world Bluetooth flakiness (e.g., phones in pockets).
+* **[F-048] BLE State Machine Overhaul:** Ensure robust backoff and reconnection so background tracking survives real-world Bluetooth flakiness (e.g., phones in pockets). *(Done)*
 * **[F-042] Analytics Unit Tests:** Validate the pure-function analytics layer so the UI doesn't accidentally display garbage data.
 
 *Note: Major architectural refactors (F-043 ViewModel Decomposition, F-047 Compose Migration) and P3 UI bugs should be deferred to the Beta/v1.0 phase so they don't block getting the app into testers' hands.*
@@ -84,7 +84,7 @@ The current dev codebase (v0.1) is extremely close to a functional Alpha. To off
 | F-045 | `done` | Agent Infrastructure | Document AI agent branch strategy, workflows, and workspace context | `AGENT_INFO.md` and `.agents/workflows/` exist |
 | F-046 | `done` | GitHub Integrity | Automate CI builds, PR templates, and enforced branching | `build.yml` automated, `PULL_REQUEST_TEMPLATE.md` exists |
 | F-047 | `planned` | Jetpack Compose Migration | Overhaul UI from programmatic Views to Compose | LandingFragment + Settings migrated to Compose |
-| F-048 | `planned` | BLE State Machine Overhaul | Refactor BLE layer for robust state tracking | BleManager uses sealed class states, backoff reconnection |
+| F-048 | `done` | BLE State Machine Overhaul | Refactor BLE layer for robust state tracking | BleManager uses sealed class states, backoff reconnection |
 | F-049 | `planned` | Multi-Device Analytics Consolidation | Unify cross-device tracking in AnalyticsRepository | Consistent aggregated metrics across all devices |
 
 ---

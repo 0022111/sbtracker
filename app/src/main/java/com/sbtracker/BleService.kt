@@ -96,10 +96,11 @@ class BleService : Service() {
             is BleManager.ConnectionState.Connected -> "Device Online"
             is BleManager.ConnectionState.Connecting -> "Linking..."
             is BleManager.ConnectionState.Scanning -> "Scanning..."
+            is BleManager.ConnectionState.Reconnecting -> "Reconnecting (${state.attempt})..."
             else -> "Disconnected"
         }
 
-        val content = if (status != null) {
+        val content = if (status != null && state is BleManager.ConnectionState.Connected) {
             val heaterText = if (status.heaterMode > 0) "${status.currentTempC}°C" else "OFF"
             val batteryText = "Batt: ${status.batteryLevel}%"
             "$heaterText • $batteryText"

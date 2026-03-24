@@ -1,5 +1,6 @@
 package com.sbtracker
 
+import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
@@ -32,47 +33,33 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 
-/**
- * Central BLE controller.
- *
- * Responsibilities:
- *  - Scan for S&B devices by name prefix.
- *  - Connect and enable notifications on the single multiplexed characteristic.
- *  - Run a polling loop that sends CMD_STATUS (500 ms), CMD_EXTENDED (30 s),
- *    and CMD_IDENTITY (60 s).
- *  - Emit raw response byte-arrays paired with the device address.
- */
+@SuppressLint("MissingPermission")
 class BleManager(private val context: Context) {
 
     sealed class ConnectionState {
         object Disconnected : ConnectionState()
         object Scanning     : ConnectionState()
         object Connecting   : ConnectionState()
+        data class Reconnecting(val attempt: Int) : ConnectionState()
         data class Connected(val deviceName: String, val address: String) : ConnectionState()
     }
 
-    private val _connectionState =
-        MutableStateFlow<ConnectionState>(ConnectionState.Disconnected)
+    private val _connectionState = MutableStateFlow<ConnectionState>(ConnectionState.Disconnected)
     val connectionState: StateFlow<ConnectionState> = _connectionState.asStateFlow()
 
-    private val _statusBytes =
-        MutableSharedFlow<Pair<ByteArray, String>>(extraBufferCapacity = 64)
+    private val _statusBytes = MutableSharedFlow<Pair<ByteArray, String>>(extraBufferCapacity = 64)
     val statusBytes: SharedFlow<Pair<ByteArray, String>> = _statusBytes.asSharedFlow()
 
-    private val _extendedBytes =
-        MutableSharedFlow<Pair<ByteArray, String>>(extraBufferCapacity = 16)
+    private val _extendedBytes = MutableSharedFlow<Pair<ByteArray, String>>(extraBufferCapacity = 16)
     val extendedBytes: SharedFlow<Pair<ByteArray, String>> = _extendedBytes.asSharedFlow()
 
-    private val _identityBytes =
-        MutableSharedFlow<Pair<ByteArray, String>>(extraBufferCapacity = 8)
+    private val _identityBytes = MutableSharedFlow<Pair<ByteArray, String>>(extraBufferCapacity = 8)
     val identityBytes: SharedFlow<Pair<ByteArray, String>> = _identityBytes.asSharedFlow()
 
-    private val _displaySettingsBytes =
-        MutableSharedFlow<ByteArray>(extraBufferCapacity = 8)
+    private val _displaySettingsBytes = MutableSharedFlow<ByteArray>(extraBufferCapacity = 8)
     val displaySettingsBytes: SharedFlow<ByteArray> = _displaySettingsBytes.asSharedFlow()
 
-    private val _firmwareBytes =
-        MutableSharedFlow<ByteArray>(extraBufferCapacity = 4)
+    private val _firmwareBytes = MutableSharedFlow<ByteArray>(extraBufferCapacity = 4)
     val firmwareBytes: SharedFlow<ByteArray> = _firmwareBytes.asSharedFlow()
 
     private val managerScope   = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -82,7 +69,9 @@ class BleManager(private val context: Context) {
     private var txChar:        BluetoothGattCharacteristic?     = null
     @Volatile private var pendingResponse: CompletableDeferred<ByteArray>? = null
     @Volatile private var pendingWriteAck: CompletableDeferred<Boolean>?  = null
+    
     private var deviceAddress: String = ""
+    @Volatile private var isIntentionalDisconnect = false
 
     data class ScannedDevice(val device: BluetoothDevice, val name: String, val rssi: Int)
 
@@ -92,9 +81,11 @@ class BleManager(private val context: Context) {
     private var activeScanCallback: ScanCallback? = null
     private var pollingJob:         Job?           = null
     private var scanJob:            Job?           = null
+    private var reconnectJob:       Job?           = null
 
     fun startScan() {
         val scanner = adapter()?.bluetoothLeScanner ?: return
+        isIntentionalDisconnect = false
         _connectionState.value = ConnectionState.Scanning
 
         val settings = ScanSettings.Builder()
@@ -124,7 +115,6 @@ class BleManager(private val context: Context) {
             return
         }
 
-        // Collect scan results for 3 seconds, then decide
         scanJob?.cancel()
         scanJob = managerScope.launch {
             delay(3000L)
@@ -137,11 +127,9 @@ class BleManager(private val context: Context) {
                     _connectionState.value = ConnectionState.Disconnected
                 }
                 devices.size == 1 -> {
-                    _connectionState.value = ConnectionState.Connecting
-                    connect(devices[0].device)
+                    connectToDevice(devices[0].device)
                 }
                 else -> {
-                    // Multiple devices — emit list for UI picker
                     _scannedDevices.emit(devices.sortedByDescending { it.rssi })
                     _connectionState.value = ConnectionState.Disconnected
                 }
@@ -150,17 +138,21 @@ class BleManager(private val context: Context) {
     }
 
     fun connectToDevice(device: BluetoothDevice) {
+        isIntentionalDisconnect = false
         _connectionState.value = ConnectionState.Connecting
         connect(device)
     }
 
     fun disconnect() {
+        isIntentionalDisconnect = true
+        reconnectJob?.cancel()
         pollingJob?.cancel()
+        
         activeScanCallback?.let { cb ->
             try { adapter()?.bluetoothLeScanner?.stopScan(cb) } catch (_: SecurityException) {}
             activeScanCallback = null
         }
-        // Cancel in-flight operations immediately so callers don't stall for 3 s.
+        
         pendingResponse?.cancel(); pendingResponse = null
         pendingWriteAck?.cancel(); pendingWriteAck = null
         try {
@@ -181,12 +173,56 @@ class BleManager(private val context: Context) {
 
     private fun connect(device: BluetoothDevice) {
         deviceAddress = device.address
+        reconnectJob?.cancel()
         try {
             gatt = device.connectGatt(
                 context, false, gattCallback, BluetoothDevice.TRANSPORT_LE
             )
         } catch (_: SecurityException) {
+            handleUnexpectedDisconnect()
+        }
+    }
+
+    private fun handleUnexpectedDisconnect() {
+        pollingJob?.cancel()
+        pendingResponse?.cancel(); pendingResponse = null
+        pendingWriteAck?.cancel(); pendingWriteAck = null
+        
+        try { gatt?.close() } catch (_: Exception) {}
+        gatt = null
+        txChar = null
+
+        if (isIntentionalDisconnect || deviceAddress.isEmpty()) {
             _connectionState.value = ConnectionState.Disconnected
+            return
+        }
+
+        reconnectJob?.cancel()
+        reconnectJob = managerScope.launch {
+            var attempt = 1
+            val startTime = System.currentTimeMillis()
+            val timeoutMs = 5 * 60 * 1000L // 5 minutes max
+            
+            while (isActive && !isIntentionalDisconnect) {
+                if (System.currentTimeMillis() - startTime > timeoutMs) {
+                    _connectionState.value = ConnectionState.Disconnected
+                    break
+                }
+                
+                _connectionState.value = ConnectionState.Reconnecting(attempt)
+                val delayMs = (1000L * (1L shl minOf(attempt, 6).toInt())).coerceAtMost(30000L) // up to 30s
+                
+                // Try connecting
+                val device = try { adapter()?.getRemoteDevice(deviceAddress) } catch(_:Exception){ null }
+                if (device != null) {
+                    try {
+                        gatt = device.connectGatt(context, false, gattCallback, BluetoothDevice.TRANSPORT_LE)
+                    } catch(_: SecurityException) {}
+                }
+                
+                delay(delayMs)
+                attempt++
+            }
         }
     }
 
@@ -194,28 +230,25 @@ class BleManager(private val context: Context) {
         override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
             when (newState) {
                 BluetoothProfile.STATE_CONNECTED -> {
-                    try { gatt.discoverServices() } catch (_: SecurityException) {}
+                    if (status == BluetoothGatt.GATT_SUCCESS) {
+                        try { gatt.discoverServices() } catch (_: SecurityException) {}
+                    } else {
+                        handleUnexpectedDisconnect()
+                    }
                 }
                 BluetoothProfile.STATE_DISCONNECTED -> {
-                    pollingJob?.cancel()
-                    // Cancel any in-flight request/write so it doesn't hang for 3 s.
-                    pendingResponse?.cancel(); pendingResponse = null
-                    pendingWriteAck?.cancel(); pendingWriteAck = null
-                    // Close the GATT object to release the Android GATT slot.
-                    // This handles unexpected disconnects (device powers off, out of range)
-                    // where our explicit disconnect() was never called.
-                    try { gatt.close() } catch (_: Exception) {}
-                    this@BleManager.gatt = null
-                    txChar = null
-                    _connectionState.value = ConnectionState.Disconnected
+                    handleUnexpectedDisconnect()
                 }
             }
         }
 
         override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
-            if (status != BluetoothGatt.GATT_SUCCESS) { disconnect(); return }
-            val svc  = gatt.getService(BleConstants.SERVICE_UUID) ?: run { disconnect(); return }
-            val char = svc.getCharacteristic(BleConstants.CHARACTERISTIC_UUID) ?: run { disconnect(); return }
+            if (status != BluetoothGatt.GATT_SUCCESS) { 
+                handleUnexpectedDisconnect()
+                return 
+            }
+            val svc  = gatt.getService(BleConstants.SERVICE_UUID) ?: run { handleUnexpectedDisconnect(); return }
+            val char = svc.getCharacteristic(BleConstants.CHARACTERISTIC_UUID) ?: run { handleUnexpectedDisconnect(); return }
             txChar = char
             try {
                 gatt.setCharacteristicNotification(char, true)
@@ -233,13 +266,15 @@ class BleManager(private val context: Context) {
                     onNotificationsReady(gatt)
                 }
             } catch (_: SecurityException) {
-                disconnect()
+                handleUnexpectedDisconnect()
             }
         }
 
         override fun onDescriptorWrite(gatt: BluetoothGatt, descriptor: BluetoothGattDescriptor, status: Int) {
-            if (descriptor.uuid == BleConstants.CCCD_UUID) {
+            if (descriptor.uuid == BleConstants.CCCD_UUID && status == BluetoothGatt.GATT_SUCCESS) {
                 onNotificationsReady(gatt)
+            } else if (status != BluetoothGatt.GATT_SUCCESS) {
+                handleUnexpectedDisconnect()
             }
         }
 
@@ -263,6 +298,7 @@ class BleManager(private val context: Context) {
     }
 
     private fun onNotificationsReady(gatt: BluetoothGatt) {
+        reconnectJob?.cancel() // Stop trying to reconnect if we succeed
         val name = try { gatt.device.name ?: "S&B Device" } catch (_: SecurityException) { "S&B Device" }
         _connectionState.value = ConnectionState.Connected(name, gatt.device.address)
 
