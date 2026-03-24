@@ -2,6 +2,12 @@
 
 All notable changes to this project. Agents: append to the top of the relevant section after completing work.
 
+### 2026-03-24 — Wire Factory Reset Button
+- **Added** confirmation dialog for factory reset button in Settings
+
+### 2026-03-24 — Wire Boost Visualization Toggle
+- **Fixed** boost visualization switch in Settings was unresponsive; now wired to ViewModel
+
 ### 2026-03-24 — Fix Day Start Hour Subtitle
 - **Fixed** day start subtitle was static; now updates dynamically with selected hour
 
