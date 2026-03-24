@@ -4,10 +4,17 @@ Display the following as a clean, formatted reminder — no extra commentary:
 
 ## SBTracker — Session Quickstart
 
+### Branching model
+```
+main  ← stable; never push here directly
+  └── dev  ← all agent PRs target this
+        └── claude/T-XXX-...  ← your branch
+```
+
 ### Starting a session
 1. Check **`.agents/TASKS.md`** — find a `ready` task
 2. Read its file in **`.agents/tasks/T-XXX-*.md`** — that is your full scope
-3. Create branch: `git checkout -b claude/T-XXX-short-description`
+3. Cut branch from `dev`: `git checkout -b claude/T-XXX-short-description origin/dev`
 
 ### Doing the work
 - Read **only** the files the task file lists
@@ -22,9 +29,8 @@ Display the following as a clean, formatted reminder — no extra commentary:
 ### Wrapping up
 1. Commit: `T-XXX: description`
 2. Mark task `done` in `.agents/TASKS.md`
-3. Update `BACKLOG.md` (mark feature done)
-4. Append to `CHANGELOG.md`
-5. Open a PR — title: `T-XXX — Task Title`
+3. Append to `CHANGELOG.md`
+4. Push and open a PR targeting **`dev`** — title: `T-XXX — Task Title`
 
 ---
 
@@ -33,13 +39,8 @@ Display the following as a clean, formatted reminder — no extra commentary:
 |---|---|
 | `.agents/TASKS.md` | Task index — start here |
 | `.agents/tasks/T-XXX-*.md` | Scoped task files |
-| `.agents/implementation_plan.md` | Full phased plan |
 | `PROJECT.md` | Architecture reference |
-| `BACKLOG.md` | Feature + bug tracker |
+| `CHANGELOG.md` | Change log |
 
-### Ready right now (Phase 0)
-- **T-001** Upgrade dependencies (Room stable, targetSdk 35)
-- **T-002** Enable R8 minification
-- **T-003** Fix TEMP_DIP_THRESHOLD duplication
-- **T-004** Data retention / pruning
-- **T-005** targetSdk 35 compat pass *(run after T-001)*
+### Ready right now
+Check `.agents/TASKS.md` for the current `ready` list — T-022 through T-029 are all unblocked.
