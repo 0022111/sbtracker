@@ -13,8 +13,23 @@ To maintain a clear distinction between automated agent work and manual develope
 
 ### Guidelines for Agents
 1. **Always** create a new branch with the `claude/` prefix for any non-trivial work.
-2. **Sync** with `main` regularly.
-3. **Reference** task IDs from `BACKLOG.md` in branch names if applicable (e.g., `claude/F-045-agent-docs`).
+2. **Follow** a Pull Request (PR) workflow: Create branch -> Implement -> Verify -> Submit PR.
+3. **Sync** with `main` regularly.
+4. **Reference** task IDs from `BACKLOG.md` in branch names and PR descriptions (e.g., `claude/F-045-agent-docs`).
+
+## GitHub Integrity
+
+To maintain a stable and verifiable codebase, always:
+- **Use PRs**: Never commit directly to `main`. Use Pull Requests to document and review changes.
+- **Check CI**: Ensure the GitHub Actions build passes for your branch/PR.
+- **Verification**: Document your verification steps in the PR description using the provided template.
+
+## Session Initialization
+
+At the start of every new session or task, the agent **must**:
+1.  **Read and display `BACKLOG.md`** to the user to align on current priorities.
+2.  **Verify the current branch** and ensure it matches the task (or create a new one).
+3.  **Check for existing `task.md`** in the artifact directory to resume pending work.
 
 ## Agent Role
 

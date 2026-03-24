@@ -80,7 +80,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
                         android:text="Sessions Left"
-                        android:textColor="#8E8E93"
+                        android:textColor="#80A88F"
                         android:textSize="16sp"
                         android:textStyle="bold" />
                 </LinearLayout>
@@ -109,7 +109,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="CHARGE ASSISTANT"
-                    android:textColor="#0A84FF"
+                    android:textColor="#00FF41"
                     android:textSize="11sp"
                     android:letterSpacing="0.1"
                     android:textStyle="bold" />
@@ -136,7 +136,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
                         android:text="to 80%"
-                        android:textColor="#0A84FF"
+                        android:textColor="#00FF41"
                         android:textSize="20sp"
                         android:textStyle="bold" />
                 </LinearLayout>
@@ -158,12 +158,12 @@
 
                     <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
                         <TextView android:id="@+id/tv_hero_eta_full" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--" android:textColor="#FFFFFF" android:textSize="20sp" android:textStyle="bold" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="to Full" android:textColor="#8E8E93" android:textSize="12sp" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="to Full" android:textColor="#80A88F" android:textSize="12sp" />
                     </LinearLayout>
 
                     <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
                         <TextView android:id="@+id/tv_hero_charge_rate" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--" android:textColor="#FFFFFF" android:textSize="20sp" android:textStyle="bold" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Charge Rate" android:textColor="#8E8E93" android:textSize="12sp" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Charge Rate" android:textColor="#80A88F" android:textSize="12sp" />
                     </LinearLayout>
                 </LinearLayout>
 
@@ -199,7 +199,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="CURRENT LEVEL"
-                    android:textColor="#8E8E93"
+                    android:textColor="#80A88F"
                     android:textSize="11sp"
                     android:letterSpacing="0.1"
                     android:textStyle="bold" />
@@ -228,7 +228,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="DEVICE STATUS"
-                    android:textColor="#8E8E93"
+                    android:textColor="#80A88F"
                     android:textSize="11sp"
                     android:letterSpacing="0.1"
                     android:textStyle="bold" />
@@ -259,7 +259,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="BATTERY LEVEL"
-                android:textColor="#8E8E93"
+                android:textColor="#80A88F"
                 android:textSize="11sp"
                 android:letterSpacing="0.1"
                 android:textStyle="bold" />
@@ -272,7 +272,7 @@
                 android:paddingVertical="5dp"
                 android:text="Day"
                 android:textSize="12sp"
-                android:textColor="#0A84FF"
+                android:textColor="#00FF41"
                 android:textStyle="bold"
                 android:background="@drawable/bg_badge_blue" />
 
@@ -293,7 +293,7 @@
             android:layout_height="220dp"
             android:layout_marginHorizontal="24dp"
             android:layout_marginTop="12dp"
-            app:cardBackgroundColor="#1C1C1E"
+            app:cardBackgroundColor="#0B110D"
             app:cardCornerRadius="20dp"
             app:cardElevation="0dp">
 
@@ -329,7 +329,7 @@
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="24dp"
             android:layout_marginTop="32dp"
-            app:cardBackgroundColor="#1C1C1E"
+            app:cardBackgroundColor="#0B110D"
             app:cardCornerRadius="20dp"
             app:cardElevation="0dp">
 
@@ -377,33 +377,33 @@
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
                         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
                             <TextView android:id="@+id/tv_stats_avg_drain_all" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#FFFFFF" android:textSize="22sp" android:textStyle="bold" />
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="All-Time Avg" android:textColor="#8E8E93" android:textSize="12sp" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="All-Time Avg" android:textColor="#80A88F" android:textSize="12sp" />
                         </LinearLayout>
                         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
                             <TextView android:id="@+id/tv_stats_avg_drain_recent" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#FFFFFF" android:textSize="22sp" android:textStyle="bold" />
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Recent (last 5)" android:textColor="#8E8E93" android:textSize="12sp" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Recent (last 5)" android:textColor="#80A88F" android:textSize="12sp" />
                         </LinearLayout>
                         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
                             <TextView android:id="@+id/tv_stats_drain_trend" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#30D158" android:textSize="22sp" android:textStyle="bold" />
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Trend" android:textColor="#8E8E93" android:textSize="12sp" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Trend" android:textColor="#80A88F" android:textSize="12sp" />
                         </LinearLayout>
                     </LinearLayout>
 
-                    <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="16dp" android:background="#2C2C2E" />
+                    <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="16dp" android:background="#141E17" />
 
                     <!-- Deep stats -->
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:orientation="horizontal">
                         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
                             <TextView android:id="@+id/tv_stats_drain_median" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#FFFFFF" android:textSize="22sp" android:textStyle="bold" />
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Median" android:textColor="#8E8E93" android:textSize="12sp" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Median" android:textColor="#80A88F" android:textSize="12sp" />
                         </LinearLayout>
                         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
                             <TextView android:id="@+id/tv_stats_drain_std_dev" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#FFFFFF" android:textSize="22sp" android:textStyle="bold" />
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Std Dev (±σ)" android:textColor="#8E8E93" android:textSize="12sp" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Std Dev (±σ)" android:textColor="#80A88F" android:textSize="12sp" />
                         </LinearLayout>
                         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                            <TextView android:id="@+id/tv_stats_sessions_per_charge" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#0A84FF" android:textSize="22sp" android:textStyle="bold" />
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Per Charge" android:textColor="#8E8E93" android:textSize="12sp" />
+                            <TextView android:id="@+id/tv_stats_sessions_per_charge" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#00FF41" android:textSize="22sp" android:textStyle="bold" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Per Charge" android:textColor="#80A88F" android:textSize="12sp" />
                         </LinearLayout>
                     </LinearLayout>
                 </LinearLayout>
@@ -416,7 +416,7 @@
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="24dp"
             android:layout_marginTop="12dp"
-            app:cardBackgroundColor="#1C1C1E"
+            app:cardBackgroundColor="#0B110D"
             app:cardCornerRadius="20dp"
             app:cardElevation="0dp">
 
@@ -463,28 +463,28 @@
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
                         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
                             <TextView android:id="@+id/tv_stats_avg_charge_time" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#30D158" android:textSize="22sp" android:textStyle="bold" />
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Avg Time" android:textColor="#8E8E93" android:textSize="12sp" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Avg Time" android:textColor="#80A88F" android:textSize="12sp" />
                         </LinearLayout>
                         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
                             <TextView android:id="@+id/tv_stats_avg_pct_gained" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#FFFFFF" android:textSize="22sp" android:textStyle="bold" />
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Avg Gained" android:textColor="#8E8E93" android:textSize="12sp" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Avg Gained" android:textColor="#80A88F" android:textSize="12sp" />
                         </LinearLayout>
                         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
                             <TextView android:id="@+id/tv_stats_avg_dod" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#FF9F0A" android:textSize="22sp" android:textStyle="bold" />
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Avg Depth" android:textColor="#8E8E93" android:textSize="12sp" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Avg Depth" android:textColor="#80A88F" android:textSize="12sp" />
                         </LinearLayout>
                     </LinearLayout>
 
-                    <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="16dp" android:background="#2C2C2E" />
+                    <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="16dp" android:background="#141E17" />
 
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:orientation="horizontal">
                         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
                             <TextView android:id="@+id/tv_stats_days_per_cycle" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#FFFFFF" android:textSize="22sp" android:textStyle="bold" />
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Days/Charge" android:textColor="#8E8E93" android:textSize="12sp" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Days/Charge" android:textColor="#80A88F" android:textSize="12sp" />
                         </LinearLayout>
                         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
                             <TextView android:id="@+id/tv_stats_longest_run" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="#FFFFFF" android:textSize="22sp" android:textStyle="bold" />
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Longest Run" android:textColor="#8E8E93" android:textSize="12sp" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Longest Run" android:textColor="#80A88F" android:textSize="12sp" />
                         </LinearLayout>
                         <!-- spacer to balance 3 columns -->
                         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" />

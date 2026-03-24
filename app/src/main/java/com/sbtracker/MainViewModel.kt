@@ -112,6 +112,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _dayStartHour = MutableStateFlow(4)
     val dayStartHour: StateFlow<Int> = _dayStartHour.asStateFlow()
 
+    fun setDayStartHour(hour: Int) {
+        val next = hour.coerceIn(0, 23)
+        _dayStartHour.value = next
+        appPrefs.edit().putInt("day_start_hour", next).apply()
+    }
+
     // Alerts State
     private var lastSetpointReached = false
     private var lastCharge80Reached = false

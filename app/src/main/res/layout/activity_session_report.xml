@@ -37,7 +37,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:text="OCT 24, 14:20"
-                    android:textColor="#8E8E93"
+                    android:textColor="#80A88F"
                     android:textSize="14sp"
                     android:letterSpacing="0.05"
                     android:textStyle="bold" />
@@ -47,7 +47,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="220dp"
                     android:layout_marginTop="20dp"
-                    app:cardBackgroundColor="#1C1C1E"
+                    app:cardBackgroundColor="#0B110D"
                     app:cardCornerRadius="16dp">
 
                     <com.sbtracker.SessionGraphView
@@ -135,7 +135,7 @@
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardBackgroundColor="#1C1C1E"
+                app:cardBackgroundColor="#0B110D"
                 app:cardCornerRadius="24dp">
 
                 <LinearLayout
@@ -162,7 +162,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Hits"
-                            android:textColor="#8E8E93"
+                            android:textColor="#80A88F"
                             android:textSize="12sp" />
                     </LinearLayout>
 
@@ -184,7 +184,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Total Time"
-                            android:textColor="#8E8E93"
+                            android:textColor="#80A88F"
                             android:textSize="12sp" />
                     </LinearLayout>
 
@@ -206,7 +206,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Battery"
-                            android:textColor="#8E8E93"
+                            android:textColor="#80A88F"
                             android:textSize="12sp" />
                     </LinearLayout>
                 </LinearLayout>
@@ -218,7 +218,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="32dp"
                 android:text="TECHNICAL DATA"
-                android:textColor="#8E8E93"
+                android:textColor="#80A88F"
                 android:textSize="11sp"
                 android:letterSpacing="0.1"
                 android:textStyle="bold" />
@@ -227,7 +227,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                app:cardBackgroundColor="#1C1C1E"
+                app:cardBackgroundColor="#0B110D"
                 app:cardCornerRadius="20dp">
 
                 <GridLayout
@@ -236,19 +236,19 @@
                     android:padding="20dp"
                     android:columnCount="2">
 
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Peak Extraction Temp" android:textColor="#8E8E93" android:layout_marginBottom="12dp" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Peak Extraction Temp" android:textColor="#80A88F" android:layout_marginBottom="12dp" />
                     <TextView android:id="@+id/report_tv_peak_temp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="end" android:layout_gravity="fill_horizontal" android:text="--°C" android:textColor="#FFFFFF" android:textStyle="bold" />
 
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Initial Heat Time" android:textColor="#8E8E93" android:layout_marginBottom="12dp" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Initial Heat Time" android:textColor="#80A88F" android:layout_marginBottom="12dp" />
                     <TextView android:id="@+id/report_tv_latency" android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="end" android:layout_gravity="fill_horizontal" android:text="--s" android:textColor="#FFFFFF" />
 
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Active Hit Time" android:textColor="#8E8E93" android:layout_marginBottom="12dp" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Active Hit Time" android:textColor="#80A88F" android:layout_marginBottom="12dp" />
                     <TextView android:id="@+id/report_tv_active_hit" android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="end" android:layout_gravity="fill_horizontal" android:text="--s" android:textColor="#FFFFFF" />
 
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Battery Range" android:textColor="#8E8E93" android:layout_marginBottom="12dp" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Battery Range" android:textColor="#80A88F" android:layout_marginBottom="12dp" />
                     <TextView android:id="@+id/report_tv_battery_range" android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="end" android:layout_gravity="fill_horizontal" android:text="--% → --%" android:textColor="#FFFFFF" />
 
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Device Wear (Heater)" android:textColor="#8E8E93" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Device Wear (Heater)" android:textColor="#80A88F" />
                     <TextView android:id="@+id/report_tv_wear" android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="end" android:layout_gravity="fill_horizontal" android:text="+0 min" android:textColor="#30D158" android:textStyle="bold" />
                 </GridLayout>
             </androidx.cardview.widget.CardView>
@@ -259,7 +259,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="32dp"
                 android:text="EXTRACTION LOG"
-                android:textColor="#8E8E93"
+                android:textColor="#80A88F"
                 android:textSize="11sp"
                 android:letterSpacing="0.1"
                 android:textStyle="bold" />
@@ -268,7 +268,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                app:cardBackgroundColor="#1C1C1E"
+                app:cardBackgroundColor="#0B110D"
                 app:cardCornerRadius="20dp">
 
                 <TextView

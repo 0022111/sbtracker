@@ -51,8 +51,8 @@
 | F-032 | `done` | Session Detail Graph | Per-session temperature replay | `SessionGraphView` on `SessionReportActivity` |
 | F-033 | `done` | History Bar Chart | Daily sessions bar chart | `HistoryBarChartView` displays with tap interaction |
 | F-034 | `done` | History Timeline | Visual timeline of sessions | `HistoryTimelineView` renders |
-| F-035 | `planned` | UI Polish Pass | Consistent styling, colours, spacing | All screens feel cohesive and premium |
-| F-036 | `planned` | Settings Screen | Dedicated settings (day start hour, units, alerts) | Currently scattered in ViewModel, needs proper UI |
+| F-035 | `under review` | UI Polish Pass | Consistent styling, colours, spacing | All screens feel cohesive and premium |
+| F-036 | `under review` | Settings Screen | Dedicated settings (day start hour, units, alerts) | Currently scattered in ViewModel, needs proper UI |
 
 ## Quality & Infra (P2 — Foundation for Scale)
 
@@ -64,6 +64,7 @@
 | F-043 | `planned` | ViewModel Decomposition | Break up 1074-line MainViewModel | Extract to feature-specific ViewModels or use cases |
 | F-044 | `done` | MainActivity Decomposition | Break up 1169-line MainActivity | Extract Fragments or Compose screens |
 | F-045 | `done` | Agent Infrastructure | Document AI agent branch strategy, workflows, and workspace context | `AGENT_INFO.md` and `.agents/workflows/` exist |
+| F-046 | `done` | GitHub Integrity | Automate CI builds, PR templates, and enforced branching | `build.yml` automated, `PULL_REQUEST_TEMPLATE.md` exists |
 
 ---
 
@@ -86,3 +87,4 @@
 | 2026-03 | Single-Activity + programmatic Views | Started simple; Compose migration is a future option |
 | 2026-03-23 | Project management via markdown files in repo | Solves context-loss across AI agent sessions |
 | 2026-03-23 | AI Agent branch strategy (`claude/` prefix) | Separates automated agent work from manual development; uses `verify-git-access-BVVfi` for connectivity reference |
+| 2026-03-23 | GitHub Integrity & PR Workflow | Enforces build verification and structured documentation for all agent contributions |
