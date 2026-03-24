@@ -2,6 +2,8 @@ package com.sbtracker.di
 
 import android.content.Context
 import androidx.room.Room
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.sbtracker.BleManager
 import com.sbtracker.analytics.AnalyticsRepository
 import com.sbtracker.data.*
@@ -19,11 +21,32 @@ object AppModule {
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): AppDatabase {
+        val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // No actual schema changes between v1 and v2, just version bump.
+            }
+        }
+
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `session_metadata` (" +
+                            "`sessionId` INTEGER NOT NULL, " +
+                            "`isCapsule` INTEGER NOT NULL, " +
+                            "`capsuleWeightGrams` REAL NOT NULL, " +
+                            "`notes` TEXT, " +
+                            "PRIMARY KEY(`sessionId`))"
+                )
+            }
+        }
+
         return Room.databaseBuilder(
             context,
             AppDatabase::class.java,
             "sbtracker.db"
-        ).build()
+        )
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+            .build()
     }
 
     @Provides
@@ -43,6 +66,9 @@ object AppModule {
 
     @Provides
     fun provideHitDao(db: AppDatabase): HitDao = db.hitDao()
+
+    @Provides
+    fun provideSessionMetadataDao(db: AppDatabase): SessionMetadataDao = db.sessionMetadataDao()
 
     @Provides
     @Singleton
