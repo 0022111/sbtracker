@@ -20,7 +20,10 @@ import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class SettingsFragment : Fragment() {
-    private val vm: MainViewModel by activityViewModels()
+    private val bleVm: BleViewModel by activityViewModels()
+    private val sessionVm: SessionViewModel by activityViewModels()
+    private val settingsVm: SettingsViewModel by activityViewModels()
+    private val historyVm: HistoryViewModel by activityViewModels()
     private var _binding: FragmentSettingsBinding? = null
     private val binding get() = _binding!!
 
@@ -58,13 +61,13 @@ class SettingsFragment : Fragment() {
         val tvDayStartSubtitle = binding.tvDayStartSubtitle
         val tvRetentionValue = binding.tvRetentionValue
 
-        binding.rowPhoneAlerts.setOnClickListener { vm.togglePhoneAlerts() }
-        binding.rowDimOnCharge.setOnClickListener { vm.toggleDimOnCharge() }
+        binding.rowPhoneAlerts.setOnClickListener { bleVm.togglePhoneAlerts() }
+        binding.rowDimOnCharge.setOnClickListener { bleVm.toggleDimOnCharge() }
         binding.rowDayStartHour.setOnClickListener {
             val hours = Array(24) { i -> if (i == 0) "12 AM" else if (i < 12) "$i AM" else if (i == 12) "12 PM" else "${i - 12} PM" }
             android.app.AlertDialog.Builder(requireContext())
                 .setTitle("Day Start Hour")
-                .setItems(hours) { _, which -> vm.setDayStartHour(which) }
+                .setItems(hours) { _, which -> settingsVm.setDayStartHour(which) }
                 .show()
         }
         binding.rowRetentionDays.setOnClickListener {
@@ -72,59 +75,83 @@ class SettingsFragment : Fragment() {
             val values  = intArrayOf(30, 60, 90, 180, Int.MAX_VALUE)
             android.app.AlertDialog.Builder(requireContext())
                 .setTitle("Data Retention")
-                .setItems(options) { _, which -> vm.setRetentionDays(values[which]) }
+                .setItems(options) { _, which -> settingsVm.setRetentionDays(values[which]) }
                 .show()
         }
-        binding.rowUnit.setOnClickListener { vm.toggleUnit() }
-        binding.rowAutoShutdown.setOnClickListener { vm.adjustAutoShutdown(60) }
-        binding.rowVibration.setOnClickListener { vm.toggleVibrationLevel() }
+        binding.rowUnit.setOnClickListener { bleVm.toggleUnit() }
+        binding.rowAutoShutdown.setOnClickListener {
+            val current = bleVm.latestStatus.value?.autoShutdownSeconds ?: 120
+            sessionVm.setAutoShutdown(current + 60)
+        }
+        binding.rowVibration.setOnClickListener {
+            val currentLevel = if (bleVm.latestStatus.value?.vibrationEnabled == true) 1 else 0
+            sessionVm.toggleVibrationLevel(currentLevel)
+        }
         val swBoostViz = binding.switchBoostViz
-        binding.rowBoostViz.setOnClickListener { vm.toggleBoostVisualization() }
-        binding.rowChargeOpt.setOnClickListener { vm.toggleChargeCurrentOpt() }
-        binding.rowChargeLimit.setOnClickListener { vm.toggleChargeVoltageLimit() }
-        binding.rowPermBle.setOnClickListener { vm.togglePermanentBle() }
-        binding.rowBoostTimeout.setOnClickListener { vm.toggleBoostTimeout() }
-        binding.btnFindDevice.setOnClickListener { vm.findDevice() }
+        binding.rowBoostViz.setOnClickListener {
+            sessionVm.toggleBoostVisualization(
+                bleVm.latestStatus.value?.boostVisualization ?: false,
+                bleVm.latestInfo.value?.deviceType ?: ""
+            )
+        }
+        binding.rowChargeOpt.setOnClickListener {
+            sessionVm.toggleChargeCurrentOpt(bleVm.latestStatus.value?.chargeCurrentOptimization ?: false)
+        }
+        binding.rowChargeLimit.setOnClickListener {
+            sessionVm.toggleChargeVoltageLimit(bleVm.latestStatus.value?.chargeVoltageLimit ?: false)
+        }
+        binding.rowPermBle.setOnClickListener {
+            sessionVm.togglePermanentBle(bleVm.latestStatus.value?.permanentBluetooth ?: false)
+        }
+        binding.rowBoostTimeout.setOnClickListener {
+            sessionVm.toggleBoostTimeout(bleVm.displaySettings.value?.boostTimeout ?: 0)
+        }
+        binding.btnFindDevice.setOnClickListener { bleVm.findDevice() }
         binding.btnFactoryReset.setOnClickListener {
             android.app.AlertDialog.Builder(requireContext())
                 .setTitle("Factory Reset Device")
                 .setMessage("This will reset the device to factory defaults. Are you sure?")
-                .setPositiveButton("Reset") { _, _ -> vm.factoryReset() }
+                .setPositiveButton("Reset") { _, _ -> bleVm.factoryReset() }
                 .setNegativeButton("Cancel", null)
                 .show()
         }
         binding.btnDevRebuildHistory.setOnClickListener {
             viewLifecycleOwner.lifecycleScope.launch {
-                vm.rebuildSessionHistoryFromLogs()
+                historyVm.rebuildSessionHistoryFromLogs()
             }
         }
         binding.btnDevInjectTestDevice.setOnClickListener {
-            vm.injectTestDevice()
+            bleVm.injectTestDevice()
             android.widget.Toast.makeText(requireContext(), "Test Device Injected", android.widget.Toast.LENGTH_SHORT).show()
         }
         binding.btnDevRemoveTestDevice.setOnClickListener {
-            vm.removeTestDevice()
+            bleVm.removeTestDevice()
             android.widget.Toast.makeText(requireContext(), "Test Device Removed", android.widget.Toast.LENGTH_SHORT).show()
         }
 
         sbBrightness.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                if (fromUser) vm.setBrightness(progress + 1)
+                if (fromUser) {
+                    val level = progress + 1
+                    sessionVm.setBrightness(level)
+                    bleVm.updateDisplaySettingsLocally(level)
+                    bleVm.onManualBrightnessChange(level)
+                }
             }
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
 
         viewLifecycleOwner.lifecycleScope.launch {
-            vm.phoneAlertsEnabled.collect { swPhoneAlerts.isChecked = it }
+            bleVm.phoneAlertsEnabled.collect { swPhoneAlerts.isChecked = it }
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
-            vm.dimOnChargeEnabled.collect { swDimOnCharge.isChecked = it }
+            bleVm.dimOnChargeEnabled.collect { swDimOnCharge.isChecked = it }
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
-            vm.dayStartHour.collect { hour ->
+            settingsVm.dayStartHour.collect { hour ->
                 val text = if (hour == 0) "12 AM" else if (hour < 12) "$hour AM" else if (hour == 12) "12 PM" else "${hour - 12} PM"
                 tvDayStartValue.text = text
                 tvDayStartSubtitle.text = "Day view begins at $text"
@@ -132,13 +159,13 @@ class SettingsFragment : Fragment() {
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
-            vm.retentionDays.collect { days ->
+            settingsVm.retentionDays.collect { days ->
                 tvRetentionValue.text = if (days == Int.MAX_VALUE) "Never" else "Delete after $days days"
             }
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
-            vm.latestStatus.collect { s ->
+            bleVm.latestStatus.collect { s ->
                 if (s == null) return@collect
                 swHaptic.isChecked = s.vibrationEnabled
                 swCharge.isChecked = s.chargeCurrentOptimization
@@ -151,7 +178,7 @@ class SettingsFragment : Fragment() {
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
-            vm.displaySettings.collect { ds ->
+            bleVm.displaySettings.collect { ds ->
                 if (ds == null) return@collect
                 sbBrightness.progress = (ds.brightness - 1).coerceIn(0, 8)
                 swBoostTimeout.isChecked = ds.boostTimeout > 0
@@ -159,7 +186,7 @@ class SettingsFragment : Fragment() {
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
-            vm.latestInfo.collect { i ->
+            bleVm.latestInfo.collect { i ->
                 tvModel.text = "Model: ${i?.deviceType ?: "---"}"
                 tvSerial.text = "Serial: ${i?.serialNumber ?: "---"}"
                 tvMac.text = "Address: ${i?.deviceAddress ?: "---"}"
@@ -167,7 +194,7 @@ class SettingsFragment : Fragment() {
             }
         }
         viewLifecycleOwner.lifecycleScope.launch {
-            vm.firmwareVersion.collect { f -> tvFw.text = "Firmware: ${f ?: "---"}" }
+            bleVm.firmwareVersion.collect { f -> tvFw.text = "Firmware: ${f ?: "---"}" }
         }
 
         val tvDefaultPackType = binding.tvDefaultPackTypeValue
@@ -177,12 +204,12 @@ class SettingsFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
-                    vm.defaultIsCapsule.collect { isCapsule ->
+                    settingsVm.defaultIsCapsule.collect { isCapsule ->
                         tvDefaultPackType.text = if (isCapsule) "Capsule" else "Free Pack"
                     }
                 }
                 launch {
-                    vm.capsuleWeightGrams.collect { grams ->
+                    settingsVm.capsuleWeightGrams.collect { grams ->
                         tvCapsuleWeight.text = "%.2f g".format(grams)
                     }
                 }
@@ -191,14 +218,14 @@ class SettingsFragment : Fragment() {
 
         // Click: toggle pack type
         binding.rowDefaultPackType.setOnClickListener {
-            vm.setDefaultIsCapsule(!vm.defaultIsCapsule.value)
+            settingsVm.setDefaultIsCapsule(!settingsVm.defaultIsCapsule.value)
         }
 
         // Click: edit capsule weight
         binding.rowCapsuleWeight.setOnClickListener {
             val input = android.widget.EditText(requireContext()).apply {
                 inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
-                setText("%.2f".format(vm.capsuleWeightGrams.value))
+                setText("%.2f".format(settingsVm.capsuleWeightGrams.value))
                 selectAll()
             }
             android.app.AlertDialog.Builder(requireContext())
@@ -207,7 +234,7 @@ class SettingsFragment : Fragment() {
                 .setView(input)
                 .setPositiveButton("Save") { _, _ ->
                     val grams = input.text.toString().toFloatOrNull()
-                    if (grams != null) vm.setCapsuleWeight(grams)
+                    if (grams != null) settingsVm.setCapsuleWeight(grams)
                 }
                 .setNegativeButton("Cancel", null)
                 .show()

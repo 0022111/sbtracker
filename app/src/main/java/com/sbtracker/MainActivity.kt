@@ -11,57 +11,39 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
-import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.Button
-import android.widget.ImageButton
-import android.widget.SeekBar
-import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.SwitchCompat
-import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.sbtracker.data.SessionSummary
-import com.sbtracker.SessionTracker
 import com.sbtracker.databinding.ActivityMainPagedBinding
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import kotlin.math.roundToInt
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-
 import com.sbtracker.ui.LandingFragment
 import com.sbtracker.ui.SessionFragment
 import com.sbtracker.ui.HistoryFragment
 import com.sbtracker.ui.BatteryFragment
 import com.sbtracker.ui.SettingsFragment
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
-    lateinit var vm: MainViewModel
+    lateinit var bleVm: BleViewModel
+    lateinit var historyVm: HistoryViewModel
+    lateinit var batteryVm: BatteryViewModel
+    lateinit var settingsVm: SettingsViewModel
     private lateinit var binding: ActivityMainPagedBinding
 
     private var bleService: BleService? = null
@@ -71,7 +53,7 @@ class MainActivity : AppCompatActivity() {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             val binder = service as BleService.LocalBinder
             bleService = binder.getService()
-            bleService?.initialize(vm)
+            bleService?.initialize(bleVm)
             isBound = true
         }
 
@@ -89,7 +71,7 @@ class MainActivity : AppCompatActivity() {
 
     private val requestEnableBt =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            vm.startScan()
+            bleVm.startScan()
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -98,13 +80,48 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainPagedBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        vm = ViewModelProvider(this)[MainViewModel::class.java]
+        bleVm = ViewModelProvider(this)[BleViewModel::class.java]
+        historyVm = ViewModelProvider(this)[HistoryViewModel::class.java]
+        batteryVm = ViewModelProvider(this)[BatteryViewModel::class.java]
+        settingsVm = ViewModelProvider(this)[SettingsViewModel::class.java]
+
+        // Cross-VM state sync: activeDevice
+        lifecycleScope.launch {
+            bleVm.activeDevice.collect { device ->
+                historyVm.updateActiveDevice(device)
+                batteryVm.updateActiveDevice(device)
+            }
+        }
+
+        // Cross-VM state sync: dayStartHour
+        lifecycleScope.launch {
+            settingsVm.dayStartHour.collect { hour ->
+                historyVm.updateDayStartHour(hour)
+                batteryVm.updateDayStartHour(hour)
+            }
+        }
+
+        // Refresh intake stats when active device or capsule settings change
+        lifecycleScope.launch {
+            bleVm.activeDevice.collect {
+                historyVm.refreshIntakeStats(
+                    settingsVm.capsuleWeightGrams.value,
+                    settingsVm.defaultIsCapsule.value
+                )
+            }
+        }
+
+        // Backcompile sessions if needed
+        lifecycleScope.launch {
+            withContext(Dispatchers.IO) {
+                runCatching { historyVm.rebuildSessionHistoryFromLogs() }
+            }
+        }
 
         val adapter = PagedAdapter(this)
         binding.viewPager.adapter = adapter
         (binding.viewPager.getChildAt(0) as? RecyclerView)?.isNestedScrollingEnabled = false
-
-        binding.viewPager.isUserInputEnabled = true // Enabled horizontal swipe
+        binding.viewPager.isUserInputEnabled = true
 
         binding.bottomNavigation.setOnItemSelectedListener { item ->
             when (item.itemId) {
@@ -123,8 +140,9 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
+        // Auto-navigate to session tab when heater starts
         lifecycleScope.launch {
-            vm.latestStatus.collect { s ->
+            bleVm.latestStatus.collect { s ->
                 if (s != null && s.heaterMode > 0 && binding.viewPager.currentItem == 0) {
                     binding.viewPager.currentItem = 1
                 }
@@ -132,9 +150,10 @@ class MainActivity : AppCompatActivity() {
         }
 
         startAndBindBleService()
-        
+
+        // Handle CSV export
         lifecycleScope.launch {
-            vm.exportUri.collect { uri ->
+            historyVm.exportUri.collect { uri ->
                 val intent = Intent(Intent.ACTION_SEND).apply {
                     type = "text/csv"
                     putExtra(Intent.EXTRA_STREAM, uri)
@@ -169,7 +188,7 @@ class MainActivity : AppCompatActivity() {
         if (adapter?.isEnabled == false) {
             requestEnableBt.launch(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
         } else {
-            vm.startScan()
+            bleVm.startScan()
         }
     }
 
@@ -208,8 +227,7 @@ fun MainActivity.confirmDelete(summary: SessionSummary) {
     AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog)
         .setTitle("Delete Session")
         .setMessage("Remove this session?")
-        .setPositiveButton("Delete") { _, _ -> vm.deleteSession(summary.session) }
+        .setPositiveButton("Delete") { _, _ -> historyVm.deleteSession(summary.session) }
         .setNegativeButton("Cancel", null)
         .show()
 }
-

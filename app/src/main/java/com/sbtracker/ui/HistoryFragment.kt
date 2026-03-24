@@ -24,7 +24,8 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class HistoryFragment : Fragment() {
-    private val vm: MainViewModel by activityViewModels()
+    private val bleVm: BleViewModel by activityViewModels()
+    private val historyVm: HistoryViewModel by activityViewModels()
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
         inflater.inflate(R.layout.fragment_history, container, false)
 
@@ -123,20 +124,20 @@ class HistoryFragment : Fragment() {
 
         // ── Sort bar ──────────────────────────────────────────────────────────
 
-        tvSortDate.setOnClickListener     { vm.setSessionSort(MainViewModel.SessionSort.DATE) }
-        tvSortHits.setOnClickListener     { vm.setSessionSort(MainViewModel.SessionSort.HITS) }
-        tvSortDuration.setOnClickListener { vm.setSessionSort(MainViewModel.SessionSort.DURATION) }
-        tvSortDrain.setOnClickListener    { vm.setSessionSort(MainViewModel.SessionSort.DRAIN) }
-        tvSortTemp.setOnClickListener     { vm.setSessionSort(MainViewModel.SessionSort.TEMP) }
+        tvSortDate.setOnClickListener     { historyVm.setSessionSort(HistoryViewModel.SessionSort.DATE) }
+        tvSortHits.setOnClickListener     { historyVm.setSessionSort(HistoryViewModel.SessionSort.HITS) }
+        tvSortDuration.setOnClickListener { historyVm.setSessionSort(HistoryViewModel.SessionSort.DURATION) }
+        tvSortDrain.setOnClickListener    { historyVm.setSessionSort(HistoryViewModel.SessionSort.DRAIN) }
+        tvSortTemp.setOnClickListener     { historyVm.setSessionSort(HistoryViewModel.SessionSort.TEMP) }
 
         viewLifecycleOwner.lifecycleScope.launch {
-            vm.sessionSort.collect { sort ->
+            historyVm.sessionSort.collect { sort ->
                 val sortViews = listOf(
-                    tvSortDate     to MainViewModel.SessionSort.DATE,
-                    tvSortHits     to MainViewModel.SessionSort.HITS,
-                    tvSortDuration to MainViewModel.SessionSort.DURATION,
-                    tvSortDrain    to MainViewModel.SessionSort.DRAIN,
-                    tvSortTemp     to MainViewModel.SessionSort.TEMP
+                    tvSortDate     to HistoryViewModel.SessionSort.DATE,
+                    tvSortHits     to HistoryViewModel.SessionSort.HITS,
+                    tvSortDuration to HistoryViewModel.SessionSort.DURATION,
+                    tvSortDrain    to HistoryViewModel.SessionSort.DRAIN,
+                    tvSortTemp     to HistoryViewModel.SessionSort.TEMP
                 )
                 sortViews.forEach { (tv, s) ->
                     val active = s == sort
@@ -149,12 +150,12 @@ class HistoryFragment : Fragment() {
 
         // ── Period toggle ─────────────────────────────────────────────────────
 
-        tvPeriodDay.setOnClickListener  { vm.setGraphPeriod(MainViewModel.GraphPeriod.DAY) }
-        tvPeriodWeek.setOnClickListener { vm.setGraphPeriod(MainViewModel.GraphPeriod.WEEK) }
+        tvPeriodDay.setOnClickListener  { historyVm.setGraphPeriod(HistoryViewModel.GraphPeriod.DAY) }
+        tvPeriodWeek.setOnClickListener { historyVm.setGraphPeriod(HistoryViewModel.GraphPeriod.WEEK) }
 
         viewLifecycleOwner.lifecycleScope.launch {
-            vm.graphPeriod.collect { p ->
-                val dayActive = p == MainViewModel.GraphPeriod.DAY
+            historyVm.graphPeriod.collect { p ->
+                val dayActive = p == HistoryViewModel.GraphPeriod.DAY
                 tvPeriodDay.setTextColor(ContextCompat.getColor(requireContext(), if (dayActive)  R.color.color_blue else R.color.color_gray_mid))
                 tvPeriodDay.setTypeface(null, if (dayActive)  android.graphics.Typeface.BOLD else android.graphics.Typeface.NORMAL)
                 tvPeriodDay.setBackgroundResource(if (dayActive)  R.drawable.bg_badge_blue else 0)
@@ -167,10 +168,10 @@ class HistoryFragment : Fragment() {
         // ── Device filter chips ───────────────────────────────────────────────
 
         viewLifecycleOwner.lifecycleScope.launch {
-            combine(vm.knownDevices, vm.sessionFilter) { devices, filter ->
+            combine(bleVm.knownDevices, historyVm.sessionFilter) { devices, filter ->
                 devices to filter
             }.collect { (devices, filter) ->
-                buildDeviceFilterChips(devices, filter, llDeviceFilter, vm)
+                buildDeviceFilterChips(devices, filter, llDeviceFilter)
             }
         }
 
@@ -181,13 +182,13 @@ class HistoryFragment : Fragment() {
         // ── Timeline (battery % over time with session markers) ───────────────
         viewLifecycleOwner.lifecycleScope.launch {
             combine(
-                vm.graphStatuses,
-                vm.graphWindowStartMs,
-                vm.rawSessionHistory,
-                vm.graphPeriod
+                historyVm.graphStatuses,
+                historyVm.graphWindowStartMs,
+                historyVm.rawSessionHistory,
+                historyVm.graphPeriod
             ) { statuses, windowStart, sessions, period ->
                 val windowEnd = System.currentTimeMillis()
-                val timelinePeriod = if (period == MainViewModel.GraphPeriod.WEEK)
+                val timelinePeriod = if (period == HistoryViewModel.GraphPeriod.WEEK)
                     HistoryTimelineView.Period.WEEK else HistoryTimelineView.Period.DAY
                 timeline.setData(statuses, sessions, windowStart, windowEnd, timelinePeriod)
             }.collect { }
@@ -196,14 +197,14 @@ class HistoryFragment : Fragment() {
         // ── Timeline tap → open session report ───────────────────────────────
         timeline.onSessionTapped = { session ->
             viewLifecycleOwner.lifecycleScope.launch {
-                val summary = vm.analyticsRepo.getSessionSummary(session)
+                val summary = historyVm.analyticsRepo.getSessionSummary(session)
                 openSessionReport(summary)
             }
         }
 
         // ── Hero Quick Stats + Averages deep-dive ────────────────────────────
         viewLifecycleOwner.lifecycleScope.launch {
-            combine(vm.historyStats, vm.isCelsius) { stats, celsius -> stats to celsius }.collect { (stats, celsius) ->
+            combine(historyVm.historyStats, bleVm.isCelsius) { stats, celsius -> stats to celsius }.collect { (stats, celsius) ->
                 // HERO
                 tvHeroSessions.text = stats.sessionCount.toString()
                 tvHeroAvgDur.text = formatDurationShort(stats.avgSessionDurationSec)
@@ -236,7 +237,7 @@ class HistoryFragment : Fragment() {
 
         // ── Usage Insights (weekly comparison, streaks, patterns) ─────────────
         viewLifecycleOwner.lifecycleScope.launch {
-            combine(vm.usageInsights, vm.historyStats) { ui, hs -> ui to hs }.collect { (ui, hs) ->
+            combine(historyVm.usageInsights, historyVm.historyStats) { ui, hs -> ui to hs }.collect { (ui, hs) ->
                 // Streaks
                 tvStreakCurrent.text = if (ui.currentStreakDays > 0) "${ui.currentStreakDays}d" else "—"
                 tvStreakLongest.text = if (ui.longestStreakDays > 0) "${ui.longestStreakDays}d" else "—"
@@ -273,10 +274,10 @@ class HistoryFragment : Fragment() {
 
         // ── Bar chart (sessions + charges) ────────────────────────────────────
         viewLifecycleOwner.lifecycleScope.launch {
-            combine(vm.dailyStats, vm.rawChargeHistory, vm.graphPeriod) { daily, charges, period ->
+            combine(historyVm.dailyStats, historyVm.rawChargeHistory, historyVm.graphPeriod) { daily, charges, period ->
                 Triple(daily, charges, period)
             }.collect { (daily, charges, period) ->
-                val chartPeriod = if (period == MainViewModel.GraphPeriod.WEEK)
+                val chartPeriod = if (period == HistoryViewModel.GraphPeriod.WEEK)
                     HistoryBarChartView.Period.WEEK else HistoryBarChartView.Period.DAY
                 barChart.setData(daily, charges, chartPeriod)
             }
@@ -284,7 +285,7 @@ class HistoryFragment : Fragment() {
 
         // ── Health & Intake stats ─────────────────────────────────────────────
         viewLifecycleOwner.lifecycleScope.launch {
-            vm.intakeStats.collect { stats ->
+            historyVm.intakeStats.collect { stats ->
                 tvIntakeTotalAll.text = "%.2fg".format(stats.totalGramsAllTime)
                 tvIntakeWeek.text     = "%.2fg".format(stats.totalGramsThisWeek)
                 tvIntakeSplit.text    = "${stats.capsuleSessionCount}·${stats.freePackSessionCount}"
@@ -293,7 +294,7 @@ class HistoryFragment : Fragment() {
 
         // ── Session History List ──────────────────────────────────────────────
         viewLifecycleOwner.lifecycleScope.launch {
-            combine(vm.sessionHistory, vm.sessionFilter, vm.activeDevice) { items, filter, device ->
+            combine(historyVm.sessionHistory, historyVm.sessionFilter, bleVm.activeDevice) { items, filter, device ->
                 Triple(items, filter, device)
             }.collect { (items, filter, device) ->
                 adapter.submitList(items)
@@ -319,34 +320,36 @@ class HistoryFragment : Fragment() {
             AlertDialog.Builder(requireContext(), android.R.style.Theme_DeviceDefault_Dialog)
                 .setTitle("Clear All History")
                 .setMessage("This will permanently delete all sessions, hits, charge cycles, and device status logs for the current device.\n\nThis cannot be undone.")
-                .setPositiveButton("Delete Everything") { _, _ -> vm.clearSessionHistory() }
+                .setPositiveButton("Delete Everything") { _, _ ->
+                    val device = bleVm.activeDevice.value ?: return@setPositiveButton
+                    historyVm.clearSessionHistory(device)
+                }
                 .setNegativeButton("Cancel", null)
                 .show()
         }
 
         // ── Export ────────────────────────────────────────────────────────────
         view.findViewById<View>(R.id.btn_export_history).setOnClickListener {
-            vm.exportHistoryCsv()
+            historyVm.exportHistoryCsv()
         }
     }
 
     private fun buildDeviceFilterChips(
-        devices: List<MainViewModel.SavedDevice>,
+        devices: List<BleViewModel.SavedDevice>,
         activeFilter: String?,
-        container: android.widget.LinearLayout,
-        vm: MainViewModel
+        container: android.widget.LinearLayout
     ) {
         container.removeAllViews()
-        val activeSerial = vm.activeDevice.value?.serialNumber
+        val activeSerial = bleVm.activeDevice.value?.serialNumber
 
-        val mineLabel = vm.activeDevice.value?.deviceType?.ifEmpty { "Device" } ?: "Mine"
+        val mineLabel = bleVm.activeDevice.value?.deviceType?.ifEmpty { "Device" } ?: "Mine"
         container.addView(makeChip(mineLabel, activeFilter == null) {
-            vm.setSessionFilter(null)
+            historyVm.setSessionFilter(null)
         })
 
         if (devices.size > 1) {
             container.addView(makeChip("All", activeFilter == "all") {
-                vm.setSessionFilter("all")
+                historyVm.setSessionFilter("all")
             })
         }
 
@@ -354,7 +357,7 @@ class HistoryFragment : Fragment() {
             val label = device.deviceType.ifEmpty { device.serialNumber.takeLast(6) }
             val active = activeFilter == device.serialNumber || activeFilter == device.deviceAddress
             container.addView(makeChip(label, active, {
-                vm.setSessionFilter(device.serialNumber)
+                historyVm.setSessionFilter(device.serialNumber)
             }).also { chip ->
                 chip.setOnLongClickListener {
                     android.widget.Toast.makeText(requireContext(), device.serialNumber, android.widget.Toast.LENGTH_SHORT).show()

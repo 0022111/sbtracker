@@ -22,7 +22,9 @@ import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class LandingFragment : Fragment() {
-    private val vm: MainViewModel by activityViewModels()
+    private val bleVm: BleViewModel by activityViewModels()
+    private val sessionVm: SessionViewModel by activityViewModels()
+    private val historyVm: HistoryViewModel by activityViewModels()
     private var _binding: FragmentLandingBinding? = null
     private val binding get() = _binding!!
 
@@ -85,25 +87,25 @@ class LandingFragment : Fragment() {
 
         // ── Connect / Disconnect / Power actions ──
         val scanToggle = {
-            if (vm.connectionState.value is BleManager.ConnectionState.Disconnected) {
+            if (bleVm.connectionState.value is BleManager.ConnectionState.Disconnected) {
                 activity.checkPermissionsAndScan()
             } else {
-                vm.disconnect()
+                bleVm.disconnect()
             }
         }
         btnConnect.setOnClickListener { scanToggle() }
         btnDisconnect.setOnClickListener { scanToggle() }
 
         btnHeater.setOnClickListener {
-            val isOn = (vm.latestStatus.value?.heaterMode ?: 0) > 0
-            vm.setHeater(!isOn)
+            val isOn = (bleVm.latestStatus.value?.heaterMode ?: 0) > 0
+            sessionVm.setHeater(!isOn)
         }
 
         // ── UI Updates ──
 
         // Device Info (Header) & Settings Tile
         viewLifecycleOwner.lifecycleScope.launch {
-            combine(vm.latestInfo, vm.activeDevice) { info, device -> info to device }.collect { (info, device) ->
+            combine(bleVm.latestInfo, bleVm.activeDevice) { info, device -> info to device }.collect { (info, device) ->
                 tvDeviceInfo.text = when {
                     info != null -> "${info.deviceType} · ${info.serialNumber}"
                     device != null -> "${device.deviceType} · ${device.serialNumber} (Offline)"
@@ -115,7 +117,7 @@ class LandingFragment : Fragment() {
 
         // Connection State logic (Hero Offline mode)
         viewLifecycleOwner.lifecycleScope.launch {
-            vm.connectionState.collect { state ->
+            bleVm.connectionState.collect { state ->
                 when (state) {
                     is BleManager.ConnectionState.Disconnected -> {
                         tvScanStatus.text = "Tap to search for your device"
@@ -149,12 +151,12 @@ class LandingFragment : Fragment() {
 
         // Device picker
         viewLifecycleOwner.lifecycleScope.launch {
-            vm.scannedDevices.collect { devices ->
+            bleVm.scannedDevices.collect { devices ->
                 if (devices.size > 1 && isAdded) {
                     val names = devices.map { "${it.name}  (${it.device.address})" }.toTypedArray()
                     AlertDialog.Builder(requireContext(), android.R.style.Theme_DeviceDefault_Dialog)
                         .setTitle("Select Device")
-                        .setItems(names) { _, i -> vm.connectToDevice(devices[i].device) }
+                        .setItems(names) { _, i -> bleVm.connectToDevice(devices[i].device) }
                         .setNegativeButton("Cancel", null)
                         .show()
                 }
@@ -163,7 +165,7 @@ class LandingFragment : Fragment() {
 
         // Hero online state + Live Session + Battery Tile
         viewLifecycleOwner.lifecycleScope.launch {
-            combine(vm.latestStatus, vm.connectionState, vm.isCelsius) { s, conn, celsius ->
+            combine(bleVm.latestStatus, bleVm.connectionState, bleVm.isCelsius) { s, conn, celsius ->
                 Triple(s, conn, celsius)
             }.collect { (s, conn, celsius) ->
                 if (conn !is BleManager.ConnectionState.Connected || s == null) return@collect
@@ -183,11 +185,11 @@ class LandingFragment : Fragment() {
                     if (!s.setpointReached) {
                         tvLiveStatus.text = "HEATING"
                         tvLiveStatus.setTextColor(ContextCompat.getColor(requireContext(), R.color.color_orange))
-                        cardHero.setCardBackgroundColor(ContextCompat.getColor(requireContext(), R.color.color_tint_orange)) // subtle orange tint
+                        cardHero.setCardBackgroundColor(ContextCompat.getColor(requireContext(), R.color.color_tint_orange))
                     } else {
                         tvLiveStatus.text = "READY"
                         tvLiveStatus.setTextColor(ContextCompat.getColor(requireContext(), R.color.color_green))
-                        cardHero.setCardBackgroundColor(ContextCompat.getColor(requireContext(), R.color.color_tint_green)) // subtle green tint
+                        cardHero.setCardBackgroundColor(ContextCompat.getColor(requireContext(), R.color.color_tint_green))
                     }
                 } else {
                     tvBtnHeaterText.text = "Start Heater"
@@ -206,7 +208,7 @@ class LandingFragment : Fragment() {
 
         // Live Session duration tick
         viewLifecycleOwner.lifecycleScope.launch {
-            combine(vm.sessionStats, vm.latestStatus, vm.connectionState) { ss, s, conn ->
+            combine(bleVm.sessionStats, bleVm.latestStatus, bleVm.connectionState) { ss, s, conn ->
                 Triple(ss, s, conn)
             }.collect { (ss, s, conn) ->
                 val isConnected = conn is BleManager.ConnectionState.Connected
@@ -224,14 +226,14 @@ class LandingFragment : Fragment() {
 
         // Analytics tile (today count)
         viewLifecycleOwner.lifecycleScope.launch {
-            vm.todaySummaries.collect { today ->
+            historyVm.todaySummaries.collect { today ->
                 tvTileAnalyticsVal.text = "${today.size} Today"
             }
         }
 
         // Last session (chronological across ALL devices)
         viewLifecycleOwner.lifecycleScope.launch {
-            combine(vm.lastSession, vm.knownDeviceBatteries) { last, snapshots -> last to snapshots }.collect { (lastSession, snapshots) ->
+            combine(historyVm.lastSession, bleVm.knownDeviceBatteries) { last, snapshots -> last to snapshots }.collect { (lastSession, snapshots) ->
                 if (lastSession != null) {
                     tvLastDate.text = relativeDate(lastSession.startTimeMs)
                     val deviceLabel = lastSession.serialNumber?.takeLast(6) ?: lastSession.deviceAddress.takeLast(5)
@@ -243,7 +245,7 @@ class LandingFragment : Fragment() {
                 }
 
                 // Battery offline fallback
-                if (vm.latestStatus.value == null) {
+                if (bleVm.latestStatus.value == null) {
                     val lastBat = lastSession?.endBattery
                     if (lastBat != null && lastBat > 0) {
                         tvTileBatteryVal.text = "${lastBat}%"
@@ -259,7 +261,7 @@ class LandingFragment : Fragment() {
         // Device battery snapshots (visible when 2+ devices known)
         val llDeviceStatusRow = binding.llDeviceStatusRow
         viewLifecycleOwner.lifecycleScope.launch {
-            vm.knownDeviceBatteries.collect { snapshots ->
+            bleVm.knownDeviceBatteries.collect { snapshots ->
                 if (snapshots.size < 2) {
                     llDeviceStatusRow.visibility = View.GONE
                     return@collect

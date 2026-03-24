@@ -20,7 +20,9 @@ import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class SessionFragment : Fragment() {
-    private val vm: MainViewModel by activityViewModels()
+    private val bleVm: BleViewModel by activityViewModels()
+    private val sessionVm: SessionViewModel by activityViewModels()
+    private val historyVm: HistoryViewModel by activityViewModels()
     private var _binding: FragmentSessionBinding? = null
     private val binding get() = _binding!!
 
@@ -66,22 +68,42 @@ class SessionFragment : Fragment() {
         val btnBoost = binding.btnModeBoost
         val btnSuper = binding.btnModeSuperboost
 
-        btnStartNormal.setOnClickListener { vm.startSession() }
-        btnEnd.setOnClickListener { vm.setHeater(false) }
+        btnStartNormal.setOnClickListener { sessionVm.startSession(bleVm.targetTemp.value) }
+        btnEnd.setOnClickListener { sessionVm.setHeater(false) }
 
-        binding.btnTempPlus.setOnClickListener { vm.adjustTemp(1) }
-        binding.btnTempMinus.setOnClickListener { vm.adjustTemp(-1) }
-        binding.btnBoostPlus.setOnClickListener { vm.adjustBoost(1) }
-        binding.btnBoostMinus.setOnClickListener { vm.adjustBoost(-1) }
-        binding.btnSuperboostPlus.setOnClickListener { vm.adjustSuperBoost(1) }
-        binding.btnSuperboostMinus.setOnClickListener { vm.adjustSuperBoost(-1) }
+        binding.btnTempPlus.setOnClickListener {
+            val newTemp = (bleVm.targetTemp.value + 1).coerceIn(40, 230)
+            bleVm.setTargetTemp(newTemp)
+            sessionVm.setTemp(newTemp, bleVm.latestStatus.value?.heaterMode ?: 0)
+        }
+        binding.btnTempMinus.setOnClickListener {
+            val newTemp = (bleVm.targetTemp.value - 1).coerceIn(40, 230)
+            bleVm.setTargetTemp(newTemp)
+            sessionVm.setTemp(newTemp, bleVm.latestStatus.value?.heaterMode ?: 0)
+        }
+        binding.btnBoostPlus.setOnClickListener {
+            val current = bleVm.latestStatus.value?.boostOffsetC ?: 0
+            sessionVm.setBoost(current + 1)
+        }
+        binding.btnBoostMinus.setOnClickListener {
+            val current = bleVm.latestStatus.value?.boostOffsetC ?: 0
+            sessionVm.setBoost(current - 1)
+        }
+        binding.btnSuperboostPlus.setOnClickListener {
+            val current = bleVm.latestStatus.value?.superBoostOffsetC ?: 0
+            sessionVm.setSuperBoost(current + 1)
+        }
+        binding.btnSuperboostMinus.setOnClickListener {
+            val current = bleVm.latestStatus.value?.superBoostOffsetC ?: 0
+            sessionVm.setSuperBoost(current - 1)
+        }
 
-        btnNormal.setOnClickListener { vm.setHeaterMode(1) }
-        btnBoost.setOnClickListener { vm.setHeaterMode(2) }
-        btnSuper.setOnClickListener { vm.setHeaterMode(3) }
+        btnNormal.setOnClickListener { sessionVm.setHeaterMode(1, bleVm.targetTemp.value) }
+        btnBoost.setOnClickListener { sessionVm.setHeaterMode(2, bleVm.targetTemp.value) }
+        btnSuper.setOnClickListener { sessionVm.setHeaterMode(3, bleVm.targetTemp.value) }
 
         viewLifecycleOwner.lifecycleScope.launch {
-            combine(vm.latestStatus, vm.isCelsius) { s, celsius -> s to celsius }.collect { (s, celsius) ->
+            combine(bleVm.latestStatus, bleVm.isCelsius) { s, celsius -> s to celsius }.collect { (s, celsius) ->
                 val isRunning = s != null && s.heaterMode > 0
 
                 rowRunningStats.visibility = if (isRunning) View.VISIBLE else View.GONE
@@ -114,13 +136,13 @@ class SessionFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             // Include target temp unit text for the controls card
-            combine(vm.targetTemp, vm.isCelsius) { t, celsius -> t to celsius }.collect { (t, celsius) ->
+            combine(bleVm.targetTemp, bleVm.isCelsius) { t, celsius -> t to celsius }.collect { (t, celsius) ->
                 tvTargetBase.text = "${t.toDisplayTemp(celsius)}°"
             }
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
-            combine(vm.latestStatus, vm.estimatedHeatUpTimeSecs) { s, est -> s to est }.collect { (s, est) ->
+            combine(bleVm.latestStatus, historyVm.estimatedHeatUpTimeSecs(bleVm.targetTemp)) { s, est -> s to est }.collect { (s, est) ->
                 val isIdleOrOffline = s == null || s.heaterMode == 0
                 if (isIdleOrOffline && est != null) {
                     tvHeatUpEstimate.visibility = View.VISIBLE
@@ -132,7 +154,7 @@ class SessionFragment : Fragment() {
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
-            vm.sessionStats.collect { ss ->
+            bleVm.sessionStats.collect { ss ->
                 tvHits.text = ss.hitCount.toString()
                 tvDrain.text = "${maxOf(0, ss.batteryDrain)}%"
 

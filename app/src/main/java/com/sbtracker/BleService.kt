@@ -26,7 +26,7 @@ import javax.inject.Inject
  *
  * Owns a direct reference to [BleManager] so it can independently trigger reconnection
  * on [START_STICKY] restarts — i.e. when the process was killed and the OS brought the
- * service back without MainActivity or MainViewModel being alive yet.
+ * service back without MainActivity or BleViewModel being alive yet.
  */
 @AndroidEntryPoint
 class BleService : Service() {
@@ -37,7 +37,7 @@ class BleService : Service() {
     private val serviceJob = SupervisorJob()
     private val serviceScope = CoroutineScope(Dispatchers.Default + serviceJob)
 
-    private var viewModel: MainViewModel? = null
+    private var bleViewModel: BleViewModel? = null
 
     private val CHANNEL_ID = "ble_service_channel"
     private val NOTIFICATION_ID = 101
@@ -56,9 +56,9 @@ class BleService : Service() {
         startForeground(NOTIFICATION_ID, createNotification())
     }
 
-    fun initialize(vm: MainViewModel) {
-        this.viewModel = vm
-        
+    fun initialize(vm: BleViewModel) {
+        this.bleViewModel = vm
+
         serviceScope.launch {
             combine(vm.latestStatus, vm.connectionState) { status, state ->
                 status to state
@@ -101,7 +101,7 @@ class BleService : Service() {
 
     private fun updateNotification(status: com.sbtracker.data.DeviceStatus?, state: BleManager.ConnectionState) {
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        
+
         val title = when (state) {
             is BleManager.ConnectionState.Connected -> "Device Online"
             is BleManager.ConnectionState.Connecting -> "Linking..."
@@ -122,10 +122,6 @@ class BleService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        // On a START_STICKY restart (process killed by OS), the ViewModel is gone but this
-        // service comes back. Trigger an OS-managed background reconnect to the last known
-        // device so tracking resumes as soon as the device is in range — no user interaction
-        // required. autoConnect = true (inside reconnectToAddress) lets the BT stack handle it.
         if (bleManager.connectionState.value is BleManager.ConnectionState.Disconnected) {
             val prefs = getSharedPreferences("known_devices_v1", Context.MODE_PRIVATE)
             val lastSerial = prefs.getString("last_serial", null)
