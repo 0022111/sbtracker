@@ -29,6 +29,7 @@
 | F-015 | `done` | Daily Stats | Per-day aggregates for trend charts | DailyStats list drives bar chart |
 | F-016 | `done` | Profile Stats | Lifetime totals (sessions, hits, heater hours) | ProfileStats card reads correctly |
 | F-017 | `done` | Heat-up Estimation | Estimate time to heat based on target temp and history | Session screen shows ETA |
+| F-018 | `blocked` | Health & Dosage | Track capsule vs free-pack per session, calculate intake weight, habit analysis. **Blocked by DB schema problems & Session Report overhaul.** | Settings for capsule weight, session toggle, intake stats |
 
 ## Device Management (P1 — Polish)
 
@@ -101,3 +102,40 @@
 | 2026-03-23 | GitHub Integrity & PR Workflow | Enforces build verification and structured documentation for all agent contributions |
 | 2026-03-24 | Multi-device infrastructure enhancements | Added synthetic test device and cross-device landing page aggregates for better testability and transparency. |
 | 2026-03-24 | Introduce Hilt Dependency Injection (T-006) | Standardized dependency management; unblocked ViewModel decomposition and testing. |
+
+---
+
+## Draft Feature Specs
+
+### F-018: Health & Dosage Tracking
+*Status: Blocked by database schema problems and session report overhaul.*
+
+**Release-Complete Implementation Plan:**
+
+1. **Unblock Phase:**
+   * **Database Schema Fix:** Ensure the architecture allows for user-provided data (like whether a session used a capsule) to persist even when sessions are reconstructed from the `device_status` "god log". A new table like `session_metadata` mapping to `session_id` is the safest way to prevent destructive loss during rebuilds.
+   * **UI Prep:** Ensure the session report screen and settings are either migrated to Compose or stabilized enough to accept new UI elements without creating merge conflicts.
+
+2. **Data Layer Implementation:**
+   * Create the `SessionMetadata` entity and corresponding Room DAO (or update `Session` entity if the DB approach changes).
+   * Write Room migrations (e.g., v3) to add the new tables/columns.
+   * Update the DataStore/SharedPreferences repository to support saving/reading `capsule_weight_grams` and `default_session_type`.
+
+3. **Analytics Integration:**
+   * Update the `AnalyticsRepository` to merge core Session info with the new `SessionMetadata`.
+   * Write logic to calculate total dosage: count all capsule sessions in a given timeframe and multiply by the capsule weight setting. Calculate trend metrics (e.g., grams per week).
+
+4. **UI Updates:**
+   * **Settings:** Add a text input or slider for capsule weight, and a segmented button for the default pack type.
+   * **Session Report:** Add a toggle near the top of the session summary allowing users to retroactively change a session between "Capsule" and "Free Pack."
+   * **Insights Screen:** Build out the new "Health & Intake" card showing total consumed weight and usage habits over time.
+
+5. **Testing & QA:**
+   * Write unit tests for the intake calculations in `AnalyticsRepository`.
+   * Verify UI states when changing the capsule weight retroactively (does it update past history correctly?).
+   * Trigger a database rebuild (`backcompileSessionsFromLogs()`) manually to prove user-entered capsule flags survive the process.
+
+6. **Release Polish:**
+   * Update `CHANGELOG.md` with the new feature details.
+   * Ensure string resources are localized/extracted.
+   * Open the PR and pass all CI checks defined in your GitHub Integrity workflow.
