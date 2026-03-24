@@ -11,39 +11,50 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.sbtracker.*
+import com.sbtracker.databinding.FragmentBatteryBinding
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 class BatteryFragment : Fragment() {
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
-        inflater.inflate(R.layout.fragment_battery, container, false)
+    private var _binding: FragmentBatteryBinding? = null
+    private val binding get() = _binding!!
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _binding = FragmentBatteryBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val vm = (requireActivity() as MainActivity).vm
 
         // Hero state containers
-        val heroIdle = view.findViewById<View>(R.id.hero_idle)
-        val heroCharging = view.findViewById<View>(R.id.hero_charging)
+        val heroIdle = binding.heroIdle
+        val heroCharging = binding.heroCharging
 
         // Hero Idle Views
-        val tvHeroSessionsLeft = view.findViewById<TextView>(R.id.tv_hero_sessions_left)
-        val tvHeroIdleSubtext = view.findViewById<TextView>(R.id.tv_hero_idle_subtext)
+        val tvHeroSessionsLeft = binding.tvHeroSessionsLeft
+        val tvHeroIdleSubtext = binding.tvHeroIdleSubtext
 
         // Hero Charging Views
-        val tvHeroEta80 = view.findViewById<TextView>(R.id.tv_hero_eta_80)
-        val tvHeroEtaFull = view.findViewById<TextView>(R.id.tv_hero_eta_full)
-        val tvHeroChargeRate = view.findViewById<TextView>(R.id.tv_hero_charge_rate)
+        val tvHeroEta80 = binding.tvHeroEta80
+        val tvHeroEtaFull = binding.tvHeroEtaFull
+        val tvHeroChargeRate = binding.tvHeroChargeRate
 
         // Status row
-        val tvPercent = view.findViewById<TextView>(R.id.batt_tv_percent)
-        val tvStatus = view.findViewById<TextView>(R.id.batt_tv_status)
+        val tvPercent = binding.battTvPercent
+        val tvStatus = binding.battTvStatus
 
         // Graph
-        val graph = view.findViewById<BatteryGraphView>(R.id.batt_graph)
-        val tvBattPeriodDay = view.findViewById<TextView>(R.id.batt_graph_period_day)
-        val tvBattPeriodWeek = view.findViewById<TextView>(R.id.batt_graph_period_week)
+        val graph = binding.battGraph
+        val tvBattPeriodDay = binding.battGraphPeriodDay
+        val tvBattPeriodWeek = binding.battGraphPeriodWeek
 
         tvBattPeriodDay.setOnClickListener  { vm.setGraphPeriod(MainViewModel.GraphPeriod.DAY) }
         tvBattPeriodWeek.setOnClickListener { vm.setGraphPeriod(MainViewModel.GraphPeriod.WEEK) }

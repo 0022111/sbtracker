@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.sbtracker.*
@@ -116,20 +117,20 @@ class LandingFragment : Fragment() {
                     is BleManager.ConnectionState.Disconnected -> {
                         tvScanStatus.text = "Tap to search for your device"
                         tvBtnConnectText.text = "Search Devices"
-                        tvBtnConnectText.setTextColor(Color.parseColor("#0A84FF"))
+                        tvBtnConnectText.setTextColor(ContextCompat.getColor(requireContext(), R.color.color_blue))
                         layoutOffline.visibility = View.VISIBLE
                         layoutOnline.visibility = View.GONE
-                        cardHero.setCardBackgroundColor(Color.parseColor("#111113"))
+                        cardHero.setCardBackgroundColor(ContextCompat.getColor(requireContext(), R.color.color_background))
                     }
                     is BleManager.ConnectionState.Scanning -> {
                         tvScanStatus.text = "Looking for devices..."
                         tvBtnConnectText.text = "Cancel Search"
-                        tvBtnConnectText.setTextColor(Color.parseColor("#FF453A"))
+                        tvBtnConnectText.setTextColor(ContextCompat.getColor(requireContext(), R.color.color_red))
                     }
                     is BleManager.ConnectionState.Connecting -> {
                         tvScanStatus.text = "Connecting to device..."
                         tvBtnConnectText.text = "Cancel Connect"
-                        tvBtnConnectText.setTextColor(Color.parseColor("#FF453A"))
+                        tvBtnConnectText.setTextColor(ContextCompat.getColor(requireContext(), R.color.color_red))
                     }
                     is BleManager.ConnectionState.Connected -> {}
                 }
@@ -166,30 +167,30 @@ class LandingFragment : Fragment() {
                 val isOn = s.heaterMode > 0
                 if (isOn) {
                     tvBtnHeaterText.text = "Stop Heater"
-                    tvBtnHeaterText.setTextColor(Color.parseColor("#FF453A"))
+                    tvBtnHeaterText.setTextColor(ContextCompat.getColor(requireContext(), R.color.color_red))
                     btnHeater.setBackgroundResource(R.drawable.bg_badge_red)
 
                     if (!s.setpointReached) {
                         tvLiveStatus.text = "HEATING"
-                        tvLiveStatus.setTextColor(Color.parseColor("#FF9F0A"))
-                        cardHero.setCardBackgroundColor(Color.parseColor("#261905")) // subtle orange tint
+                        tvLiveStatus.setTextColor(ContextCompat.getColor(requireContext(), R.color.color_orange))
+                        cardHero.setCardBackgroundColor(ContextCompat.getColor(requireContext(), R.color.color_tint_orange)) // subtle orange tint
                     } else {
                         tvLiveStatus.text = "READY"
-                        tvLiveStatus.setTextColor(Color.parseColor("#30D158"))
-                        cardHero.setCardBackgroundColor(Color.parseColor("#091F0D")) // subtle green tint
+                        tvLiveStatus.setTextColor(ContextCompat.getColor(requireContext(), R.color.color_green))
+                        cardHero.setCardBackgroundColor(ContextCompat.getColor(requireContext(), R.color.color_tint_green)) // subtle green tint
                     }
                 } else {
                     tvBtnHeaterText.text = "Start Heater"
-                    tvBtnHeaterText.setTextColor(Color.parseColor("#30D158"))
+                    tvBtnHeaterText.setTextColor(ContextCompat.getColor(requireContext(), R.color.color_green))
                     btnHeater.setBackgroundResource(R.drawable.bg_badge_green)
 
                     tvLiveStatus.text = "IDLE"
-                    tvLiveStatus.setTextColor(Color.parseColor("#636366"))
-                    cardHero.setCardBackgroundColor(Color.parseColor("#111113"))
+                    tvLiveStatus.setTextColor(ContextCompat.getColor(requireContext(), R.color.color_gray_mid))
+                    cardHero.setCardBackgroundColor(ContextCompat.getColor(requireContext(), R.color.color_background))
                 }
 
                 tvTileBatteryVal.text = "${s.batteryLevel}%"
-                tvTileBatteryVal.setTextColor(if (s.batteryLevel <= 20) Color.parseColor("#FF453A") else Color.parseColor("#30D158"))
+                tvTileBatteryVal.setTextColor(if (s.batteryLevel <= 20) ContextCompat.getColor(requireContext(), R.color.color_red) else ContextCompat.getColor(requireContext(), R.color.color_green))
             }
         }
 
@@ -203,7 +204,7 @@ class LandingFragment : Fragment() {
                 if (isConnected && s != null && s.heaterMode > 0) {
                     val sec = ss.durationSeconds
                     tvTileSessionVal.text = "%02d:%02d".format(sec / 60, sec % 60)
-                    tvTileSessionVal.setTextColor(Color.parseColor("#FF9F0A"))
+                    tvTileSessionVal.setTextColor(ContextCompat.getColor(requireContext(), R.color.color_orange))
                 } else {
                     tvTileSessionVal.text = "Ready"
                     tvTileSessionVal.setTextColor(Color.WHITE)
@@ -236,7 +237,7 @@ class LandingFragment : Fragment() {
                     val lastBat = lastSession?.endBattery
                     if (lastBat != null && lastBat > 0) {
                         tvTileBatteryVal.text = "${lastBat}%"
-                        tvTileBatteryVal.setTextColor(if (lastBat <= 20) Color.parseColor("#FF453A") else Color.WHITE)
+                        tvTileBatteryVal.setTextColor(if (lastBat <= 20) ContextCompat.getColor(requireContext(), R.color.color_red) else Color.WHITE)
                     } else {
                         tvTileBatteryVal.text = "--%"
                         tvTileBatteryVal.setTextColor(Color.WHITE)
@@ -259,7 +260,7 @@ class LandingFragment : Fragment() {
                 // Header
                 val header = TextView(requireContext()).apply {
                     text = "DEVICES"
-                    setTextColor(Color.parseColor("#636366"))
+                    setTextColor(ContextCompat.getColor(requireContext(), R.color.color_gray_mid))
                     textSize = 13f
                     letterSpacing = 0.1f
                     setTypeface(null, android.graphics.Typeface.BOLD)
@@ -283,8 +284,8 @@ class LandingFragment : Fragment() {
                         val bat = snapshot.lastBattery
                         text = if (bat != null) "${bat}%" else "--%"
                         setTextColor(
-                            if (bat != null && bat <= 20) Color.parseColor("#FF453A")
-                            else Color.parseColor("#80A88F")
+                            if (bat != null && bat <= 20) ContextCompat.getColor(requireContext(), R.color.color_red)
+                            else ContextCompat.getColor(requireContext(), R.color.color_battery_ok)
                         )
                         textSize = 14f
                         setTypeface(null, android.graphics.Typeface.BOLD)
@@ -292,7 +293,7 @@ class LandingFragment : Fragment() {
                     val seenLabel = TextView(requireContext()).apply {
                         val ms = snapshot.lastSeenMs
                         text = if (ms != null) " · ${relativeDate(ms)}" else ""
-                        setTextColor(Color.parseColor("#636366"))
+                        setTextColor(ContextCompat.getColor(requireContext(), R.color.color_gray_mid))
                         textSize = 12f
                     }
                     row.addView(nameLabel)
