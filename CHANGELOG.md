@@ -30,6 +30,8 @@
 - **Fixed** Stabilized reconnection loop to prevent concurrent `connectGatt` collisions.
 
 ### [Unreleased]
+- **Added** (F-018/T-034) `capsuleWeightGrams` and `defaultIsCapsule` SharedPrefs-backed StateFlows + setters in `MainViewModel`
+- **Added** (F-018/T-035) `IntakeStats` data class and `computeIntakeStats()` pure function in `AnalyticsRepository`
 - **Added** (F-048) Implemented an exponential backoff auto-reconnect loop (up to 30s intervals) that runs in the background if the device drops unexpectedly. Includes a 5-minute hard timeout to prevent endless battery drain if the device is permanently out of range.
 - **Added** (F-048) Updated `BleService` persistent notification to reflect active reconnection attempts.
 - **Added** (F-018) Unblocked Health & Dosage tracking by creating the `session_metadata` Room table and explicitly migrating the database from v2 to v3. This safely isolates user-entered data from destructive session rebuilds.
