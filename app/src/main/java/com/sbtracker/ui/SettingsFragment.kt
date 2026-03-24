@@ -50,6 +50,7 @@ class SettingsFragment : Fragment() {
         val tvColor = binding.tvSettingsColor
 
         val tvDayStartValue = binding.tvDayStartValue
+        val tvDayStartSubtitle = binding.tvDayStartSubtitle
         val tvRetentionValue = binding.tvRetentionValue
 
         binding.rowPhoneAlerts.setOnClickListener { vm.togglePhoneAlerts() }
@@ -121,6 +122,7 @@ class SettingsFragment : Fragment() {
             vm.dayStartHour.collect { hour ->
                 val text = if (hour == 0) "12 AM" else if (hour < 12) "$hour AM" else if (hour == 12) "12 PM" else "${hour - 12} PM"
                 tvDayStartValue.text = text
+                tvDayStartSubtitle.text = "Day view begins at $text"
             }
         }
 
