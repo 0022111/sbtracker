@@ -43,6 +43,14 @@
 - **Fixed** `CMD_BRIGHTNESS_VIBRATION (0x06)` request size (now 7 bytes instead of 20).
 - **Fixed** Stabilized reconnection loop to prevent concurrent `connectGatt` collisions.
 
+### 2026-03-24 16:30 — Intake: Session UX & Analytics Refinements (Direct push to dev)
+- **Added** (F-051) Heat-up Calculation Enhancement — weighting by proximity to last session for battery efficiency
+- **Added** (F-052) Analytics Display Refactoring — reorganize for clarity: frequency, hit analysis, dose insights
+- **Added** (F-053) Session Battery Starting Level — show starting battery during active session
+- **Added** (F-054) Session Page Complete Redesign — extraction log with clear labels and context
+- **Added** (F-055) Homepage/Landing Page Redesign — remove idle temp display, improve charge visibility, enable session access
+- **Added** (F-056) History/Analytics Page Organization — tabs/sub-pages for session log, analytics, health & intake
+
 ### [Unreleased]
 - **Added** (F-018/T-038) Health & Intake analytics card on History screen showing all-time/weekly grams and capsule split
 - **Added** (F-018/T-034) `capsuleWeightGrams` and `defaultIsCapsule` SharedPrefs-backed StateFlows + setters in `MainViewModel`
