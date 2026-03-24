@@ -209,17 +209,86 @@ class AnalyticsRepository(private val db: AppDatabase) {
 
     /**
      * Estimates the time to initial heat based on recent historical sessions with a similar target temperature.
+     * Incorporates weighting for time since last session and adjustments for current device temperature.
      * We use `peakTempC` as a proxy for the target temperature.
+     * 
+     * @param targetTempC The setpoint temperature the device is heating towards.
+     * @param summaries The list of available historical session summaries.
+     * @param timeSinceLastSessionMs Time in ms since the previous session ended.
+     * @param currentDeviceTempC The current temperature of the device (optional).
      */
-    fun computeEstimatedHeatUpTime(targetTempC: Int, summaries: List<SessionSummary>): Long? {
+    fun computeEstimatedHeatUpTime(
+        targetTempC: Int, 
+        summaries: List<SessionSummary>,
+        timeSinceLastSessionMs: Long? = null,
+        currentDeviceTempC: Int? = null
+    ): Long? {
+        // Filter for sessions with valid heat-up data and similar target temp (+/- 10C)
         val similarSessions = summaries.filter { 
             it.heatUpTimeMs > 0 && Math.abs(it.peakTempC - targetTempC) <= 10 
         }
         if (similarSessions.isEmpty()) return null
         
-        // Average the last 5 relevant sessions for a responsive estimate
-        val recentSimilar = similarSessions.sortedByDescending { it.startTimeMs }.take(5)
-        return recentSimilar.sumOf { it.heatUpTimeMs } / recentSimilar.size
+        // 1. Calculate time-based speed factor from the current state
+        // Weight values 1.2, 1.0, 0.9 are speed factors (higher = faster heat-up = less time)
+        val timeFactor = if (timeSinceLastSessionMs != null) {
+            when {
+                timeSinceLastSessionMs <= 5 * 60 * 1000 -> 1.2    // back-to-back boost
+                timeSinceLastSessionMs <= 30 * 60 * 1000 -> 1.0   // baseline
+                else -> 0.9                                       // extra cooling time
+            }
+        } else 1.0
+
+        // 2. Select recent similar sessions, preferring those that started at similar temperatures
+        val selectedSessions = if (currentDeviceTempC != null && currentDeviceTempC > 0) {
+            // Since SessionSummary doesn't store start temp, we estimate it from the previous session's peak
+            // if it happened within 10 minutes; otherwise we assume ambient (25C).
+            val allSorted = summaries.sortedBy { it.startTimeMs }
+            val startTempMap = mutableMapOf<Long, Int>()
+            var lastS: SessionSummary? = null
+            for (s in allSorted) {
+                val estStart = if (lastS != null && (s.startTimeMs - lastS.endTimeMs) < 10 * 60 * 1000) {
+                    lastS.peakTempC
+                } else 25
+                startTempMap[s.id] = estStart
+                lastS = s
+            }
+
+            val preferred = similarSessions.filter { 
+                val start = startTempMap[it.id] ?: 25
+                Math.abs(start - currentDeviceTempC) <= 15
+            }
+
+            if (preferred.isNotEmpty()) {
+                // Merge and prioritize preferred sessions, while keeping recency in the take(5)
+                (preferred.sortedByDescending { it.startTimeMs } + similarSessions.sortedByDescending { it.startTimeMs })
+                    .distinctBy { it.id }
+                    .take(5)
+            } else {
+                similarSessions.sortedByDescending { it.startTimeMs }.take(5)
+            }
+        } else {
+            similarSessions.sortedByDescending { it.startTimeMs }.take(5)
+        }
+
+        if (selectedSessions.isEmpty()) return null
+        
+        // 3. Compute baseline average and apply state-based weighting
+        // "Apply this weight to each session's heat-up time before averaging"
+        val weightedSum = selectedSessions.sumOf { (it.heatUpTimeMs / timeFactor).toLong() }
+        var resultMs = weightedSum / selectedSessions.size
+
+        // 4. Apply temperature-proximity adjustment (boost)
+        // Reduce the estimated time by 10% per 20°C of temperature delta already "covered" above ambient.
+        if (currentDeviceTempC != null && currentDeviceTempC > 0) {
+            val ambient = 25.0
+            val deltaCovered = (currentDeviceTempC.toDouble() - ambient).coerceAtLeast(0.0)
+            val reductionSteps = deltaCovered / 20.0
+            val reductionFactor = (1.0 - (reductionSteps * 0.10)).coerceIn(0.1, 1.0)
+            resultMs = (resultMs * reductionFactor).toLong()
+        }
+
+        return resultMs
     }
 
     // ── Usage insights ────────────────────────────────────────────────────────
