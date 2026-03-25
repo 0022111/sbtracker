@@ -4,10 +4,10 @@
 
 ---
 
-### 2026-03-25 14:xx — F-027: Session Programs UI — Session Page Integration (Claude)
+### 2026-03-25 14:xx — F-027: Session Programs UI — Session Page 2×3 Grid + Step Editor (Claude)
 
 - **Origin**: Branch `claude/session-program-ui-z3Kjs` → PR to `dev`
-- **Rationale**: Users need a quick way to select, apply, and configure session programs directly from the Session page. The 2×3 grid layout enables rapid access to 3 default presets + 3 custom programs, with inline editor for program configuration.
+- **Rationale**: Users need a quick way to select, apply, and configure session programs directly from the Session page. The 2×3 grid layout enables rapid access to 3 default presets + 3 custom programs, with a step-based editor for building custom heating schedules (temp steps + duration per step).
 - **Technical Changes**:
   - **SessionViewModel.kt**: Added program management via `ProgramRepository`:
     - `programs: StateFlow<List<SessionProgram>>` — observes all programs
@@ -15,31 +15,44 @@
     - `customPrograms: StateFlow<List<SessionProgram>>` — filters to user-created only
     - `saveProgram()` and `deleteProgram()` coroutine methods
   - **SessionFragment.kt**: Added `setupProgramsGrid()` and `showProgramEditor()` methods:
-    - Creates a 2×3 `GridLayout` after the controls card
-    - Dynamically populates buttons for default + custom programs (max 6 total)
-    - Shows "+ NEW" buttons in remaining slots if fewer than 6 programs exist
-    - Each program button displays: name + target temperature (e.g., "Terpene Optimization\n170°C")
-    - Clicking a program opens `AlertDialog` with:
+    - **setupProgramsGrid()**: Creates a 2×3 `GridLayout` after the controls card with:
+      - Dynamically populated buttons for default + custom programs (max 6 total)
+      - "+ NEW" buttons in remaining slots if fewer than 6 programs
+      - Each button displays: name + target temperature (e.g., "Terpene Optimization\n170°C")
+    - **showProgramEditor()**: Step-based heating schedule builder dialog with:
       - Program name `EditText`
-      - Target temperature (°C) `EditText` with validation (40–230°C)
-      - Current boost steps display (JSON preview)
-      - Save, Cancel, and Delete (if user-created) buttons
+      - Base temperature (°C) `EditText` with validation (40–230°C), defaults to current device setpoint for new programs
+      - **Heating Steps List**:
+        - Each row: duration (seconds) + boost offset (°C) inputs
+        - Remove button (−) to delete individual steps
+        - Inputs sync on focus change
+      - "+ ADD STEP" button to insert new steps (defaults: 60s, +5°C)
+      - Total duration summary (MM:SS format, auto-calculated from step durations)
+      - ScrollView for lists with 5+ steps
+      - Save, Cancel, and Delete buttons (delete only for user programs with confirmation)
+- **Data Model**:
+  - **boostStepsJson format**: `[{offsetSec: int, boostC: int}, ...]` where `offsetSec` is cumulative time since session start
+  - **UI ↔ Data translation**: Editor shows duration deltas (time between steps); save reconstructs cumulative offsets
+  - **Example**: User builds [60s @+0°C, 90s @+5°C, 120s @+10°C] → saved as [{0,0}, {60,5}, {150,10}]
 - **Styling**:
-  - Section label: "SESSION PROGRAMS" in boost_bar_fill color (#80A88F), 12sp, bold, 0.1em letter spacing
-  - Program buttons: white text on color_surface (#2C2C2E) background, 12sp, multi-line layout
-  - "+ NEW" buttons: boost_bar_fill text to indicate action-ready state
-  - Grid margins: 6dp between buttons for visual separation
+  - Section label: "SESSION PROGRAMS" in #80A88F (boost_bar_fill), 12sp bold, 0.1em letter spacing
+  - Program buttons: white text on #2C2C2E (color_surface), 12sp, multi-line
+  - "+ NEW" buttons: #80A88F text to indicate action state
+  - Step rows: #091F0D (tint_green) background, white input fields, compact layout
+  - Step labels: "HEATING STEPS" in #80A88F, bold
+  - Total duration: #80A88F text, bold
+  - Grid margins: 6dp between buttons
 - **Behavior**:
-  - Program selection is immediate (button click opens editor)
-  - New programs default to: name = "", targetTempC = 180, boostStepsJson = "[{offsetSec:0, boostC:0}]", isDefault = false
-  - Deleting a program requires confirmation dialog to prevent accidents
-  - Default programs (isDefault=true) cannot be deleted (DAO enforces via query)
+  - New programs default to current device target temperature (not hardcoded 180°C)
+  - Existing programs reload with parsed steps on edit
+  - Default programs (isDefault=true) cannot be deleted (UI hides delete button + DAO constraint)
+  - Adding/removing steps updates total duration in real-time
+  - Confirmation dialog prevents accidental deletion
 - **Technical Debt**:
-  - **Deferred**: Program application to device (T-046) — boost step scheduling not wired yet; currently only saves to local DB
-  - **Deferred**: Battery drain estimation display — UI shows basic info but doesn't calculate drain based on program duration yet; requires `AnalyticsRepository` enhancement
-  - **Barebones**: Step editor is JSON preview-only; full step creation/editing UI (time offset, boost delta per step) deferred to next phase
-  - **Barebones**: Total program duration calculation not displayed; would require parsing boostStepsJson and summing time deltas
-- **Testing Notes**: Manual testing required once gradle build environment is stable. Flow observables verified in code; dialog interactions and database persistence rely on `ProgramRepository` + `SessionProgramDao` (already tested in T-043).
+  - **Deferred**: Program application to device (T-046) — boost step scheduling via setBoost() not wired yet; currently only saves to local DB
+  - **Deferred**: Battery drain estimation — no UI display of estimated drain vs program duration
+  - **Deferred**: Step presets/templates — no pre-built profiles (e.g., "Flavor Chase", "Cloud Chaser"), custom entry only
+- **Testing Notes**: Manual testing required once gradle build environment stabilizes. Logic verified: JSON parsing → StepUI, step list management, duration calculation, JSON rebuild. Dialog interactions and persistence rely on `ProgramRepository` + `SessionProgramDao` (already tested in T-043).
 
 ---
 
