@@ -710,7 +710,8 @@ class SessionFragment : Fragment() {
                         name = name,
                         targetTempC = newBaseTemp,
                         boostStepsJson = json,
-                        isDefault = false
+                        isDefault = false,
+                        stayOnAtEnd = false
                     )).copy(name = name, targetTempC = newBaseTemp, boostStepsJson = json)
 
                     sessionVm.saveProgram(updated)

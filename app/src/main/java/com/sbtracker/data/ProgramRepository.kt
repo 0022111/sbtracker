@@ -18,19 +18,22 @@ class ProgramRepository @Inject constructor(
                 name = "Terpene Optimization",
                 targetTempC = 170,
                 boostStepsJson = "[{\"offsetSec\":0,\"boostC\":0},{\"offsetSec\":60,\"boostC\":5},{\"offsetSec\":120,\"boostC\":10}]",
-                isDefault = true
+                isDefault = true,
+                stayOnAtEnd = false
             ),
             SessionProgram(
                 name = "Even Step",
                 targetTempC = 185,
                 boostStepsJson = "[{\"offsetSec\":0,\"boostC\":0},{\"offsetSec\":90,\"boostC\":5},{\"offsetSec\":180,\"boostC\":10}]",
-                isDefault = true
+                isDefault = true,
+                stayOnAtEnd = false
             ),
             SessionProgram(
                 name = "Full Heat Max Rip",
                 targetTempC = 210,
                 boostStepsJson = "[{\"offsetSec\":0,\"boostC\":10}]",
-                isDefault = true
+                isDefault = true,
+                stayOnAtEnd = false
             )
         )
         defaults.forEach { dao.insertOrUpdate(it) }
