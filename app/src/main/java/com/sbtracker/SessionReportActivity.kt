@@ -57,7 +57,7 @@ class SessionReportActivity : AppCompatActivity() {
 
             // Load all data concurrently from a single IO context.
             val (points, hits, hitStats, startBat, endBat, peakTempC, firstSetpointMs,
-                 startRuntime, endRuntime) = withContext(Dispatchers.IO) {
+                 startRuntime, endRuntime, appliedProgramName) = withContext(Dispatchers.IO) {
                 val p   = db.deviceStatusDao().getStatusForRange(
                     session.deviceAddress, session.startTimeMs, session.endTimeMs
                 )
@@ -73,8 +73,13 @@ class SessionReportActivity : AppCompatActivity() {
                 )
                 val sr  = db.extendedDataDao().getHeaterRuntime(session.deviceAddress) ?: 0
                 val er  = db.extendedDataDao().getHeaterRuntime(session.deviceAddress) ?: 0
+                // Resolve applied program name if applicable
+                val meta = db.sessionMetadataDao().getMetadataForSession(session.id)
+                val progName = meta?.appliedProgramId?.let { programId ->
+                    db.sessionProgramDao().getById(programId)?.name
+                }
                 // Pack into a data holder to return multiple values from withContext.
-                SessionData(p, h, hs, sb, eb, pt, fsMs, sr, er)
+                SessionData(p, h, hs, sb, eb, pt, fsMs, sr, er, progName)
             }
 
             val durationMs      = session.durationMs
@@ -86,6 +91,15 @@ class SessionReportActivity : AppCompatActivity() {
             findViewById<TextView>(R.id.report_tv_hits).text     = hitStats.hitCount.toString()
             findViewById<TextView>(R.id.report_tv_duration).text = formatDuration(durationMs / 1000)
             findViewById<TextView>(R.id.report_tv_drain).text    = "-${batteryConsumed}%"
+
+            // Display program name if applicable
+            val programLabel = findViewById<TextView>(R.id.report_tv_program)
+            if (appliedProgramName != null) {
+                programLabel?.text = "Program: $appliedProgramName"
+                programLabel?.visibility = android.view.View.VISIBLE
+            } else {
+                programLabel?.visibility = android.view.View.GONE
+            }
 
             // ── Technical data ───────────────────────────────────────────────────
             findViewById<TextView>(R.id.report_tv_peak_temp).text =
@@ -157,7 +171,8 @@ class SessionReportActivity : AppCompatActivity() {
         val peakTempC:      Int,
         val firstSetpointMs: Long?,
         val startRuntime:   Int,
-        val endRuntime:     Int
+        val endRuntime:     Int,
+        val appliedProgramName: String? = null
     )
 
     private fun formatDuration(seconds: Long): String {

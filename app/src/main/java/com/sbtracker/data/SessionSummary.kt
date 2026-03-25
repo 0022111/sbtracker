@@ -32,7 +32,11 @@ data class SessionSummary(
 
     // ── Device wear (from extended_data boundary readings) ────────────────────
     /** Delta heaterRuntimeMinutes across the session.  0 if extended_data unavailable. */
-    val heaterWearMinutes:  Int
+    val heaterWearMinutes:  Int,
+
+    // ── Program metadata (from session_metadata) ──────────────────────────────────
+    /** Name of the applied program, if one was selected; null otherwise. */
+    val appliedProgramName: String? = null
 ) {
     // Convenience delegation so call-sites can use summary.* directly
     val id:             Long    get() = session.id

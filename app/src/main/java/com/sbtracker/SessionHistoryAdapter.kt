@@ -71,7 +71,13 @@ class SessionHistoryAdapter(
             val s = durationSec % 60
             val durStr = if (m > 0) "${m}m ${s}s" else "${s}s"
 
-            tvSummary.text = "$durStr • ${summary.hitCount} hits"
+            // Build summary text with optional program badge
+            val summaryText = if (summary.appliedProgramName != null) {
+                "$durStr • ${summary.hitCount} hits • ▶ ${summary.appliedProgramName}"
+            } else {
+                "$durStr • ${summary.hitCount} hits"
+            }
+            tvSummary.text = summaryText
             tvDrain.text = "-${summary.batteryConsumed}%"
             tvDrain.setTextColor(Color.parseColor("#FF453A"))
             tvDrain.setBackgroundResource(R.drawable.bg_badge_red)
