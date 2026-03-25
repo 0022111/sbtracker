@@ -1,5 +1,18 @@
 # SBTracker — Changelog
 
+### 2026-03-25 14:00 — Plan F-026 Data Backup/Restore (Niobe/Planner)
+
+- **Origin**: Direct push to `dev` (meta-file)
+- **F-026 status**: `planned` → `in-progress`
+- **Tasks created** (T-058 through T-063):
+  - `T-058` (`ready`) — `BackupRepository`: WAL checkpoint + `sbtracker.db` copy to cache dir + `FileProvider` URI emission via `SharedFlow`.
+  - `T-059` (`blocked` by T-058) — `RestoreRepository`: SQLite magic-byte validation, `AppDatabase.close()`, db file overwrite, WAL/SHM sidecar cleanup, `RestoreResult` sealed type emission.
+  - `T-060` (`blocked` by T-058) — `SettingsViewModel` backup delegation + "Backup Database" button in `SettingsFragment`.
+  - `T-061` (`blocked` by T-059, T-060) — `SettingsViewModel` restore delegation + `ActivityResultContracts.OpenDocument()` file-picker + "Restore Database" button in `SettingsFragment` with Toast feedback.
+  - `T-062` (`blocked` by T-060, T-061) — `MainActivity` observers: share intent for backup URI, process-kill restart on successful restore.
+  - `T-063` (`blocked` by T-062) — End-to-end smoke test on device/emulator + BACKLOG/CHANGELOG closeout.
+- **Architecture note**: Backup copies the live db file after a `PRAGMA wal_checkpoint(FULL)` — no schema version change. Restore closes Room, overwrites the file, then kills the process so Room reopens cleanly on the next launch. The existing `fallbackToDestructiveMigration()` dev safety net handles any version mismatch in restored files.
+
 ### 2026-03-25 — Plan F-025 History Clear (Link/Planner)
 
 - **Origin**: Direct push to `dev` (meta-file)

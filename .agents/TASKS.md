@@ -144,6 +144,18 @@ main  ← stable, merges only from dev
 | T-067 | `ready` | Add startingBattery to SessionStats | [T-067](tasks/T-067-session-stats-starting-battery.md) | — |
 | T-068 | `blocked` | Display Starting Battery in Active Session UI | [T-068](tasks/T-068-session-fragment-starting-battery-ui.md) | T-067 |
 
+## Phase 3 — F-052 Analytics Display Refactoring
+
+| ID | Status | Title | Task File | Blocked by |
+|---|---|---|---|---|
+| T-076 | `ready` | Hit Classification Fields in AnalyticsModels | [T-076](tasks/T-076-hit-classification-fields.md) | — |
+| T-077 | `ready` | Compute Hit Achievement Metrics in AnalyticsRepository | [T-077](tasks/T-077-hit-achievement-metrics.md) | T-076 |
+| T-078 | `blocked` | Analytics Tab: Frequency & Dose Section Reorganization | [T-078](tasks/T-078-analytics-frequency-dose-section.md) | T-050 |
+| T-079 | `blocked` | Dose Visibility in Session Cards | [T-079](tasks/T-079-dose-visibility-session-cards.md) | T-049 |
+| T-080 | `blocked` | Hit Achievements Display on Analytics Tab | [T-080](tasks/T-080-hit-achievements-display.md) | T-077, T-078 |
+| T-081 | `blocked` | Temperature-Based Achievement Display | [T-081](tasks/T-081-temperature-achievement-display.md) | T-080 |
+| T-082 | `blocked` | Analytics Tab: Cycle & Session Insights Card | [T-082](tasks/T-082-analytics-cycle-insights-card.md) | T-078 |
+
 ## Phase 3 — F-054 Session Page Complete Redesign
 
 | ID | Status | Title | Task File | Blocked by |
