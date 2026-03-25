@@ -196,10 +196,21 @@ As a user, I want to see a 2×3 grid of session programs on the Session page whe
 - Battery drain estimation should use existing `AnalyticsRepository` heuristics
 - Do NOT store user programs in session_metadata on creation — only on session complete (T-056)
 
+**Planned Enhancements (Phase 2)**:
+- **Step Notifications**: Alert user when stepping up to next temp, or when time-remaining at current temp drops below threshold
+  - Notification params per step: `notifyOnStepChange` (boolean), `notifyTimeRemainingSeconds` (int)
+  - Example: "Stepping up to 195°C in 30s" or "30s remaining at 185°C"
+  - Requires integration with T-073 (Alert Delivery Logic)
+- **Visual Step Indicator**: During session, show current step number and next step preview
+- **Battery Drain per Step**: Estimate drain for each step, show in editor preview
+- **Preset Templates**: Pre-built profiles for common use cases (e.g., "Flavor Chase", "Cloud Chaser")
+
 **Dependencies:**
 - `SessionViewModel` — extend with program control methods
 - `HistoryViewModel` — reuse battery drain estimation logic
 - `ProgramRepository` — already has CRUD and defaults seeding
+- `BleViewModel` — for current temp/time tracking during execution
+- `NotificationManager` (T-073) — for step-based alerts
 
 ---
 
