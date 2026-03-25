@@ -122,7 +122,7 @@ main  ← stable, merges only from dev
 
 | ID | Status | Title | Task File | Blocked by |
 |---|---|---|---|---|
-| T-058 | `ready` | BackupRepository: Close WAL, Copy DB to Cache, Emit FileProvider URI | [T-058](tasks/T-058-backup-repository.md) | — |
+| T-058 | `done` | BackupRepository: Close WAL, Copy DB to Cache, Emit FileProvider URI | [T-058](tasks/T-058-backup-repository.md) | — |
 | T-059 | `blocked` | RestoreRepository: Validate, Close, Overwrite DB, Signal Restart | [T-059](tasks/T-059-restore-repository.md) | T-058 |
 | T-060 | `blocked` | SettingsViewModel: Backup Action + Settings UI Button | [T-060](tasks/T-060-backup-viewmodel-and-settings-button.md) | T-058 |
 | T-061 | `blocked` | SettingsViewModel: Restore Action + Settings UI Button | [T-061](tasks/T-061-restore-viewmodel-and-settings-button.md) | T-059, T-060 |
