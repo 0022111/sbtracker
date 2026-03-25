@@ -111,6 +111,10 @@ The current dev codebase (v0.1) is extremely close to a functional Alpha. To off
 | B-009 | `done` | P2 | Dim LED while charging doesnt restore to previous level, and acts funny if LED level is changed manually while charging. |
 | B-010 | `planned` | P2 | Boost offset does not seem correct, or target temp is reporting incorrectly. is effective temp really the best method? |
 | B-011 | `done` | P1 | BLE device stays physically connected but UI remains stuck in offline/reconnecting state — `LandingFragment` `Connected` branch was empty, never hid the offline layout. |
+| B-012 | `planned` | P2 | `BlePacket.parseFirmware()` and `parseIdentity()` perform no length validation — will throw `ArrayIndexOutOfBoundsException` on short/malformed packets. Silent parse failures in `parseExtended()` also lose data without logging. |
+| B-013 | `planned` | P2 | Sessions recorded before F-018 (Health & Dosage) have no `SessionMetadata` row — they all default to free-pack. Users who've been running the app since early dev will see incorrect/understated intake totals with no way to backfill. |
+| B-014 | `planned` | P3 | Charge taper multipliers in `SessionTracker` (0.60, 0.35, 0.15) are unvalidated magic numbers not tested against real Storz & Bickel charging curves. ETA accuracy at 70%+ is unknown. |
+| B-015 | `planned` | P3 | Battery drain estimate unreliable for new users. `DRAIN_HISTORY_SIZE = 50` but no confidence warning is shown for small samples. Users in their first 10 sessions may see misleading "sessions remaining" figures. |
 
 ---
 
@@ -126,6 +130,7 @@ The current dev codebase (v0.1) is extremely close to a functional Alpha. To off
 | 2026-03-23 | GitHub Integrity & PR Workflow | Enforces build verification and structured documentation for all agent contributions |
 | 2026-03-24 | Multi-device infrastructure enhancements | Added synthetic test device and cross-device landing page aggregates for better testability and transparency. |
 | 2026-03-24 | Introduce Hilt Dependency Injection (T-006) | Standardized dependency management; unblocked ViewModel decomposition and testing. |
+| 2026-03-25 | Oracle full-codebase audit | Comprehensive review of implementation vs. claims across all layers. Verdict: architecture sound, core bug B-010 (temp accuracy) is the primary release blocker. Added B-012–B-015 from audit findings. See CHANGELOG for full report. |
 
 ---
 

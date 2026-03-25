@@ -1,5 +1,89 @@
 # SBTracker — Changelog
 
+### 2026-03-25 — Full Codebase Oracle Audit (Oracle)
+
+- **Direct push to dev** (Origin: User request — comprehensive "is there really no spoon?" audit of the entire app)
+- **Added** B-012–B-015 to BACKLOG.md from audit findings
+- **Updated** Notes & Decisions Log with audit summary
+
+#### Overall Verdict: Architecture sound. ~60–65% production-ready. One confirmed critical bug. Several unvalidated constants.
+
+---
+
+**LAYER-BY-LAYER FINDINGS:**
+
+**BLE Layer — Production-ready**
+- Connection lifecycle, packet parsing, writes, BLE command queue all solid
+- `BleService` foreground service handles lifecycle correctly
+- **Gap (B-012)**: `parseFirmware()` and `parseIdentity()` have no length validation — malformed packets will crash; `parseExtended()` fails silently with no logging
+- Device-type detection via serial prefix (`VZ` / `VY`) works but has no fallback logging
+
+**Database Layer — Production-ready**
+- Event-sourcing god log (`device_status`) is the correct architecture
+- Schema v2→v3 migration clean; 6 entities properly indexed
+- `fallbackToDestructiveMigration()` still present (must be removed before public release, tracked as B-001)
+
+**Session Detection — Solid**
+- `SessionTracker.kt` state machine clean and tested
+- Grace periods (8s session end, 60s charge end) are reasonable
+- Hit count not persisted mid-session — crash loses live-session hits (minor data loss)
+- **Gap**: `SessionTracker` (live) detects hits via timer reset only; `HitDetector` (offline) uses timer reset OR temp dip — asymmetry can cause live vs. post-session hit count mismatches
+
+**Hit Detection — Unvalidated**
+- `HitDetector.kt` algorithm is sound in principle: timer-reset trigger + ≥2°C temp dip
+- Pure function, testable, retroactively applicable — good architecture
+- **UNVALIDATED**: `TEMP_DIP_THRESHOLD_C = 2` is a hardcoded guess with no real-device validation
+- Tests exist (`HitDetectorTest.kt`) but use synthetic data only — algorithm validates against itself, not reality
+- Rapid consecutive hits within a single polling interval may be missed entirely
+
+**Temperature Accuracy — CONFIRMED BUG (B-010)**
+- `BlePacket.parseStatus()` falls back to `target + boostOffset` as "effective temperature" for Venty/Veazy (which don't report live current temp via BLE)
+- This synthetic value is displayed in the UI and recorded in the analytics log as if it were actual heater temperature — it is not
+- Boost offset semantics (additive delta vs. absolute) unconfirmed; no real-packet validation exists
+- This is the single most critical gap: the primary data being tracked (temperature) is unvalidated for the two most common devices
+- **Action required**: Real-device packet capture and cross-validation against device display before alpha
+
+**Analytics Layer — Well-designed, unvalidated formulas**
+- All analytics are pure functions over `List<SessionSummary>` — correct, testable, retroactively improvable
+- In-memory caching + parallel DB queries — performant
+- `computeEstimatedHeatUpTime()`: weighted proximity model is sophisticated but no validation data
+- `computeIntakeStats()`: computation correct but **B-013** — old sessions default to free-pack, no backfill mechanism
+- Streak calculation: custom `dayStartHour` respected but DST not handled (roll-over uses UTC midnight)
+- Battery drain estimates: mean ± 1σ over 50-session window — **B-015** unreliable for new users (<10 sessions); no warning shown
+
+**Charge Tracking — Good approximation**
+- Taper model (0–70% linear, then 70–100% in three bands) is a reasonable approximation
+- **B-014**: The taper multipliers (0.60, 0.35, 0.15) are unvalidated magic numbers, not measured from real S&B devices
+- Sessions-remaining estimate uses linear battery-per-session average — non-linear at battery extremes; users near 5% will see optimistic figures
+
+**UI Layer — Functional, redesigns in-progress**
+- Landing, History, Battery fragments complete and working
+- Session fragment functional but F-054/F-055 redesigns in-progress (extraction timeline, homepage session access)
+- History/analytics tab split (F-056) in-progress
+- F-025 (history clear) and F-026 (backup/restore) not implemented — high risk for alpha testers
+
+**Test Coverage — Unit-level only**
+- `HitDetectorTest.kt`, `SessionTrackerTest.kt`, `AnalyticsRepositoryTest.kt` all present with meaningful coverage
+- All tests use synthetic `DeviceStatus` objects — no real captured device packets
+- No E2E tests (BLE → DB → analytics pipeline)
+- No performance benchmarks, no negative/fuzzing tests
+
+---
+
+**RELEASE BLOCKERS (must fix before alpha):**
+1. B-010: Validate temperature accuracy on real Venty/Veazy — capture packets, compare to device display, confirm boost offset semantics
+2. B-012: Add BlePacket length guards before `copyOfRange` calls
+3. F-026: Implement DB backup/restore before putting real data in testers' hands
+4. Validate hit detection threshold on real device (at minimum, make `TEMP_DIP_THRESHOLD_C` a tunable setting)
+
+**PRE-BETA (important but not blocking):**
+5. B-013: Add `SessionMetadata` backfill migration or onboarding prompt for existing users
+6. B-015: Show confidence warning / sample-size indicator on battery drain estimates
+7. F-025: Wire up history clear end-to-end
+8. B-014: Measure real S&B taper curve and update charge model constants
+
+---
+
 ### 2026-03-25 — Add Oracle Workflow & Slash Command (Morpheus)
 - **Branch**: `claude/build-oracle-tool-1Hq4A` → PR to dev
 - Created `.agents/workflows/oracle.md` — visionary pre-intake agent that deeply considers a feature idea before it enters the pipeline. Produces a structured Oracle Report covering: refined idea, vision, ideal state, implementation cost (data/BLE/analytics/UI), risks, synergies, and a recommended path.
