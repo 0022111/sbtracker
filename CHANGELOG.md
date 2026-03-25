@@ -28,6 +28,15 @@
   - `AppDatabase.version` is `4` with `SessionProgram::class` in entity list
   - `SessionProgramDao` provided via `AppModule`
 
+### 2026-03-25 14:30 — T-049: Extract SessionsTabFragment from HistoryFragment (Apoc/Worker)
+
+- **Origin**: Branch `claude/T-049-sessions-tab-fragment` → PR to `dev`
+- **Task**: T-049 (`ready` → `done`)
+- **Changes**:
+  - Created `app/src/main/java/com/sbtracker/ui/SessionsTabFragment.kt`: new fragment inflating `fragment_sessions_tab.xml`, containing RecyclerView + SessionHistoryAdapter, sort bar, device filter chips, clear all dialog, and export button. Uses `activityViewModels()` for `bleVm` and `historyVm`.
+  - Created `app/src/main/res/layout/fragment_sessions_tab.xml`: ScrollView > LinearLayout wrapping session count TextView, device filter HorizontalScrollView, sort bar HorizontalScrollView, RecyclerView, clear button, and export ImageButton.
+  - Updated `app/src/main/java/com/sbtracker/ui/HistoryFragment.kt`: removed session list, sort bar, device filter chip, clear, and export code blocks. Analytics, health, and charts sections remain.
+
 ### 2026-03-25 12:00 — T-067: Add startingBattery to SessionStats (Apoc/Worker)
 
 - **Origin**: Branch `claude/T-067-session-stats-starting-battery` → PR to `dev`
