@@ -106,4 +106,11 @@ object AppModule {
     fun provideProgramRepository(dao: SessionProgramDao): ProgramRepository {
         return ProgramRepository(dao)
     }
+
+    @Provides
+    @Singleton
+    fun provideBackupRepository(
+        @ApplicationContext context: Context,
+        db: AppDatabase
+    ): BackupRepository = BackupRepository(context, db)
 }
