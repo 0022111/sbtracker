@@ -4,6 +4,37 @@
 
 ---
 
+### 2026-03-25 14:xx — F-027: Program Editor Refinement — Clean Table UI (Claude)
+
+- **Origin**: Branch `claude/session-program-ui-table-refinement` → PR to `dev`
+- **Rationale**: Previous step editor had cluttered layout with input hints and visual noise. Replace with clean table format (Step# | Temp | Time) matching spreadsheet/CSV style for better usability and clarity.
+- **Technical Changes**:
+  - **SessionFragment.kt**: Redesigned `showProgramEditor()` dialog:
+    - **Header row**: Column labels (Step#, Temp(°C), Time(s), Remove) in boost_bar_fill (#80A88F), bold
+    - **Data rows**: One row per step with aligned editable columns:
+      - Step# (read-only, centered, 40dp wide)
+      - Temp (°C) input (editable, flex width, numeric)
+      - Time (s) input (editable, flex width, numeric)
+      - Remove button (−) right-aligned, 50dp
+    - **Visual styling**: tint_green background (#091F0D), white text, 4dp row margins
+  - **Data model change**: UI shows absolute temperatures (not boost offsets)
+    - Parse: convert boostC to absolute temp = baseTemp + boostC
+    - Edit: user sees and adjusts absolute temps directly
+    - Save: recompute boostC = temp - baseTemp, rebuild JSON with cumulative offsets
+  - **Plus Add Step**: Appends new row (defaults: baseTemp+5°C, 60s duration)
+  - **Auto-total**: Duration (MM:SS) updates real-time as user edits
+  - **ScrollView**: Accommodates 5+ step lists without clutter
+- **Benefits**:
+  - All inputs visible at once (no filler/placeholder text hiding data)
+  - Clean, scannable spreadsheet-like format
+  - Easy mental model: columns = attributes, rows = steps
+  - Proper alignment and spacing (readable)
+  - Remove buttons integrated into each row (not separate)
+- **Technical Debt**: None; fully backwards compatible with existing boostStepsJson storage
+- **Testing Notes**: Manual testing once gradle stable. Verified JSON serialization/parsing roundtrips correctly.
+
+---
+
 ### 2026-03-25 14:xx — F-027: Session Programs UI — Session Page 2×3 Grid + Step Editor (Claude)
 
 - **Origin**: Branch `claude/session-program-ui-z3Kjs` → PR to `dev`
