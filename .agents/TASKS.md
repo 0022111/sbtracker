@@ -151,3 +151,15 @@ main  ← stable, merges only from dev
 | T-053 | `ready` | Session Report: Redesign Layout with Labeled Sections | [T-053](tasks/T-053-session-report-layout-redesign.md) | — |
 | T-054 | `blocked` | Session Report: Human-Readable Extraction Timeline | [T-054](tasks/T-054-session-report-hit-timeline.md) | T-053 |
 | T-055 | `blocked` | Session Report: Session Classification Label | [T-055](tasks/T-055-session-classification-label.md) | T-054 |
+
+## Phase 3 — F-050 Notifications Overhaul
+
+| ID | Status | Title | Task File | Blocked by |
+|---|---|---|---|---|
+| T-069 | `ready` | Notification Channel Consolidation | [T-069](tasks/T-069-notification-channels.md) | — |
+| T-070 | `ready` | Persistent Status Notification Content | [T-070](tasks/T-070-persistent-status-notification.md) | T-069 |
+| T-071 | `blocked` | Notification Drawer Quick Controls | [T-071](tasks/T-071-notification-quick-controls.md) | T-070, T-008 |
+| T-072 | `ready` | Configurable Alert Settings UI | [T-072](tasks/T-072-alert-settings-ui.md) | — |
+| T-073 | `blocked` | Alert Delivery Logic (Temp Ready, Charge 80%, Session End) | [T-073](tasks/T-073-alert-delivery-logic.md) | T-069, T-072 |
+| T-074 | `blocked` | Alert Notification Action Buttons (T-019 implementation) | [T-074](tasks/T-074-t019-alert-action-buttons.md) | T-073, T-008 |
+| T-075 | `ready` | POST_NOTIFICATIONS Permission Handling (Android 13+) | [T-075](tasks/T-075-notification-permission-handling.md) | — |
