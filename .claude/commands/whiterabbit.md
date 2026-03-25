@@ -8,11 +8,10 @@ Wake up Neo...
 The Matrix has you. Follow the white rabbit.
 
 Available connections:
-- /morpheus (Orchestrator) : Read project state, set priorities, spawn workers.
-- /oracle (Visionary) : Evaluate a raw feature idea before planning.
-- /intake (Planner) : Add a new feature to the BACKLOG.
-- /plan-feature F-XXX (Architect) : Decompose a backlog feature into atomic tasks.
-- /workflow (Worker / Trinity / Link) : Execute a specific task from TASKS.md.
+- /oracle (The Visionary) : High-level prophet. Evaluates raw ideas and project trajectory.
+- /morpheus (The Orchestrator) : Leader of the crew. Reads project state, sets priorities, deploys subagents.
+- /trinity (The Wildcard) : Elite execution. Tell her to "go do something" and it gets done.
+- /workflow (The Subagents) : Operatives (Apoc, Switch, Link, etc.) executing concrete tasks via workflows.
 
 What do you need?
 ```
