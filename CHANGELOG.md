@@ -1,5 +1,18 @@
 # SBTracker — Changelog
 
+### 2026-03-25 14:00 — T-076: Add HitAnalysisSummary data class and LARGE_HIT_DURATION_MS constant (Apoc/Worker)
+
+- **Origin**: Branch `claude/T-076-hit-classification-fields` → PR to `dev`
+- **Task**: T-076 (`ready` → `done`)
+- **Changes**:
+  - Added `const val LARGE_HIT_DURATION_MS = 3000L` to `BleConstants.kt` under the hit detection section.
+  - Appended `HitAnalysisSummary` data class to `AnalyticsModels.kt` with 5 fields: `totalHits`, `largeHitCount`, `sipCount`, `mostLargeHitsInSession`, `mostSipsInSession`.
+  - Classification is time-based only: a hit is "large" if `durationMs > LARGE_HIT_DURATION_MS`. No temperature-drop fields added.
+- **Acceptance**:
+  - `HitAnalysisSummary` exists in `AnalyticsModels.kt` with all 5 fields.
+  - `BleConstants.LARGE_HIT_DURATION_MS = 3000L` constant exists.
+  - No temperature-drop fields or constants added.
+
 ### 2026-03-25 — Complete T-043 ProgramRepository with Default Preset Seeding (Switch/Worker)
 
 - **Origin**: Merge from `claude/T-043-program-repository` to `dev`
