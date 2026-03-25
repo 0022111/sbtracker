@@ -10,7 +10,9 @@ import android.widget.TextView
 import android.widget.GridLayout
 import android.widget.LinearLayout
 import android.widget.EditText
+import android.widget.HorizontalScrollView
 import android.app.AlertDialog
+import com.google.android.material.button.MaterialButton
 import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -21,6 +23,7 @@ import com.sbtracker.databinding.FragmentSessionBinding
 import com.sbtracker.data.SessionProgram
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -74,7 +77,14 @@ class SessionFragment : Fragment() {
         val btnBoost = binding.btnModeBoost
         val btnSuper = binding.btnModeSuperboost
 
-        btnStartNormal.setOnClickListener { sessionVm.startSession(bleVm.targetTemp.value) }
+        btnStartNormal.setOnClickListener {
+            val prog = sessionVm.selectedProgram.value
+            if (prog != null) {
+                sessionVm.startSessionWithProgram(prog)
+            } else {
+                sessionVm.startSession(bleVm.targetTemp.value)
+            }
+        }
         btnEnd.setOnClickListener { sessionVm.setHeater(false) }
 
         binding.btnTempPlus.setOnClickListener {
@@ -182,9 +192,145 @@ class SessionFragment : Fragment() {
             }
         }
 
+        // Setup Program Chip Row
+        setupProgramChipRow(binding.sessionContentScroll)
+
+        // Hide chip row during active sessions
+        viewLifecycleOwner.lifecycleScope.launch {
+            bleVm.sessionStats.collect { stats ->
+                // chipRow visibility will be handled in setupProgramChipRow
+            }
+        }
+
         // Setup Session Programs Grid (2x3)
         setupProgramsGrid()
     }
+
+    private fun setupProgramChipRow(scrollView: View) {
+        val parentLayout = scrollView as? LinearLayout ?: return
+
+        val chipContainer = LinearLayout(requireContext()).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(8.dpToPx(), 8.dpToPx(), 8.dpToPx(), 8.dpToPx())
+        }
+
+        val chipScroll = HorizontalScrollView(requireContext()).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            addView(chipContainer)
+        }
+
+        // Insert the chip row at the beginning (index 0)
+        parentLayout.addView(chipScroll, 0)
+
+        // Observe programs and build chips
+        viewLifecycleOwner.lifecycleScope.launch {
+            sessionVm.programs.collect { programs ->
+                chipContainer.removeAllViews()
+
+                // "No Program" chip (always first)
+                val noProgramChip = createProgramChip(
+                    name = "No Program",
+                    isSelected = sessionVm.selectedProgram.value == null,
+                    onClick = {
+                        sessionVm.selectProgram(null)
+                        updateTempPreview(null)
+                    }
+                )
+                chipContainer.addView(noProgramChip)
+
+                // One chip per program
+                programs.forEach { program ->
+                    val chip = createProgramChip(
+                        name = program.name,
+                        isSelected = sessionVm.selectedProgram.value?.id == program.id,
+                        onClick = {
+                            sessionVm.selectProgram(program)
+                            updateTempPreview(program)
+                        }
+                    )
+                    chipContainer.addView(chip)
+                }
+            }
+        }
+
+        // Hide chip row during active sessions
+        viewLifecycleOwner.lifecycleScope.launch {
+            bleVm.sessionStats.collect { stats ->
+                chipScroll.visibility = if (stats.state == SessionTracker.State.IDLE) {
+                    View.VISIBLE
+                } else {
+                    View.GONE
+                }
+            }
+        }
+
+        // Update chips when selectedProgram changes
+        viewLifecycleOwner.lifecycleScope.launch {
+            sessionVm.selectedProgram.collect { _ ->
+                // Rebuild chips to reflect new selection state
+                chipContainer.removeAllViews()
+
+                val noProgramChip = createProgramChip(
+                    name = "No Program",
+                    isSelected = sessionVm.selectedProgram.value == null,
+                    onClick = {
+                        sessionVm.selectProgram(null)
+                        updateTempPreview(null)
+                    }
+                )
+                chipContainer.addView(noProgramChip)
+
+                sessionVm.programs.value.forEach { program ->
+                    val chip = createProgramChip(
+                        name = program.name,
+                        isSelected = sessionVm.selectedProgram.value?.id == program.id,
+                        onClick = {
+                            sessionVm.selectProgram(program)
+                            updateTempPreview(program)
+                        }
+                    )
+                    chipContainer.addView(chip)
+                }
+            }
+        }
+    }
+
+    private fun createProgramChip(
+        name: String,
+        isSelected: Boolean,
+        onClick: () -> Unit
+    ): MaterialButton {
+        return MaterialButton(requireContext(), null, com.google.android.material.R.attr.borderlessButtonStyle).apply {
+            text = name
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { setMargins(4.dpToPx(), 0, 4.dpToPx(), 0) }
+
+            setBackgroundTintList(android.content.res.ColorStateList.valueOf(
+                ContextCompat.getColor(
+                    requireContext(),
+                    if (isSelected) R.color.color_blue else R.color.color_dark_card
+                )
+            ))
+
+            setOnClickListener { onClick() }
+        }
+    }
+
+    private fun updateTempPreview(program: SessionProgram?) {
+        val tvTargetBase = binding.tvTargetTemp
+        tvTargetBase.text = "${program?.targetTempC ?: bleVm.targetTemp.value}°"
+    }
+
+    private fun Int.dpToPx() = (this * requireContext().resources.displayMetrics.density).toInt()
 
     private fun setupProgramsGrid() {
         val scrollView = binding.sessionContentScroll
