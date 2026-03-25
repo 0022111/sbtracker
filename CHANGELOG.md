@@ -1,5 +1,18 @@
 # SBTracker — Changelog
 
+### 2026-03-25 16:00 — Plan F-052 Analytics Display Refactoring (Niobe/Planner)
+
+- **Origin**: Direct push to `dev` (meta-file)
+- **F-052 status**: `planned` → `in-progress`
+- **Tasks created** (T-076 through T-082):
+  - `T-076` (`ready`) — Add `HitAnalysisSummary` data class to `AnalyticsModels.kt` and `LARGE_HIT_TEMP_DROP_C = 8` constant to `BleConstants.kt` for classifying large hits (rips) vs sips.
+  - `T-077` (`ready`, blocked by T-076) — Add `computeHitAnalysis(summaries)` to `AnalyticsRepository`; queries per-hit rows from `HitDao`, classifies each hit by temperature drop, returns `HitAnalysisSummary`.
+  - `T-078` (`blocked` by T-050) — Reorganize `fragment_analytics_tab.xml` and `AnalyticsTabFragment` into: Frequency section → Dose & Session section → Cycle & Session Insights → expandables. Adds section header labels and surfaces `IntakeStats.avgGramsPerSession`.
+  - `T-079` (`blocked` by T-049) — Add gram-weight display to session cards in `SessionHistoryAdapter`; uses `SessionMetadata` map from `HistoryViewModel` with capsule-weight fallback.
+  - `T-080` (`blocked` by T-077, T-078) — Add Hit Achievements card to Analytics tab showing large-hit/sip counts, best-rip-session, most-sips-session, avg and peak temperature drop.
+  - `T-081` (`blocked` by T-080) — Extend Hit Achievements card with a Temperature Achievements sub-section: hottest session, favorite temp range, low-and-slow count, high-heat count.
+  - `T-082` (`blocked` by T-078) — Wrap bar chart, period toggle, and timeline in a "Cycle & Session Insights" card; add avg duration and avg heat-up stats row above the chart.
+
 ### 2026-03-25 15:30 — Plan F-050 Notifications Overhaul (Link/Planner)
 
 - **Origin**: Direct push to `dev` (meta-file)
