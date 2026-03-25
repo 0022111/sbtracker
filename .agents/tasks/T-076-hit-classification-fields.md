@@ -3,77 +3,84 @@
 **Phase**: Phase 3 — F-052 Analytics Display Refactoring
 **Feature**: F-052
 **Blocked by**: nothing
-**Estimated diff**: ~40 lines in 1 file
+**Estimated diff**: ~30 lines in 2 files
 
 ## Goal
 
-Add a `HitAnalysisSummary` data class to `AnalyticsModels.kt` that carries
-per-session hit classification counts (large hits vs sips) and temperature-drop
-severity. This model is consumed by T-077 (computation) and T-080 (display).
+Add a `HitAnalysisSummary` data class to `AnalyticsModels.kt` and a duration
+threshold constant to `BleConstants.kt` as a framework skeleton for hit
+achievements. Individual achievement definitions will be filled in later —
+do not pre-populate fields beyond what is listed here.
 
 ## Background
 
-A hit is currently stored in the `hits` table with `peakTempC` and `durationMs`.
-The existing `HitDetector` fires on a temperature dip of ≥ `BleConstants.TEMP_DIP_THRESHOLD_C` (2°C).
-A **large hit** (rip) is a hit whose temperature drop at peak exceeds a larger
-threshold (proposed: ≥ 8°C). A **sip** is any hit below that threshold.
-Duration is a secondary classifier: long dips indicate sustained draws.
+A hit is stored in the `hits` table with a `durationMs` field. Classification
+is **time-based only**: a **large hit** is a hit whose `durationMs` exceeds
+`BleConstants.LARGE_HIT_DURATION_MS`. A **sip** is any hit below that threshold.
+Temperature drop is NOT used for classification.
+
+The goal of this task is just to establish the data model and constant so
+downstream tasks (T-077 computation, T-080 display) have a stable contract.
+Keep the model minimal — it is intentionally a framework to be extended.
 
 ## Read these files first
 
 - `app/src/main/java/com/sbtracker/analytics/AnalyticsModels.kt` — understand existing models
-- `app/src/main/java/com/sbtracker/data/Hit.kt` — available fields per hit row
+- `app/src/main/java/com/sbtracker/data/Hit.kt` — confirm `durationMs` field exists
 - `app/src/main/java/com/sbtracker/BleConstants.kt` — existing threshold constants
 
 ## Change only these files
 
 - `app/src/main/java/com/sbtracker/analytics/AnalyticsModels.kt`
+- `app/src/main/java/com/sbtracker/BleConstants.kt`
 
 ## Steps
 
-1. After the `IntakeStats` data class, append a new `HitAnalysisSummary` data class:
+1. Add a constant to `BleConstants.kt`:
+```kotlin
+/** Minimum hit duration (ms) to classify a hit as a large hit / rip. Tune after real-device validation. */
+const val LARGE_HIT_DURATION_MS = 3000L
+```
+
+2. After the `IntakeStats` data class in `AnalyticsModels.kt`, append:
 
 ```kotlin
 /**
  * Per-session hit classification counts derived from the hits table.
  * Used to power the hit-achievement display on the Analytics tab.
  *
- * A "large hit" (rip) is defined as a hit whose temperature drop
- * exceeded [BleConstants.LARGE_HIT_TEMP_DROP_C] during the inhale window.
- * A "sip" is any hit that did not meet that threshold.
+ * Classification is time-based: a hit is "large" if its durationMs
+ * exceeds [BleConstants.LARGE_HIT_DURATION_MS].
+ *
+ * This is a framework skeleton — add achievement fields here as needed.
  */
 data class HitAnalysisSummary(
-    /** Total hits across all classified sessions. */
+    /** Total hits classified across all sessions in scope. */
     val totalHits: Int = 0,
-    /** Hits classified as large (rip-level temperature drop). */
+    /** Hits whose duration exceeded LARGE_HIT_DURATION_MS. */
     val largeHitCount: Int = 0,
-    /** Hits classified as sips (smaller temperature drop). */
+    /** Hits whose duration was below LARGE_HIT_DURATION_MS. */
     val sipCount: Int = 0,
-    /** Session with the single highest large-hit count. */
+    /** Highest large-hit count recorded in a single session. */
     val mostLargeHitsInSession: Int = 0,
-    /** Session with the single highest sip count. */
-    val mostSipsInSession: Int = 0,
-    /** Average temperature drop (°C) across all classified hits. */
-    val avgTempDropC: Float = 0f,
-    /** Peak temperature drop recorded in a single hit (°C). */
-    val maxTempDropC: Int = 0
+    /** Highest sip count recorded in a single session. */
+    val mostSipsInSession: Int = 0
 )
 ```
 
-2. Add a companion constant to `BleConstants.kt`:
-```kotlin
-/** Minimum temperature drop (°C) for a hit to be classified as a large hit / rip. */
-const val LARGE_HIT_TEMP_DROP_C = 8
-```
+3. Run `./gradlew assembleDebug` and confirm it passes.
 
 ## Acceptance criteria
 
-- [ ] `HitAnalysisSummary` data class exists in `AnalyticsModels.kt`
-- [ ] `BleConstants.LARGE_HIT_TEMP_DROP_C = 8` constant exists
+- [ ] `HitAnalysisSummary` data class exists in `AnalyticsModels.kt` with the 5 fields above
+- [ ] `BleConstants.LARGE_HIT_DURATION_MS = 3000L` constant exists
+- [ ] No temperature-drop fields or constants added
 - [ ] `./gradlew assembleDebug` passes
 
 ## Do NOT
 
+- Add any temperature-drop fields or constants — classification is time-based only
+- Pre-populate achievement fields beyond the 5 listed — this is a framework skeleton
 - Compute anything — that is T-077
 - Modify any DAO or DB schema
 - Touch UI files

@@ -3,33 +3,33 @@
 **Phase**: Phase 3 — F-052 Analytics Display Refactoring
 **Feature**: F-052
 **Blocked by**: T-076
-**Estimated diff**: ~80 lines in 2 files
+**Estimated diff**: ~60 lines in 1 file
 
 ## Goal
 
-Add `computeHitAnalysis(summaries, db)` to `AnalyticsRepository` that queries
-the per-hit rows from the `hits` table (via `HitDao.getHitsForSession`) and
-returns a `HitAnalysisSummary`. This is the only analytics function that
-requires DB access (hits are stored rows, not derived inline).
+Add `computeHitAnalysis()` to `AnalyticsRepository` that queries per-hit rows
+from the `hits` table and returns a `HitAnalysisSummary`. Classification is
+time-based: hits with `durationMs >= BleConstants.LARGE_HIT_DURATION_MS` are
+large hits; the rest are sips.
 
 ## Background
 
-`SessionSummary` currently carries only `hitCount` and `totalHitDurationMs`
-(aggregate stats from `HitStats`). Per-hit `peakTempC` is stored in the
-`hits` table. To classify large hits vs sips, the function must fetch the
-individual hit rows and compare each hit's `peakTempC` against the session's
-baseline peak temp, using `BleConstants.LARGE_HIT_TEMP_DROP_C` (8°C).
+`SessionSummary` carries only aggregate `hitCount` and `totalHitDurationMs`.
+To classify individual hits, the function must fetch each hit row and check
+its `durationMs` against the threshold constant. This is the only analytics
+function that requires DB access — hits are stored rows, not inline-derived.
 
 **Classification rule** (per hit):
-- `tempDrop = session.peakTempC - hit.peakTempC`
-- If `tempDrop >= BleConstants.LARGE_HIT_TEMP_DROP_C` → large hit
+- If `hit.durationMs >= BleConstants.LARGE_HIT_DURATION_MS` → large hit
 - Otherwise → sip
+
+Temperature drop is NOT part of classification.
 
 ## Read these files first
 
 - `app/src/main/java/com/sbtracker/analytics/AnalyticsRepository.kt`
 - `app/src/main/java/com/sbtracker/analytics/AnalyticsModels.kt` (after T-076)
-- `app/src/main/java/com/sbtracker/data/Hit.kt` — `HitDao.getHitsForSession`
+- `app/src/main/java/com/sbtracker/data/Hit.kt` — confirm `durationMs` field and `HitDao.getHitsForSession`
 
 ## Change only these files
 
@@ -43,25 +43,25 @@ baseline peak temp, using `BleConstants.LARGE_HIT_TEMP_DROP_C` (8°C).
 2. Implementation sketch:
    - If `summaries.isEmpty()` return `HitAnalysisSummary()`.
    - For each summary, call `db.hitDao().getHitsForSession(summary.id)` on
-     `Dispatchers.IO` (can be parallel with `async` inside `coroutineScope`).
-   - For each hit row, compute `tempDrop = summary.peakTempC - hit.peakTempC`.
-   - Accumulate: `largeHitCount`, `sipCount`, per-session large-hit max,
-     per-session sip max, running sum of `tempDrop` for average,
-     running max `tempDrop`.
+     `Dispatchers.IO` (parallel `async` inside `coroutineScope` is fine).
+   - For each hit row: if `hit.durationMs >= BleConstants.LARGE_HIT_DURATION_MS`
+     increment `largeHitCount`, else increment `sipCount`.
+   - Track per-session large-hit count and sip count to find session maxima.
    - Return `HitAnalysisSummary(totalHits, largeHitCount, sipCount,
-     mostLargeHitsInSession, mostSipsInSession, avgTempDropC, maxTempDropC)`.
+     mostLargeHitsInSession, mostSipsInSession)`.
 
-3. No cache invalidation needed — this function re-queries the DB each call.
-   The call frequency from the ViewModel is low (once per screen open).
+3. No cache invalidation needed — low call frequency (once per screen open).
 
 ## Acceptance criteria
 
 - [ ] `AnalyticsRepository.computeHitAnalysis(summaries)` exists and compiles
+- [ ] Classification uses `hit.durationMs` vs `BleConstants.LARGE_HIT_DURATION_MS` — no temp fields
 - [ ] Returns `HitAnalysisSummary()` for an empty summary list
 - [ ] `./gradlew assembleDebug` passes
 
 ## Do NOT
 
+- Use temperature drop or `peakTempC` for classification — time-based only
 - Modify `AnalyticsModels.kt` (done in T-076)
 - Add any new DB columns or migrations
 - Touch UI files
