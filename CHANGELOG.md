@@ -1,5 +1,15 @@
 # SBTracker — Changelog
 
+### 2026-03-25 — Plan F-025 History Clear (Link/Planner)
+
+- **Origin**: Direct push to `dev` (meta-file)
+- **F-025 status**: `planned` → `in-progress`
+- **Tasks created** (T-064 through T-066):
+  - `T-064` (`ready`) — Data layer fix: add `SessionMetadataDao.clearAllForDevice()` and call it in `HistoryViewModel.clearSessionHistory()` before sessions are deleted (prevents orphaned `session_metadata` rows).
+  - `T-065` (`ready`, blocked by T-064) — Settings UI: add "Clear Device History" button + confirmation dialog in `SettingsFragment` wiring to `historyVm.clearSessionHistory()`.
+  - `T-066` (`ready`, blocked by T-064, T-065) — Integration verification: build check, static correctness review of all 7-table wipe order, update BACKLOG + CHANGELOG.
+- **Architecture note**: 5 of 6 core DAOs already had `clearAll(address)` methods; `HistoryViewModel.clearSessionHistory()` already called them but missed `session_metadata`. T-064 closes that gap. No Room schema version bump required (query-only change).
+
 ### 2026-03-25 — Plan F-053 Session Battery Starting Level (Niobe/Planner)
 
 - **Origin**: Direct push to `dev` (meta-file)

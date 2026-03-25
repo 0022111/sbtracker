@@ -118,6 +118,17 @@ main  ← stable, merges only from dev
 | T-051 | `ready` | HealthTabFragment: Health & Intake Sub-Page | [T-051](tasks/T-051-health-tab-fragment.md) | — |
 | T-052 | `blocked` | Wire History Tabs: TabLayout + ViewPager2 | [T-052](tasks/T-052-history-tabs-wire.md) | T-049, T-050, T-051 |
 
+## Phase 3 — F-026 Data Backup/Restore
+
+| ID | Status | Title | Task File | Blocked by |
+|---|---|---|---|---|
+| T-058 | `ready` | BackupRepository: Close WAL, Copy DB to Cache, Emit FileProvider URI | [T-058](tasks/T-058-backup-repository.md) | — |
+| T-059 | `blocked` | RestoreRepository: Validate, Close, Overwrite DB, Signal Restart | [T-059](tasks/T-059-restore-repository.md) | T-058 |
+| T-060 | `blocked` | SettingsViewModel: Backup Action + Settings UI Button | [T-060](tasks/T-060-backup-viewmodel-and-settings-button.md) | T-058 |
+| T-061 | `blocked` | SettingsViewModel: Restore Action + Settings UI Button | [T-061](tasks/T-061-restore-viewmodel-and-settings-button.md) | T-059, T-060 |
+| T-062 | `blocked` | MainActivity: Wire Backup Share Intent + Restore App Restart | [T-062](tasks/T-062-mainactivity-wire-backup-restore-intents.md) | T-060, T-061 |
+| T-063 | `blocked` | F-026 Smoke Test, CHANGELOG, and BACKLOG Closeout | [T-063](tasks/T-063-backup-restore-smoke-test-and-closeout.md) | T-062 |
+
 ## Phase 3 — F-025 History Clear
 
 | ID | Status | Title | Task File | Blocked by |
