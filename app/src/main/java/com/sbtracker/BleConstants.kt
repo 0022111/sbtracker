@@ -82,6 +82,4 @@ object BleConstants {
     /** Temperature dip (°C) that triggers hit detection. Single source of truth. */
     const val TEMP_DIP_THRESHOLD_C = 2
 
-    /** Minimum hit duration (ms) to classify a hit as a large hit / rip. Tune after real-device validation. */
-    const val LARGE_HIT_DURATION_MS = 3000L
 }
