@@ -1,5 +1,34 @@
 # SBTracker — Changelog
 
+> **Style Standard (v3)**: Every entry must identify the **Rationale** (Why), **Technical Changes** (What+Where), and **Deltas/Debt** (What was deferred or "barebones"). Link specific Backlog IDs to ensure "barebones" features are never lost.
+
+---
+
+
+### 2026-03-25 — Meta: Project Backlog Restructuring & Milestone Consolidation (Orchestrator)
+
+- **Rationale**: The backlog was becoming fragmented into too many small, disconnected tasks. This consolidation groups work into three functional "Milestone Epics" (Data Trust, UI Refresh, Data Mobility) to provide a clearer path to the v0.2 Alpha release.
+- **Changes**:
+  - **BACKLOG.md**: 
+    - Consolidated 14 active tasks into three primary Epics (v0.2 Milestone).
+    - Split **F-018** (Health & Dosage) into Phase 1 (Core) and Phase 2 (Advanced Insights) to better track "barebones" features.
+    - Updated the Critical Path in the Alpha Roadmap to align with Epic-based tracking.
+    - Archive "Done" items into a legacy section to reduce noise.
+  - **CHANGELOG.md**:
+    - Introduced the v3 Verbosity Standard to capture architectural rationale and technical debt.
+- **Architectural Impact**: This allows us to track "Trustworthiness" as a single unit, which is the hard prerequisite for the parked Hit Analytics (`F-052`) and Achievement system.
+- **Technical Debt (The "Barebones" tracking)**: 
+  - F-018b (Insights) is now explicitly tracked as a Phase 2 item, ensuring "done" doesn't mean "abandoned."
+
+---
+
+### 2026-03-25 — Fix Build Issue: Remove Unused Hit Analysis (Worker)
+
+- **Origin**: Issue resolution
+- **Changes**:
+  - Removed unused `computeHitAnalysis` method from `AnalyticsRepository.kt`.
+  - Resolved compile errors caused by missing `HitAnalysisSummary` and `LARGE_HIT_DURATION_MS` references (residue from incomplete T-076 revert).
+
 ### 2026-03-25 — Oracle Report: F-052 Hit Analytics & Achievement System (Oracle)
 
 - **Origin**: Direct push to `dev` (meta-file)
@@ -180,7 +209,7 @@
 - `SessionTracker.kt` state machine clean and tested
 - Grace periods (8s session end, 60s charge end) are reasonable
 - Hit count not persisted mid-session — crash loses live-session hits (minor data loss)
-- **Gap**: `SessionTracker` (live) detects hits via timer reset only; `HitDetector` (offline) uses timer reset OR temp dip — asymmetry can cause live vs. post-session hit count mismatches
+- **Gap**: `SessionTracker` (live) detects hits via timer reset only; `HitDetector` (offline) uses temp dip OR timer reset — asymmetry can cause live vs. post-session hit count mismatches
 
 **Hit Detection — Unvalidated**
 - `HitDetector.kt` algorithm is sound in principle: timer-reset trigger + ≥2°C temp dip

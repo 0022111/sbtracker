@@ -5,18 +5,14 @@
 ---
 
 ## Roadmap to Alpha (v0.2.0)
-The current dev codebase (v0.1) is extremely close to a functional Alpha. To officially cut a stable release for early testers to use in the real world, the following items must be resolved:
+The codebase is currently in the "Final Hardening" phase. To reach a technical Alpha release, focusing on these consolidated Epics is required to move away from fragmented bugs toward a high-trust, stable system.
 
-**Critical Path (Must-Haves for Alpha):**
-* **[B-010] Fix Temp Accuracy:** Resolve boost offset and target temp reporting. Since this is a vaporizer tracker, core temperature data must be explicitly trusted by users.
-* **[F-026] Data Backup / Restore:** Allow testers to export/import the `sbtracker.db` file. This protects their "god log" during early experimental schema iterations.
-* **[F-018] Health & Dosage Tracking:** *(Done)* Finalized the UI and Analytics layer; capsule weight settings, session type toggle, and intake card now fully functional.
+**Critical Alpha Milestones:**
+* **🛡️ [Epic] Data Trust (B-010):** Resolving synthetic temperature accuracy for Venty/Veazy (Critical Blocker).
+* **📂 [Epic] Data Mobility (F-026/027):** Secure database backup/restore and session program schedules for testers.
+* **🎨 [Epic] UI/UX Refresh (F-100):** Consolidating F-053..F-056 and F-050; modernizing Home, Session, and History surfaces.
 
-**Stability Path (Should-Haves for Alpha):**
-* **[F-048] BLE State Machine Overhaul:** Ensure robust backoff and reconnection so background tracking survives real-world Bluetooth flakiness (e.g., phones in pockets). *(Done)*
-* **[F-042] Analytics Unit Tests:** Validate the pure-function analytics layer so the UI doesn't accidentally display garbage data.
-
-*Note: Major architectural refactors (F-043 ViewModel Decomposition, F-047 Compose Migration) and P3 UI bugs should be deferred to the Beta/v1.0 phase so they don't block getting the app into testers' hands.*
+*Note: Infrastructure refactors (Compose migration) and minor UI bugs are deferred to the Beta/v1.0 phase to ensure a stable Alpha happens first.*
 
 ---
 
@@ -45,76 +41,63 @@ The current dev codebase (v0.1) is extremely close to a functional Alpha. To off
 | F-015 | `done` | Daily Stats | Per-day aggregates for trend charts | DailyStats list drives bar chart |
 | F-016 | `done` | Profile Stats | Lifetime totals (sessions, hits, heater hours) | ProfileStats card reads correctly |
 | F-017 | `done` | Heat-up Estimation | Estimate time to heat based on target temp and history | Session screen shows ETA |
-| F-018 | `done` | Health & Dosage | Track capsule vs free-pack per session, calculate intake weight, habit analysis. | Settings for capsule weight, session toggle, intake stats |
+| F-018a | `done` | Health: Core | Phase 1: Capsule settings + basic intake tracking | Manual toggle, basic weight-based stats |
+| F-018b | `planned` | Health: Insights | Phase 2: Grams/Week trends, habit analysis, dosage history | Advanced charts and efficiency metrics |
 
-## Device Management (P1 — Polish)
+## 🎯 Milestone: v0.2 Alpha (Active Epics)
 
+### 📂 Epic: Data Mobility & Recovery
 | ID | Status | Feature | Description | Acceptance Criteria |
 |---|---|---|---|---|
-| F-020 | `done` | Multi-Device | Track multiple devices, switch between them | Known devices list, per-device history |
-| F-021 | `done` | Device Controls | Write temp, heater on/off, boost, brightness, vibration | All CMD 0x01 / 0x06 write operations |
-| F-022 | `done` | Phone Alerts | Vibrate/notify on temp ready, charge 80% | Alerts fire in foreground + background |
-| F-023 | `done` | Dim on Charge | Auto-dim display brightness while charging | Brightness saves/restores correctly |
-| F-024 | `done` | CSV Export | Export session history to CSV | File generated, share intent fires |
 | F-025 | `in-progress` | History Clear | Per-device clear of all tables | All 6 tables wiped for target device |
 | F-026 | `in-progress` | Data Backup / Restore | Export/import full database | User can backup and restore DB file |
-| F-027 | `in-progress` | Session Programs/Presets | User-defined or preset session profiles with automatic boost scheduling | Create/edit profiles with custom names, define boost times & amounts, select from default presets (terpene optimization, even step, full heat max rip), profiles trigger immediate session start with parameters |
-| F-050 | `in-progress` | Notifications Overhaul | Modernize and expand the notification system to support persistent status, rich controls, and configurable alerts. | Persistent status notification, drawer-based quick controls, and proper channel implementation. |
+| F-027 | `in-progress` | Session Programs | User-defined or preset session profiles with automatic boost scheduling | Presets trigger immediate session start |
+| F-050 | `in-progress` | Notifications Redesign | Modernize notification system; persistent status | Rich status tray + quick controls |
 
-## UI & Visualization (P1 — Next Up)
-
+### 🎨 Epic: The "v0.2 Visual Refresh" (UX Overhaul)
 | ID | Status | Feature | Description | Acceptance Criteria |
 |---|---|---|---|---|
-| F-030 | `done` | Real-time Temp Graph | Live temperature chart during session | `GraphView` renders smooth curve |
-| F-031 | `done` | Battery Graph | Battery level over time | `BatteryGraphView` renders correctly |
-| F-032 | `done` | Session Detail Graph | Per-session temperature replay | `SessionGraphView` on `SessionReportActivity` |
-| F-033 | `done` | History Bar Chart | Daily sessions bar chart | `HistoryBarChartView` displays with tap interaction |
-| F-034 | `done` | History Timeline | Visual timeline of sessions | `HistoryTimelineView` renders |
-| F-035 | `done` | UI Polish Pass | Consistent styling, colours, spacing | All screens feel cohesive and premium |
-| F-036 | `done` | Settings Screen | Dedicated settings (day start hour, units, alerts) | Currently scattered in ViewModel, needs proper UI |
-| F-051 | `done` | Heat-up Calculation Enhancement | Improve F-017 with real-time weighted calculation based on proximity to last session; back-to-back sessions are more efficient | ETA accounts for device temperature, time since last session, average heat-up history |
-| F-052 | `parked` | Hit Analytics & Achievement System | Classify hits by duration + temperature; live hit-type display during session; labeled hit log in session report; session-level achievements; lifetime achievement ledger with timeline. Parked pending re-entry conditions (see Notes). | Hit types labeled in session report; session badges; analytics card showing hit-type distribution |
-| F-053 | `in-progress` | Session Battery Starting Level | Show starting battery level during active session for battery drain context | Session screen displays starting battery alongside current drain |
-| F-054 | `in-progress` | Session Page Complete Redesign | Full rework of session detail: extraction log with clear labels, context for raw data (not just numbers) | Session report shows labeled data, extraction timeline is human-readable |
-| F-055 | `in-progress` | Homepage/Landing Page Redesign | Overhaul command center: remove idle 0°C/32°F display, improve charge state visibility, enable access during sessions | Homepage is accessible during session, temperature display accurate, charge state prominently visible |
-| F-056 | `in-progress` | History/Analytics Page Organization | Implement sub-pages/tabs to separate session log, analytics dashboard, and health/intake tracking | History page tabs/sub-pages for: Sessions, Analytics, Health & Intake; no single-page clutter |
+| F-053 | `in-progress` | Session Start Battery | Show % at session start for drain context | Displayed on active session screen |
+| F-054 | `in-progress` | Session Report Redesign | Extraction log labels + context | Human-readable logs, not just numbers |
+| F-055 | `in-progress` | Home Redesign | Suppress idle 0°; accessible during session | Seamless heating/session flow |
+| F-056 | `in-progress` | History Tab Splitting | Tabs for Sessions vs. Analytics vs. Health | No single-page clutter |
+| B-007 | `planned` | Global Modernization | "Cyber Green" UI pass; dynamic elements | Modernized styling throughout |
+| F-052 | `parked` | Hit Analytics | Classification of hits by duration/temp | On hold until B-010 is resolved |
+| B-005 | `planned` | History Graph Condensing | Collapse dead space in charts | Condensed timeline visualization |
+| B-006 | `planned` | Zoomable Graphs | Enable zoom/pinch interaction | Interactive visual scope |
 
-## Quality & Infra (P2 — Foundation for Scale)
-
+### 🛡️ Epic: Data Trust & Protocol Reliability (Critical)
 | ID | Status | Feature | Description | Acceptance Criteria |
 |---|---|---|---|---|
-| F-040 | `done` | Version Control | Git + GitHub setup | Repo initialized, remote linked, .gitignore in place |
-| F-041 | `done` | Project Docs | PROJECT.md, BACKLOG.md, CHANGELOG.md | Agent memory system works across sessions |
-| F-042 | `ready` | Unit Tests | Test analytics pure functions | AnalyticsRepository functions have test coverage |
-| F-043 | `done` | ViewModel Decomposition | Break up 1074-line MainViewModel | Extract to feature-specific ViewModels or use cases |
-| F-044 | `done` | MainActivity Decomposition | Break up 1169-line MainActivity | Extract Fragments or Compose screens |
-| F-045 | `done` | Agent Infrastructure | Document AI agent branch strategy, workflows, and workspace context | `AGENT_INFO.md` and `.agents/workflows/` exist |
-| F-046 | `done` | GitHub Integrity | Automate CI builds, PR templates, and enforced branching | `build.yml` automated, `PULL_REQUEST_TEMPLATE.md` exists |
-| F-047 | `planned` | Jetpack Compose Migration | Overhaul UI from programmatic Views to Compose | LandingFragment + Settings migrated to Compose |
-| F-048 | `done` | BLE State Machine Overhaul | Refactor BLE layer for robust state tracking | BleManager uses sealed class states, backoff reconnection |
-| F-049 | `planned` | Multi-Device Analytics Consolidation | Unify cross-device tracking in AnalyticsRepository | Consistent aggregated metrics across all devices |
+| B-010 | `in-progress` | Temp Accuracy | Synthetic temp calculation for Venty/Veazy | Real packets capture/validate |
+| B-012 | `in-progress` | Parser Guardrails | Add length validation for BlePacket parsers | NO ArrayIndexOutOfBounds crashes |
+| F-042 | `ready` | Analytics Logic Tests | Unit tests for pure-function analytics | 100% logic coverage |
+| B-014 | `documented` | Charge Taper Validation | Multipliers need real measurement | ETA accuracy at 70%+ |
+| B-015 | `in-progress` | Drain Confidence | Add `drainEstimateReliable` flag to stats | UI shows confidence warning |
+| B-013 | `documented` | Legacy Metadata Gap | pre-F-018 sessions lack metadata rows | Documented; UI fix planned |
+
+## 🏗️ Future Architecture (v0.3 — Beta)
+| ID | Status | Feature | Description |
+|---|---|---|---|
+| F-047 | `planned` | Compose Migration | Migrate UI fragments to Jetpack Compose |
+| F-049 | `planned` | Multi-Device Sync | Cross-device aggregate tracking |
+
+## 🪵 Legacy Foundation (All 'Done' P1/P2 Archive)
+| ID | Feature | Summary |
+|---|---|---|
+| F-020–024 | Device Core | Multi-device tracking, controls, alerts, dim-on-charge, CSV export |
+| F-030–036 | Visual Core | Real-time graphs (temp/battery), settings UI, style-pass |
+| F-040–048 | Infrastructure | DI (Hilt), Git CI, BLE State Machine overhaul, MainActivity decomposition |
+| B-001–B-004 | Native Cleanup | Migration safety, scroll fixes, crash fixes in Battery Page |
+| B-011 | Reconnect Bug | Fix UI stuck in offline card after BLE reconnect |
+| F-051 | Heat-up Enchancement | Logic for ETA weighting based on last session proximity |
 
 ---
 
-## Bugs
+---
 
-| ID | Status | Priority | Description |
-|---|---|---|---|
-| B-001 | `done` | P1 | `fallbackToDestructiveMigration()` must be removed before public release |
-| B-002 | `done` | P2 | History Page vertical scroll locked by unwieldy charts |
-| B-003 | `done` | P1 | Battery Page crashes on load due to narrow graph segments |
-| B-004 | `done` | P3 | Data retention setting has inconsistent text, says keep history for x days when it should say delete after x days |
-| B-005 | `planned` | P3 | All graphs should collapse dead space, especially on history graph. even long periods of slow discharge should be condensed. event items are most interesting. |
-| B-006 | `planned` | P3 | Graphs are not zoomable or alterable in scope except for hard toggles |
-| B-007 | `planned` | P3 | Entire UI needs modernization and dynamicization, probably less of a bug and more of an enhancement |
-| B-008 | `planned` | P3 | Autoshutdown in settings doesnt show full granularity of data |
-| B-009 | `done` | P2 | Dim LED while charging doesnt restore to previous level, and acts funny if LED level is changed manually while charging. |
-| B-010 | `in-progress` | P2 | Boost offset/target temperature: synthetic temp calculation for Venty/Veazy unvalidated; added logging but requires real-device packet capture for confirmation. [See: BlePacket.parseStatus(), SessionTracker hardcoded boost offset semantics] |
-| B-011 | `done` | P1 | BLE device stays physically connected but UI remains stuck in offline/reconnecting state — `LandingFragment` `Connected` branch was empty, never hid the offline layout. |
-| B-012 | `in-progress` | P2 | Added length validation + logging to `BlePacket.parseFirmware()`, `parseIdentity()`, `parseExtended()`, `parseDisplaySettings()`. Now catches `ArrayIndexOutOfBoundsException` and logs failures. Ready for testing. |
-| B-013 | `documented` | P2 | Sessions before F-018 lack `SessionMetadata` rows; default to free-pack. Documented limitation in `AnalyticsRepository.computeIntakeStats()`. Requires UI mechanism for users to manually correct pre-F-018 sessions. |
-| B-014 | `documented` | P3 | Charge taper multipliers (0.60, 0.35, 0.15) documented as unvalidated approximations. Noted that ETA accuracy at 70%+ battery is unknown pending real S&B device measurement. |
-| B-015 | `in-progress` | P3 | Added `drainEstimateReliable: Boolean` confidence flag to `SessionStats` (true if sample count ≥ 10). UI can now warn new users about unreliable predictions. |
+
+
 
 ---
 
@@ -164,7 +147,7 @@ The current dev codebase (v0.1) is extremely close to a functional Alpha. To off
 
 ---
 
-### F-018: Health & Dosage Tracking
+### F-018b: Health & Dosage (Phase 2 Insights)
 *Status: Partially unblocked! Database Schema for `SessionMetadata` successfully merged in schema v3.*
 
 **Release-Complete Implementation Plan:**
