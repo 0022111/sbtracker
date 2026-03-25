@@ -12,6 +12,7 @@ import com.sbtracker.analytics.IntakeStats
 import com.sbtracker.analytics.ProfileStats
 import com.sbtracker.analytics.UsageInsights
 import com.sbtracker.data.AppDatabase
+import com.sbtracker.data.UserPreferencesRepository
 import com.sbtracker.data.ChargeCycle
 import com.sbtracker.data.DeviceStatus
 import com.sbtracker.data.Hit

@@ -18,6 +18,7 @@ import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.viewModelScope
 import com.sbtracker.analytics.AnalyticsRepository
 import com.sbtracker.data.AppDatabase
+import com.sbtracker.data.UserPreferencesRepository
 import com.sbtracker.data.DeviceInfo
 import com.sbtracker.data.DeviceStatus
 import com.sbtracker.data.ExtendedData

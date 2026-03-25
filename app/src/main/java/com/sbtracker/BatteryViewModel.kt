@@ -7,6 +7,7 @@ import com.sbtracker.analytics.AnalyticsRepository
 import com.sbtracker.analytics.BatteryInsights
 import com.sbtracker.analytics.PersonalRecords
 import com.sbtracker.data.AppDatabase
+import com.sbtracker.data.UserPreferencesRepository
 import com.sbtracker.data.ChargeCycle
 import com.sbtracker.data.SessionSummary
 import dagger.hilt.android.lifecycle.HiltViewModel
