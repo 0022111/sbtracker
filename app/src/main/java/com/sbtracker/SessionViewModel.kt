@@ -4,7 +4,9 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.scopes.SingletonComponent
 import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -20,13 +22,35 @@ import com.sbtracker.data.SessionProgram
 import org.json.JSONArray
 
 /**
+ * Thread-safe holder for the currently active program ID.
+ * Bridges the gap between SessionViewModel (where user selects program)
+ * and BleViewModel (where session is persisted to DB).
+ */
+@Singleton
+class ActiveProgramHolder @Inject constructor() {
+    private val _programId = MutableStateFlow<Long?>(null)
+    val programId: StateFlow<Long?> = _programId.asStateFlow()
+
+    fun set(id: Long?) {
+        _programId.value = id
+    }
+
+    fun consume(): Long? {
+        val value = _programId.value
+        _programId.value = null
+        return value
+    }
+}
+
+/**
  * Owns device write commands: heater control, temperature, boost, brightness,
  * and hardware toggle operations. Delegates BLE writes to [BleManager].
  */
 @HiltViewModel
 class SessionViewModel @Inject constructor(
     private val bleManager: BleManager,
-    private val programRepository: ProgramRepository
+    private val programRepository: ProgramRepository,
+    private val activeProgramHolder: ActiveProgramHolder
 ) : ViewModel() {
 
     val programs: StateFlow<List<SessionProgram>> = programRepository.programs
@@ -78,6 +102,9 @@ class SessionViewModel @Inject constructor(
         Log.d("SessionViewModel", "Starting session with program: ${program.name}")
         boostJob?.cancel()
 
+        // Record the program ID for later persistence to session_metadata
+        activeProgramHolder.set(program.id)
+
         // 1. Set target temperature (mode 1 = standard heater mode)
         setTemp(program.targetTempC, 1)
 
@@ -110,6 +137,7 @@ class SessionViewModel @Inject constructor(
         Log.d("SessionViewModel", "Cancelling boost schedule")
         boostJob?.cancel()
         boostJob = null
+        activeProgramHolder.set(null)
     }
 
     fun startSession(targetTemp: Int) {

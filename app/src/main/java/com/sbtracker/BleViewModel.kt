@@ -23,6 +23,7 @@ import com.sbtracker.data.DeviceStatus
 import com.sbtracker.data.ExtendedData
 import com.sbtracker.data.Hit
 import com.sbtracker.data.Session
+import com.sbtracker.data.SessionMetadata
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -45,6 +46,7 @@ class BleViewModel @Inject constructor(
     private val db: AppDatabase,
     private val analyticsRepo: AnalyticsRepository,
     private val prefsRepo: UserPreferencesRepository,
+    private val activeProgramHolder: ActiveProgramHolder,
     application: Application
 ) : AndroidViewModel(application) {
 
@@ -188,6 +190,21 @@ class BleViewModel @Inject constructor(
                 result.completedSession?.let { session ->
                     val sessionId = db.sessionDao().insert(session)
                     withContext(Dispatchers.IO) {
+                        // Write program attribution if a program was active during this session
+                        val programId = activeProgramHolder.consume()
+                        if (programId != null) {
+                            val existing = db.sessionMetadataDao().getMetadataForSession(sessionId)
+                            if (existing != null) {
+                                // Merge: preserve existing data, only update appliedProgramId
+                                db.sessionMetadataDao().insertOrUpdate(existing.copy(appliedProgramId = programId))
+                            } else {
+                                // Create new metadata with just the program ID
+                                db.sessionMetadataDao().insertOrUpdate(
+                                    SessionMetadata(sessionId = sessionId, appliedProgramId = programId)
+                                )
+                            }
+                        }
+
                         val statuses = db.deviceStatusDao().getStatusForRange(
                             session.deviceAddress, session.startTimeMs, session.endTimeMs
                         )
