@@ -109,12 +109,12 @@ The current dev codebase (v0.1) is extremely close to a functional Alpha. To off
 | B-007 | `planned` | P3 | Entire UI needs modernization and dynamicization, probably less of a bug and more of an enhancement |
 | B-008 | `planned` | P3 | Autoshutdown in settings doesnt show full granularity of data |
 | B-009 | `done` | P2 | Dim LED while charging doesnt restore to previous level, and acts funny if LED level is changed manually while charging. |
-| B-010 | `planned` | P2 | Boost offset does not seem correct, or target temp is reporting incorrectly. is effective temp really the best method? |
+| B-010 | `in-progress` | P2 | Boost offset/target temperature: synthetic temp calculation for Venty/Veazy unvalidated; added logging but requires real-device packet capture for confirmation. [See: BlePacket.parseStatus(), SessionTracker hardcoded boost offset semantics] |
 | B-011 | `done` | P1 | BLE device stays physically connected but UI remains stuck in offline/reconnecting state — `LandingFragment` `Connected` branch was empty, never hid the offline layout. |
-| B-012 | `planned` | P2 | `BlePacket.parseFirmware()` and `parseIdentity()` perform no length validation — will throw `ArrayIndexOutOfBoundsException` on short/malformed packets. Silent parse failures in `parseExtended()` also lose data without logging. |
-| B-013 | `planned` | P2 | Sessions recorded before F-018 (Health & Dosage) have no `SessionMetadata` row — they all default to free-pack. Users who've been running the app since early dev will see incorrect/understated intake totals with no way to backfill. |
-| B-014 | `planned` | P3 | Charge taper multipliers in `SessionTracker` (0.60, 0.35, 0.15) are unvalidated magic numbers not tested against real Storz & Bickel charging curves. ETA accuracy at 70%+ is unknown. |
-| B-015 | `planned` | P3 | Battery drain estimate unreliable for new users. `DRAIN_HISTORY_SIZE = 50` but no confidence warning is shown for small samples. Users in their first 10 sessions may see misleading "sessions remaining" figures. |
+| B-012 | `in-progress` | P2 | Added length validation + logging to `BlePacket.parseFirmware()`, `parseIdentity()`, `parseExtended()`, `parseDisplaySettings()`. Now catches `ArrayIndexOutOfBoundsException` and logs failures. Ready for testing. |
+| B-013 | `documented` | P2 | Sessions before F-018 lack `SessionMetadata` rows; default to free-pack. Documented limitation in `AnalyticsRepository.computeIntakeStats()`. Requires UI mechanism for users to manually correct pre-F-018 sessions. |
+| B-014 | `documented` | P3 | Charge taper multipliers (0.60, 0.35, 0.15) documented as unvalidated approximations. Noted that ETA accuracy at 70%+ battery is unknown pending real S&B device measurement. |
+| B-015 | `in-progress` | P3 | Added `drainEstimateReliable: Boolean` confidence flag to `SessionStats` (true if sample count ≥ 10). UI can now warn new users about unreliable predictions. |
 
 ---
 
