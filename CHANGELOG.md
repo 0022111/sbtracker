@@ -1,5 +1,19 @@
 # SBTracker — Changelog
 
+### 2026-03-25 15:30 — Plan F-050 Notifications Overhaul (Link/Planner)
+
+- **Origin**: Direct push to `dev` (meta-file)
+- **F-050 status**: `planned` → `in-progress`
+- **Tasks created** (T-069 through T-075):
+  - `T-069` (`ready`) — `NotificationChannels.kt` singleton: consolidate `"ble_service_channel"` + `"device_alerts"` into three formal channels (STATUS/LOW, ALERTS/HIGH, CONTROLS/DEFAULT); remove duplicate `createNotificationChannel()` calls from `BleService` and `BleViewModel`.
+  - `T-070` (`ready`, blocked by T-069) — Enrich persistent foreground notification in `BleService`: session-active title with current→target temp, battery, hit count, elapsed time; charging state with optional ETA; idle and disconnected states.
+  - `T-071` (`blocked` by T-070, T-008) — `NotificationActionReceiver` + quick-control action buttons on the status notification: Heater On/Off, Temp +5°C, Temp -5°C wired via `PendingIntent`.
+  - `T-072` (`ready`) — Alerts section in `SettingsFragment` with per-event toggles (Temp Ready, Charge 80%, Session End) stored in DataStore; replaces single master "Phone Alerts" switch.
+  - `T-073` (`blocked` by T-069, T-072) — Wire per-event prefs into `triggerAlert()` in `BleViewModel`; add session-end alert; remove foreground-only guard so alerts fire in both foreground and background.
+  - `T-074` (`blocked` by T-073, T-008) — Add `NotificationCompat.Action` buttons to alert notifications: Start Timer + Dismiss on Temp Ready; Disconnect + Dismiss on Charge 80%. Implements T-019's declared scope.
+  - `T-075` (`ready`) — `POST_NOTIFICATIONS` runtime permission for Android 13+: manifest declaration, first-run request in `MainActivity`, graceful degradation, disabled-state note in Settings.
+- **Overlap with T-019**: T-019 (blocked, Phase 3) covers the same alert action-button scope. T-074 is the F-050 implementation; T-019 will cross-reference T-074 once it unblocks.
+
 ### 2026-03-25 14:00 — Plan F-026 Data Backup/Restore (Niobe/Planner)
 
 - **Origin**: Direct push to `dev` (meta-file)
