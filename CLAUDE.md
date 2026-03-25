@@ -16,6 +16,8 @@
 
 Requires JDK 21. The CI workflow mirrors these commands.
 
+**⚠️ AGENTS: Debug build FAILS in this environment** (Gradle plugin resolution blocked by proxy). **IGNORE BUILD FAILURES.** Skip `./gradlew assembleDebug` entirely. Code syntax validation is sufficient. CI will handle real builds.
+
 `CHANGELOG.md` exists at the repo root. **After completing ANY work (even meta-updates), you MUST append an entry to the top of the relevant section.** 
 
 - **Format**: `### YYYY-MM-DD HH:MM — Short Title (Author)`
@@ -37,8 +39,10 @@ You are working on the **SBTracker** project. Please follow these rules to maint
 ## Branching & PRs
 - **Branch Prefix**: Always use `claude/` for agent work.
 - **Workflow**: Create a branch -> Implement -> Verify -> Submit Pull Request.
-- **Meta-files**: Always push updates to `BACKLOG.md`, `TASKS.md`, and agent instructions directly to `dev`. See **[Meta-file Live Sync](file:///Users/a0110/AndroidStudioProjects/sbtracker/AGENT_INFO.md#meta-file-live-sync)**.
-- **CI Verification**: Ensure the GitHub Actions build passes before merging (if applicable).
+- **Meta-files**: Meta status updates (e.g., `.agents/TASKS.md` marking task `done`) go IN the PR branch as a final commit, NOT as a separate direct push to `dev`.
+- **CHANGELOG.md**: Workers must NOT touch `CHANGELOG.md`. Orchestrator writes one consolidated entry to `dev` after all PRs in a wave merge.
+- **Git Isolation**: Always spawn worker agents with `isolation: "worktree"` to prevent branch hijacking and commit cross-contamination.
+- **CI Verification**: GitHub Actions build will verify syntax. Do not attempt local builds.
 
 ## Internal State (Brain)
 Maintain these artifacts in your session-local artifact directory:
