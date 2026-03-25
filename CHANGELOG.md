@@ -1,5 +1,11 @@
 # SBTracker — Changelog
 
+### 2026-03-25 — Add Oracle Workflow & Slash Command (Morpheus)
+- **Branch**: `claude/build-oracle-tool-1Hq4A` → PR to dev
+- Created `.agents/workflows/oracle.md` — visionary pre-intake agent that deeply considers a feature idea before it enters the pipeline. Produces a structured Oracle Report covering: refined idea, vision, ideal state, implementation cost (data/BLE/analytics/UI), risks, synergies, and a recommended path.
+- Created `.claude/commands/oracle.md` — registers `/oracle` as a slash command, enabling `$ARGUMENTS` passthrough to the workflow.
+- The Oracle lives before `/intake` in the idea lifecycle: `/oracle idea` → `/intake refined idea` → `/plan-feature F-XXX`
+
 ### 2026-03-25 — Evaluate & Expand F-027 Session Programs/Presets (Link/Planner)
 - **Direct push to dev** (Origin: User request — comprehensive evaluation of F-027 for DB/history implications)
 - **Rewrote T-042**: extended Migration 3→4 to ALSO add `appliedProgramId INTEGER` column to `session_metadata`; removed top-level `boostOffsetC` field from `SessionProgram` (all boost lives in `boostStepsJson`); added `SessionMetadataDao.getSessionsForProgram()` query; updated `SessionMetadata.kt` entity.
