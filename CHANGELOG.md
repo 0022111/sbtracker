@@ -1,5 +1,12 @@
 # SBTracker — Changelog
 
+### 2026-03-25 — Fix Build Issue: Remove Unused Hit Analysis (Worker)
+
+- **Origin**: Issue resolution
+- **Changes**:
+  - Removed unused `computeHitAnalysis` method from `AnalyticsRepository.kt`.
+  - Resolved compile errors caused by missing `HitAnalysisSummary` and `LARGE_HIT_DURATION_MS` references (residue from incomplete T-076 revert).
+
 ### 2026-03-25 — Oracle Report: F-052 Hit Analytics & Achievement System (Oracle)
 
 - **Origin**: Direct push to `dev` (meta-file)
@@ -180,7 +187,7 @@
 - `SessionTracker.kt` state machine clean and tested
 - Grace periods (8s session end, 60s charge end) are reasonable
 - Hit count not persisted mid-session — crash loses live-session hits (minor data loss)
-- **Gap**: `SessionTracker` (live) detects hits via timer reset only; `HitDetector` (offline) uses timer reset OR temp dip — asymmetry can cause live vs. post-session hit count mismatches
+- **Gap**: `SessionTracker` (live) detects hits via timer reset only; `HitDetector` (offline) uses temp dip OR timer reset — asymmetry can cause live vs. post-session hit count mismatches
 
 **Hit Detection — Unvalidated**
 - `HitDetector.kt` algorithm is sound in principle: timer-reset trigger + ≥2°C temp dip
