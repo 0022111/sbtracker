@@ -4,6 +4,16 @@
 > Do NOT read the entire codebase. The task file tells you exactly what to read and touch.
 > When done, mark status `done` here and update `BACKLOG.md` + `CHANGELOG.md`.
 
+## Decomposition Notes
+
+**T-046 Decomposed (2026-03-25)**: The original T-046 "Apply Program on Heater Start" was split into four atomic, sequential tasks to improve clarity and reduce implementation scope per task:
+- **T-083**: BoostStep parsing and helper functions (foundation)
+- **T-084**: SessionViewModel program execution integration (logic layer)
+- **T-085**: SessionFragment chip UI and button wiring (presentation layer)
+- **T-086**: Edge cases and lifecycle cleanup (robustness)
+
+This structure follows the **Keymaker pattern**: each task is independently verifiable, has clear acceptance criteria, and can be code-reviewed as a standalone unit before moving to the next phase.
+
 ---
 
 ## Branching model
@@ -92,14 +102,26 @@ main  ← stable, merges only from dev
 
 ## Phase 3 — F-027 Session Programs/Presets
 
+### Part A: UI Foundation
 | ID | Status | Title | Task File | Blocked by |
 |---|---|---|---|---|
 | T-042 | `done` | SessionProgram Entity + DAO + Migration 3→4 (incl. appliedProgramId on session_metadata) | [T-042](tasks/T-042-session-program-entity.md) | — |
 | T-043 | `done` | ProgramRepository: CRUD + Default Preset Seeding | [T-043](tasks/T-043-program-repository.md) | T-042 |
 | T-044 | `ready` | Programs List UI in SettingsFragment | [T-044](tasks/T-044-programs-list-ui.md) | T-043 |
 | T-045 | `blocked` | Create/Edit Program Dialog | [T-045](tasks/T-045-create-edit-program-dialog.md) | T-044 |
-| T-046 | `blocked` | Apply Program on Heater Start (setBoost, cancellable Job) | [T-046](tasks/T-046-apply-program-on-start.md) | T-045 |
-| T-056 | `blocked` | Record Program Attribution to session_metadata on Session Complete | [T-056](tasks/T-056-record-program-attribution.md) | T-046 |
+
+### Part B: Program Execution (T-046 Decomposed into T-083–T-086)
+| ID | Status | Title | Task File | Blocked by |
+|---|---|---|---|---|
+| T-083 | `ready` | Program Executor Helper (JSON Parsing + Job Management) | [T-083](tasks/T-083-program-executor-helper.md) | T-045 |
+| T-084 | `blocked` | Program Execution Lifecycle (SessionViewModel Integration) | [T-084](tasks/T-084-program-execution-lifecycle.md) | T-083 |
+| T-085 | `blocked` | SessionFragment Program Chip UI and Start Button Wiring | [T-085](tasks/T-085-session-fragment-program-ui.md) | T-084 |
+| T-086 | `blocked` | Program Execution Edge Cases & Lifecycle Cleanup | [T-086](tasks/T-086-program-execution-edge-cases.md) | T-085 |
+
+### Part C: Post-Execution Integration
+| ID | Status | Title | Task File | Blocked by |
+|---|---|---|---|---|
+| T-056 | `blocked` | Record Program Attribution to session_metadata on Session Complete | [T-056](tasks/T-056-record-program-attribution.md) | T-086 |
 | T-057 | `blocked` | Display Program Name in Session History + Session Report | [T-057](tasks/T-057-display-program-in-history.md) | T-056 |
 
 ## Phase 3 — F-055 Homepage Redesign
