@@ -63,6 +63,7 @@ main  ← stable, merges only from dev
 | T-036 | `done` | Session Report: Capsule / Free-Pack Toggle | [T-036](tasks/T-036-session-report-capsule-toggle.md) | — |
 | T-037 | `done`    | Settings UI: Capsule Weight + Default Pack Type | [T-037](tasks/T-037-settings-capsule-ui.md) | T-034 |
 | T-038 | `done`    | History Screen: Health & Intake Card | [T-038](tasks/T-038-history-health-card.md) | T-034, T-035 |
+| T-088 | `ready` | F-018b Health Phase 2: Trends, Habits, Efficiency Insights | [T-088](tasks/T-088-f018b-health-insights-phase2.md) | T-038 |
 
 ## Phase 2 — User-Facing Features
 
@@ -101,6 +102,7 @@ main  ← stable, merges only from dev
 | T-046 | `blocked` | Apply Program on Heater Start (setBoost, cancellable Job) | [T-046](tasks/T-046-apply-program-on-start.md) | T-045 |
 | T-056 | `blocked` | Record Program Attribution to session_metadata on Session Complete | [T-056](tasks/T-056-record-program-attribution.md) | T-046 |
 | T-057 | `blocked` | Display Program Name in Session History + Session Report | [T-057](tasks/T-057-display-program-in-history.md) | T-056 |
+| T-087 | `ready` | F-027 Session Programs UI: Grid + Editor + Application | [T-087](tasks/T-087-f027-session-programs-complete.md) | T-043 |
 
 ## Phase 3 — F-055 Homepage Redesign
 
@@ -144,10 +146,11 @@ main  ← stable, merges only from dev
 | T-067 | `done` | Add startingBattery to SessionStats | [T-067](tasks/T-067-session-stats-starting-battery.md) | — |
 | T-068 | `blocked` | Display Starting Battery in Active Session UI | [T-068](tasks/T-068-session-fragment-starting-battery-ui.md) | T-067 |
 
-## Phase 3 — F-052 Analytics Display Refactoring
+## Phase 3 — F-052 Hit Analytics & Achievements
 
 | ID | Status | Title | Task File | Blocked by |
 |---|---|---|---|---|
+| T-086 | `blocked` | F-052 Hit Classification: Empirical Thresholds from Alpha Data | [T-086](tasks/T-086-f052-hit-classification-thresholds.md) | B-010, F-054, F-056, Alpha shipped |
 | T-076 | `planned` | Hit Classification Fields in AnalyticsModels | [T-076](tasks/T-076-hit-classification-fields.md) | oracle F-052 redesign |
 | T-077 | `planned` | Compute Hit Achievement Metrics in AnalyticsRepository | [T-077](tasks/T-077-hit-achievement-metrics.md) | oracle F-052 redesign |
 | T-078 | `blocked` | Analytics Tab: Frequency & Dose Section Reorganization | [T-078](tasks/T-078-analytics-frequency-dose-section.md) | T-050 |
