@@ -176,13 +176,22 @@ class SessionFragment : Fragment() {
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
-            bleVm.sessionStats.collect { ss ->
+            combine(bleVm.sessionStats, sessionVm.selectedProgram) { ss, selectedProgram ->
+                ss to selectedProgram
+            }.collect { (ss, selectedProgram) ->
                 tvHits.text = ss.hitCount.toString()
                 tvDrain.text = "${maxOf(0, ss.batteryDrain)}%"
 
                 fun format(sec: Long) = "%02d:%02d".format(sec / 60, sec % 60)
 
-                tvTime.text = format(ss.durationSeconds)
+                // Show estimated program time if selected and session idle, otherwise elapsed time
+                if (selectedProgram != null && ss.state == SessionTracker.State.IDLE) {
+                    val estimatedMinutes = sessionVm.estimateProgramDurationMinutes(selectedProgram).toInt()
+                    tvTime.text = format(estimatedMinutes * 60L) + " (est.)"
+                } else {
+                    tvTime.text = format(ss.durationSeconds)
+                }
+
                 // HEAT-UP: time from heater-on to setpoint first reached.
                 // Shows "—" until setpoint is reached, then locks in the measured duration.
                 tvHeatUp.text = if (ss.heatUpTimeSecs > 0) "${ss.heatUpTimeSecs}s" else "—"
