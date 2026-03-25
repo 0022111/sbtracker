@@ -1,5 +1,6 @@
 package com.sbtracker.analytics
 
+import com.sbtracker.BleConstants
 import com.sbtracker.data.AppDatabase
 import com.sbtracker.data.ChargeCycle
 import com.sbtracker.data.Session
@@ -205,13 +206,81 @@ class AnalyticsRepository(private val db: AppDatabase) {
         )
     }
 
+    // ── Hit analysis / achievement metrics ─────────────────────────────────────
+
+    /**
+     * Compute hit achievement metrics from session summaries.
+     *
+     * Queries individual hit rows from the `hits` table and classifies them as
+     * large hits (durationMs >= BleConstants.LARGE_HIT_DURATION_MS) or sips.
+     * Tracks per-session counts to compute the highest single-session records.
+     *
+     * Pure-function intent: uses DB access for the hit rows (necessary since hits
+     * are stored rows, not inline-computed), but the classification and aggregation
+     * are deterministic and testable.
+     *
+     * @param summaries Session summaries to analyze.
+     * @return HitAnalysisSummary with total, large-hit, and sip counts, plus maxima.
+     */
+    suspend fun computeHitAnalysis(summaries: List<SessionSummary>): HitAnalysisSummary {
+        if (summaries.isEmpty()) return HitAnalysisSummary()
+
+        return withContext(Dispatchers.IO) {
+            coroutineScope {
+                // Fetch all hits for all sessions in parallel.
+                val hitFetches = summaries.map { summary ->
+                    async { summary.id to db.hitDao().getHitsForSession(summary.id) }
+                }
+                val allHitsBySession = hitFetches.map { it.await() }.toMap()
+
+                // Classify hits and aggregate.
+                var totalHits = 0
+                var totalLargeHits = 0
+                var totalSips = 0
+                var mostLargeHitsInSession = 0
+                var mostSipsInSession = 0
+
+                for ((sessionId, hits) in allHitsBySession) {
+                    var sessionLargeCount = 0
+                    var sessionSipCount = 0
+
+                    for (hit in hits) {
+                        totalHits++
+                        if (hit.durationMs >= BleConstants.LARGE_HIT_DURATION_MS) {
+                            sessionLargeCount++
+                            totalLargeHits++
+                        } else {
+                            sessionSipCount++
+                            totalSips++
+                        }
+                    }
+
+                    if (sessionLargeCount > mostLargeHitsInSession) {
+                        mostLargeHitsInSession = sessionLargeCount
+                    }
+                    if (sessionSipCount > mostSipsInSession) {
+                        mostSipsInSession = sessionSipCount
+                    }
+                }
+
+                HitAnalysisSummary(
+                    totalHits = totalHits,
+                    largeHitCount = totalLargeHits,
+                    sipCount = totalSips,
+                    mostLargeHitsInSession = mostLargeHitsInSession,
+                    mostSipsInSession = mostSipsInSession
+                )
+            }
+        }
+    }
+
     // ── Pre-session estimates ─────────────────────────────────────────────────
 
     /**
      * Estimates the time to initial heat based on recent historical sessions with a similar target temperature.
      * Incorporates weighting for time since last session and adjustments for current device temperature.
      * We use `peakTempC` as a proxy for the target temperature.
-     * 
+     *
      * @param targetTempC The setpoint temperature the device is heating towards.
      * @param summaries The list of available historical session summaries.
      * @param timeSinceLastSessionMs Time in ms since the previous session ended.
