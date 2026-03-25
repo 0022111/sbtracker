@@ -5,6 +5,18 @@
 ---
 
 
+### 2026-03-25 — Meta: Matrix Protocol Evolution (The Oracle)
+
+- **Origin**: Branch `claude/meta-matrix-evolution` → PR to `dev`
+- **Rationale**: The agent workflow has become a powerful product in its own right. The user needs the ability to extract it for other projects, and a deeper roster of Matrix personas for nuanced task delegation.
+- **Changes**:
+  - **AGENT_INFO.md**: Expanded the Persona Hierarchy. Added Roland (Command), The Merovingian, Seraph (Planner), and Cypher, Trinity, Link (Workers) with distinct behavioral traits.
+  - **.claude/commands/whiterabbit.md**: Added the `/whiterabbit` utility command to serve as an interactive menu. Responds with "Wake up Neo" and lists available agent workflows.
+  - **extract_matrix.sh**: Created an extraction script to export the Matrix Protocol (instruction sets and `.agents`/`.claude` folders) into a clean, reusable `matrix-agent-template` directory for use on new projects.
+- **Technical Debt**: None.
+
+---
+
 ### 2026-03-25 — Meta: Project Backlog Restructuring & Milestone Consolidation (Orchestrator)
 
 - **Rationale**: The backlog was becoming fragmented into too many small, disconnected tasks. This consolidation groups work into three functional "Milestone Epics" (Data Trust, UI Refresh, Data Mobility) to provide a clearer path to the v0.2 Alpha release.
