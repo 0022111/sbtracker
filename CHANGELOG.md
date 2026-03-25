@@ -4,6 +4,22 @@
 
 ---
 
+### 2026-03-25 11:47 — T-070: Enrich Persistent Status Notification Content (Operator)
+
+- **Origin**: Branch `claude/T-070-notification-content` → PR to `dev`
+- **Rationale**: The foreground service notification now displays rich session information (temperature, battery, hit count, elapsed time, charging ETA) in real-time, replacing the generic "Device Online" message.
+- **Technical Changes**:
+  - **BleService.kt**: Extended the `combine()` flow to include `vm.sessionStats` from the ViewModel alongside `latestStatus` and `connectionState`.
+  - **updateNotification()**: Refactored to build title and content dynamically based on heater state (active session, idle, charging, or disconnected).
+  - **Content formats**:
+    - Session active: `"Session Active — 185°C → 195°C"` + `"Battery: 72% • Hit #4 • 3m 12s"`
+    - Idle (connected): `"Device Online"` + `"Battery: 88% • Idle"`
+    - Charging: `"Charging"` + `"Battery: 45% • ETA ~22m"` (ETA from `chargeEtaMinutes`)
+    - Disconnected: `"Disconnected"` + `"Tap to reconnect"`
+  - Added `.setOnlyAlertOnce(true)` to notification builder to suppress repeated alerts.
+- **Technical Debt**: None. Action buttons (T-071) remain unimplemented as specified.
+
+---
 
 ### 2026-03-25 — Meta: Matrix Protocol Evolution (The Oracle)
 
