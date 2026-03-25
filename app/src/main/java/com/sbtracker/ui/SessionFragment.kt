@@ -280,27 +280,28 @@ class SessionFragment : Fragment() {
         val isNew = program == null
 
         // Parse existing steps or create default
-        data class StepUI(var durationSec: Int, var boostC: Int)
+        data class StepUI(var temp: Int, var timeSec: Int)
         val baseTemp = program?.targetTempC ?: bleVm.targetTemp.value
         val steps = mutableListOf<StepUI>()
 
-        // Parse boostStepsJson into StepUI list (duration between steps)
+        // Parse boostStepsJson into StepUI list: temp = base + boost, time = duration at this step
         try {
             val json = program?.boostStepsJson ?: "[{\"offsetSec\":0,\"boostC\":0}]"
             val stepsArray = org.json.JSONArray(json)
             for (i in 0 until stepsArray.length()) {
                 val obj = stepsArray.getJSONObject(i)
-                val offsetSec = obj.getInt("offsetSec")
                 val boostC = obj.getInt("boostC")
                 val nextOffset = if (i + 1 < stepsArray.length()) {
                     stepsArray.getJSONObject(i + 1).getInt("offsetSec")
                 } else {
-                    offsetSec + 60 // Default 60s duration if last step
+                    obj.getInt("offsetSec") + 60
                 }
-                steps.add(StepUI(nextOffset - offsetSec, boostC))
+                val currentOffset = obj.getInt("offsetSec")
+                val timeSec = nextOffset - currentOffset
+                steps.add(StepUI(baseTemp + boostC, timeSec))
             }
         } catch (e: Exception) {
-            steps.add(StepUI(60, 0))
+            steps.add(StepUI(baseTemp, 60))
         }
 
         val nameInput = EditText(context).apply {
@@ -322,74 +323,130 @@ class SessionFragment : Fragment() {
             setPadding(16, 12, 16, 12)
         }
 
-        val stepsContainer = LinearLayout(context).apply {
+        val tableContainer = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
         }
 
-        fun updateStepsUI() {
-            stepsContainer.removeAllViews()
+        fun updateTableUI() {
+            tableContainer.removeAllViews()
+
+            // Header row
+            val headerRow = LinearLayout(context).apply {
+                orientation = LinearLayout.HORIZONTAL
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply { setMargins(0, 0, 0, 8) }
+                gravity = android.view.Gravity.CENTER_VERTICAL
+                setPadding(12, 8, 12, 8)
+                setBackgroundColor(ContextCompat.getColor(context, R.color.color_surface))
+            }
+
+            arrayOf("Step#", "Temp(°C)", "Time(s)", "").forEach { label ->
+                val width = when (label) {
+                    "Step#" -> 40
+                    "Temp(°C)" -> 0
+                    "Time(s)" -> 0
+                    else -> 50 // Remove column
+                }
+                val weight = when (label) {
+                    "Step#" -> 0f
+                    else -> if (label.isEmpty()) 0f else 1f
+                }
+
+                val headerText = TextView(context).apply {
+                    text = label
+                    textSize = 11f
+                    setTextColor(ContextCompat.getColor(context, R.color.color_boost_bar_fill))
+                    layoutParams = if (weight > 0) {
+                        LinearLayout.LayoutParams(width, LinearLayout.LayoutParams.WRAP_CONTENT, weight)
+                    } else {
+                        LinearLayout.LayoutParams(width, LinearLayout.LayoutParams.WRAP_CONTENT)
+                    }
+                    setPadding(8, 8, 8, 8)
+                    setTypeface(null, android.graphics.Typeface.BOLD)
+                }
+                headerRow.addView(headerText)
+            }
+            tableContainer.addView(headerRow)
+
+            // Data rows
             var totalSec = 0
             steps.forEachIndexed { idx, step ->
-                totalSec += step.durationSec
-                val stepLayout = LinearLayout(context).apply {
+                totalSec += step.timeSec
+                val dataRow = LinearLayout(context).apply {
                     orientation = LinearLayout.HORIZONTAL
                     layoutParams = LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.MATCH_PARENT,
                         LinearLayout.LayoutParams.WRAP_CONTENT
-                    ).apply { setMargins(0, 8, 0, 8) }
+                    ).apply { setMargins(0, 4, 0, 4) }
                     gravity = android.view.Gravity.CENTER_VERTICAL
-                    setPadding(12, 8, 12, 8)
+                    setPadding(8, 8, 8, 8)
                     setBackgroundColor(ContextCompat.getColor(context, R.color.color_tint_green))
                 }
 
-                val durationInput = EditText(context).apply {
-                    setText(step.durationSec.toString())
-                    hint = "Duration (s)"
+                // Step #
+                val stepNumText = TextView(context).apply {
+                    text = (idx + 1).toString()
+                    textSize = 11f
+                    setTextColor(0xFFFFFFFF.toInt())
+                    layoutParams = LinearLayout.LayoutParams(40, LinearLayout.LayoutParams.WRAP_CONTENT)
+                    setPadding(8, 4, 8, 4)
+                    gravity = android.view.Gravity.CENTER
+                }
+                dataRow.addView(stepNumText)
+
+                // Temperature input
+                val tempInput = EditText(context).apply {
+                    setText(step.temp.toString())
                     inputType = android.text.InputType.TYPE_CLASS_NUMBER
-                    textSize = 12f
+                    textSize = 11f
                     setTextColor(0xFFFFFFFF.toInt())
                     setHintTextColor(ContextCompat.getColor(context, R.color.color_gray_dim))
                     layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-                    setPadding(8, 8, 8, 8)
+                    setPadding(8, 4, 8, 4)
+                    gravity = android.view.Gravity.CENTER
                 }
+                dataRow.addView(tempInput)
 
-                val boostInput = EditText(context).apply {
-                    setText(step.boostC.toString())
-                    hint = "Boost (°C)"
+                // Time (seconds) input
+                val timeInput = EditText(context).apply {
+                    setText(step.timeSec.toString())
                     inputType = android.text.InputType.TYPE_CLASS_NUMBER
-                    textSize = 12f
+                    textSize = 11f
                     setTextColor(0xFFFFFFFF.toInt())
                     setHintTextColor(ContextCompat.getColor(context, R.color.color_gray_dim))
                     layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-                    setPadding(8, 8, 8, 8)
+                    setPadding(8, 4, 8, 4)
+                    gravity = android.view.Gravity.CENTER
                 }
+                dataRow.addView(timeInput)
 
+                // Remove button
                 val removeBtn = Button(context).apply {
                     text = "−"
-                    textSize = 14f
+                    textSize = 12f
                     setTextColor(ContextCompat.getColor(context, R.color.color_red))
                     setBackgroundTintList(android.content.res.ColorStateList.valueOf(
                         ContextCompat.getColor(context, R.color.color_surface)
                     ))
-                    layoutParams = LinearLayout.LayoutParams(56, LinearLayout.LayoutParams.WRAP_CONTENT)
+                    layoutParams = LinearLayout.LayoutParams(50, LinearLayout.LayoutParams.WRAP_CONTENT)
+                    setPadding(4, 4, 4, 4)
                     setOnClickListener {
                         steps.removeAt(idx)
-                        updateStepsUI()
+                        updateTableUI()
                     }
                 }
+                dataRow.addView(removeBtn)
 
-                stepLayout.addView(durationInput)
-                stepLayout.addView(boostInput)
-                stepLayout.addView(removeBtn)
+                tableContainer.addView(dataRow)
 
-                stepsContainer.addView(stepLayout)
-
-                // Update step from inputs
-                durationInput.onFocusChangeListener = android.view.View.OnFocusChangeListener { _, _ ->
-                    step.durationSec = durationInput.text.toString().toIntOrNull() ?: 60
+                // Sync inputs to step data
+                tempInput.onFocusChangeListener = android.view.View.OnFocusChangeListener { _, _ ->
+                    step.temp = tempInput.text.toString().toIntOrNull() ?: baseTemp
                 }
-                boostInput.onFocusChangeListener = android.view.View.OnFocusChangeListener { _, _ ->
-                    step.boostC = boostInput.text.toString().toIntOrNull() ?: 0
+                timeInput.onFocusChangeListener = android.view.View.OnFocusChangeListener { _, _ ->
+                    step.timeSec = timeInput.text.toString().toIntOrNull() ?: 60
                 }
             }
 
@@ -404,14 +461,14 @@ class SessionFragment : Fragment() {
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
-                ).apply { setMargins(0, 8, 0, 8) }
+                ).apply { setMargins(0, 12, 0, 0) }
                 setPadding(16, 12, 16, 12)
                 setOnClickListener {
-                    steps.add(StepUI(60, 5))
-                    updateStepsUI()
+                    steps.add(StepUI(baseTemp + 5, 60))
+                    updateTableUI()
                 }
             }
-            stepsContainer.addView(addStepBtn)
+            tableContainer.addView(addStepBtn)
 
             // Total time summary
             val summaryText = TextView(context).apply {
@@ -421,13 +478,13 @@ class SessionFragment : Fragment() {
                 setPadding(12, 12, 12, 4)
                 setTypeface(null, android.graphics.Typeface.BOLD)
             }
-            stepsContainer.addView(summaryText)
+            tableContainer.addView(summaryText)
         }
 
-        updateStepsUI()
+        updateTableUI()
 
         val scrollView = android.widget.ScrollView(context).apply {
-            addView(stepsContainer)
+            addView(tableContainer)
         }
 
         val container = LinearLayout(context).apply {
@@ -451,24 +508,25 @@ class SessionFragment : Fragment() {
             .setView(container)
             .setPositiveButton("Save") { _, _ ->
                 val name = nameInput.text.toString().trim()
-                val baseTemp = baseTempInput.text.toString().toIntOrNull()?.coerceIn(40, 230) ?: 180
+                val newBaseTemp = baseTempInput.text.toString().toIntOrNull()?.coerceIn(40, 230) ?: baseTemp
 
                 if (name.isNotEmpty() && steps.isNotEmpty()) {
-                    // Rebuild boostStepsJson from steps
+                    // Rebuild boostStepsJson: boost = temp - newBaseTemp
                     val stepsJson = mutableListOf<String>()
                     var offsetSec = 0
                     steps.forEach { step ->
-                        stepsJson.add("{\"offsetSec\":$offsetSec,\"boostC\":${step.boostC}}")
-                        offsetSec += step.durationSec
+                        val boostC = step.temp - newBaseTemp
+                        stepsJson.add("{\"offsetSec\":$offsetSec,\"boostC\":$boostC}")
+                        offsetSec += step.timeSec
                     }
                     val json = "[${stepsJson.joinToString(",")}]"
 
                     val updated = (program ?: SessionProgram(
                         name = name,
-                        targetTempC = baseTemp,
+                        targetTempC = newBaseTemp,
                         boostStepsJson = json,
                         isDefault = false
-                    )).copy(name = name, targetTempC = baseTemp, boostStepsJson = json)
+                    )).copy(name = name, targetTempC = newBaseTemp, boostStepsJson = json)
 
                     sessionVm.saveProgram(updated)
                 }
