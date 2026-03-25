@@ -1,5 +1,11 @@
 # SBTracker — Changelog
 
+### 2026-03-24 20:10 — Fix KSP Resolution Failure (Operator/Apoc)
+- **PR to `dev`** (Origin: KSP build issue)
+- **Fixed** Resolves regression where `UserPreferencesRepository` could not be resolved by Hilt KSP processor in `BleViewModel`, `BatteryViewModel`, and `HistoryViewModel`.
+- **Added** Missing `import com.sbtracker.data.UserPreferencesRepository` to all three affected ViewModels.
+- **Note**: KSP requires explicit imports for types referenced in `@Inject` constructors even if they are in subpackages the IDE sometimes infers.
+
 ### 2026-03-24 14:15 — PR Workflow Documentation & Enforcement (Claude)
 - **PR to `dev`** (Origin: Workflow enforcement initiative)
 - **Created** `.agents/WORKFLOW_ENFORCEMENT.md` — comprehensive, non-negotiable rules for all agent work:
