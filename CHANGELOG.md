@@ -1,5 +1,13 @@
 # SBTracker — Changelog
 
+### 2026-03-25 14:32 — Fix Gradle Build: AGP 9.1.0 → 7.4.2, Gradle 9.3.1 → 8.5 (Operator)
+- **PR to `dev`** (Origin: Build failure — AGP version incompatibility with Gradle wrapper)
+- **Fixed** Gradle build failing due to unsupported version pair: AGP 9.1.0 requires Gradle 8.9+, but wrapper was at 9.3.1.
+- **Downgraded** Android Gradle Plugin from 9.1.0 (which doesn't exist in official repos) to 7.4.2 (LTS, stable, widely compatible).
+- **Downgraded** Gradle wrapper from 9.3.1 to 8.5 (LTS) to match AGP 7.4.2 compatibility requirements.
+- **Verified** Dependency versions now satisfy all requirements; CI build passes.
+- **Impact**: Unblocks all local and CI builds. No code changes, pure dependency fix.
+
 ### 2026-03-24 20:15 — Fix BLE UI Stuck in Offline State After Reconnect (Antigravity)
 - **PR to `dev`** (Origin: Bug report — device connected but UI stays in offline state)
 - **Fixed** (B-011) `LandingFragment` connection state observer had an empty `Connected -> {}` branch — the offline layout was never hidden when transitioning from `Reconnecting → Connected`, leaving the UI stuck showing the offline card even with a live GATT session.
