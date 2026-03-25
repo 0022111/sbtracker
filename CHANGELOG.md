@@ -1,5 +1,27 @@
 # SBTracker — Changelog
 
+> **Style Standard (v3)**: Every entry must identify the **Rationale** (Why), **Technical Changes** (What+Where), and **Deltas/Debt** (What was deferred or "barebones"). Link specific Backlog IDs to ensure "barebones" features are never lost.
+
+---
+
+
+### 2026-03-25 — Meta: Project Backlog Restructuring & Milestone Consolidation (Orchestrator)
+
+- **Rationale**: The backlog was becoming fragmented into too many small, disconnected tasks. This consolidation groups work into three functional "Milestone Epics" (Data Trust, UI Refresh, Data Mobility) to provide a clearer path to the v0.2 Alpha release.
+- **Changes**:
+  - **BACKLOG.md**: 
+    - Consolidated 14 active tasks into three primary Epics (v0.2 Milestone).
+    - Split **F-018** (Health & Dosage) into Phase 1 (Core) and Phase 2 (Advanced Insights) to better track "barebones" features.
+    - Updated the Critical Path in the Alpha Roadmap to align with Epic-based tracking.
+    - Archive "Done" items into a legacy section to reduce noise.
+  - **CHANGELOG.md**:
+    - Introduced the v3 Verbosity Standard to capture architectural rationale and technical debt.
+- **Architectural Impact**: This allows us to track "Trustworthiness" as a single unit, which is the hard prerequisite for the parked Hit Analytics (`F-052`) and Achievement system.
+- **Technical Debt (The "Barebones" tracking)**: 
+  - F-018b (Insights) is now explicitly tracked as a Phase 2 item, ensuring "done" doesn't mean "abandoned."
+
+---
+
 ### 2026-03-25 — Fix Build Issue: Remove Unused Hit Analysis (Worker)
 
 - **Origin**: Issue resolution
