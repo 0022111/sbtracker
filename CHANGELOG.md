@@ -4,6 +4,20 @@
 
 ---
 
+### 2026-03-25 — F-027: Document Aspirational Scope + Close PR #66 (Claude)
+
+- **Added** task files T-083 (DB migration v4→5 / stayOnAtEnd), T-084 (drain estimation data layer), T-085 (hero window + drain preview UI) to capture the unimplemented bonus features from PR #66
+- **Updated** TASKS.md: T-044/T-045 marked `done` (grid + editor shipped via PRs #64/#65); T-046 unblocked to `ready`; F-027 backlog spec replaced with accurate status table
+- **Closed** PR #66 — its actual 2-file diff was superseded by PR #65 (table UI); the execution/persistence/analytics scope it described is now tracked as T-046, T-056, T-057, T-083–T-085
+
+### 2026-03-25 — Fix: Program Editor Save Bug — Eager Text Sync + Temp Validation (Claude)
+
+- **Fixed** `showProgramEditor()` step inputs used `onFocusChangeListener` to sync data to the backing model; if a field still had focus when Save was tapped the last edit was silently dropped. Replaced with `doAfterTextChanged` so `step.temp` / `step.timeSec` stay current on every keystroke.
+- **Fixed** step temperature values were written to JSON without clamping; a user-entered out-of-range temp (e.g. 5°C or 999°C) would propagate to the device. Added `coerceIn(40, 230)` at save time, matching validation already applied to the base temp field.
+- **Fixed** step duration of 0 seconds was accepted; now clamped to a minimum of 1 second via `maxOf(1, …)`.
+
+---
+
 ### 2026-03-25 14:xx — F-027: Program Editor Refinement — Clean Table UI (Claude)
 
 - **Origin**: Branch `claude/session-program-ui-table-refinement` → PR to `dev`

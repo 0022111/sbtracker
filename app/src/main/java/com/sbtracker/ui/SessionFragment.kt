@@ -13,6 +13,7 @@ import android.widget.EditText
 import android.app.AlertDialog
 import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
+import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
@@ -441,13 +442,10 @@ class SessionFragment : Fragment() {
 
                 tableContainer.addView(dataRow)
 
-                // Sync inputs to step data
-                tempInput.onFocusChangeListener = android.view.View.OnFocusChangeListener { _, _ ->
-                    step.temp = tempInput.text.toString().toIntOrNull() ?: baseTemp
-                }
-                timeInput.onFocusChangeListener = android.view.View.OnFocusChangeListener { _, _ ->
-                    step.timeSec = timeInput.text.toString().toIntOrNull() ?: 60
-                }
+                // Sync inputs to step data eagerly so Save captures the latest value
+                // even if the field still has focus when the button is tapped.
+                tempInput.doAfterTextChanged { step.temp = it.toString().toIntOrNull() ?: baseTemp }
+                timeInput.doAfterTextChanged { step.timeSec = maxOf(1, it.toString().toIntOrNull() ?: 60) }
             }
 
             // Add Step button
@@ -515,7 +513,8 @@ class SessionFragment : Fragment() {
                     val stepsJson = mutableListOf<String>()
                     var offsetSec = 0
                     steps.forEach { step ->
-                        val boostC = step.temp - newBaseTemp
+                        val clampedTemp = step.temp.coerceIn(40, 230)
+                        val boostC = clampedTemp - newBaseTemp
                         stepsJson.add("{\"offsetSec\":$offsetSec,\"boostC\":$boostC}")
                         offsetSec += step.timeSec
                     }

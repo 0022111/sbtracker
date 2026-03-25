@@ -96,11 +96,14 @@ main  ← stable, merges only from dev
 |---|---|---|---|---|
 | T-042 | `done` | SessionProgram Entity + DAO + Migration 3→4 (incl. appliedProgramId on session_metadata) | [T-042](tasks/T-042-session-program-entity.md) | — |
 | T-043 | `done` | ProgramRepository: CRUD + Default Preset Seeding | [T-043](tasks/T-043-program-repository.md) | T-042 |
-| T-044 | `ready` | Programs List UI in SettingsFragment | [T-044](tasks/T-044-programs-list-ui.md) | T-043 |
-| T-045 | `blocked` | Create/Edit Program Dialog | [T-045](tasks/T-045-create-edit-program-dialog.md) | T-044 |
-| T-046 | `blocked` | Apply Program on Heater Start (setBoost, cancellable Job) | [T-046](tasks/T-046-apply-program-on-start.md) | T-045 |
+| T-044 | `done` | Program Grid + Editor UI in SessionFragment (2×3 grid, table step editor) | [T-044](tasks/T-044-programs-list-ui.md) | T-043 |
+| T-045 | `done` | Create/Edit Program Dialog (table UI: Step# / Temp / Time rows) | [T-045](tasks/T-045-create-edit-program-dialog.md) | T-044 |
+| T-046 | `ready` | Apply Program on Heater Start (chip row, startSessionWithProgram, setBoost job) | [T-046](tasks/T-046-apply-program-on-start.md) | T-045 |
 | T-056 | `blocked` | Record Program Attribution to session_metadata on Session Complete | [T-056](tasks/T-056-record-program-attribution.md) | T-046 |
 | T-057 | `blocked` | Display Program Name in Session History + Session Report | [T-057](tasks/T-057-display-program-in-history.md) | T-056 |
+| T-083 | `ready` | DB Migration v4→5: stayOnAtEnd field on SessionProgram | [T-083](tasks/T-083-session-program-stay-on-migration.md) | — |
+| T-084 | `ready` | Program Drain Estimation: AnalyticsRepository + HistoryViewModel + SessionViewModel helpers | [T-084](tasks/T-084-program-drain-estimation.md) | T-043 |
+| T-085 | `blocked` | SessionFragment: Program Hero Window + Drain Estimate Preview | [T-085](tasks/T-085-program-hero-window-and-drain-preview.md) | T-046, T-084 |
 
 ## Phase 3 — F-055 Homepage Redesign
 

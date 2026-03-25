@@ -147,58 +147,32 @@ The codebase is currently in the "Final Hardening" phase. To reach a technical A
 
 ---
 
-### F-027: Session Programs UI — Session Page Integration
+### F-027: Session Programs — Implementation Status & Remaining Work
 
-*Status: **In Development** — Session page UI for program selection and configuration.*
+*Status: **In Development** — Library management done; execution, persistence, and display pipeline in progress.*
 
-**User Story:**
-As a user, I want to see a 2×3 grid of session programs on the Session page where I can:
-- Quickly select and apply pre-configured heating profiles (3 default + 3 custom)
-- View program details including total duration and estimated battery drain
-- Configure custom programs by defining temperature steps and durations
-- Apply a program to immediately start a session with that profile
+#### What's done (in `dev`)
+| Task | What shipped |
+|------|-------------|
+| T-042 | `SessionProgram` entity, `SessionProgramDao`, Migration 3→4 (creates `session_programs` + `appliedProgramId` column on `session_metadata`) |
+| T-043 | `ProgramRepository` CRUD + default preset seeding |
+| T-044/T-045 | `setupProgramsGrid()` 2×3 grid + `showProgramEditor()` table dialog (Step# / Temp / Time) in `SessionFragment` — programs can be created, edited, deleted |
 
-**Technical Architecture:**
-- **Data Model**: `SessionProgram` entity contains `boostStepsJson` (array of `{offsetSec: Int, boostC: Int}`)
-  - Each step represents a boost offset to apply at a given time offset
-  - Example: `[{offsetSec: 0, boostC: 0}, {offsetSec: 60, boostC: 5}]` = normal temp for 60s, then +5° boost
-- **UI Placement**: `SessionFragment` (active session page)
-- **Layout**: Programmatic Views (no new XML layouts — follow existing pattern)
+#### Remaining tasks (in order)
+| Task | What it delivers |
+|------|-----------------|
+| **T-083** `ready` | DB Migration v4→5: `stayOnAtEnd: Boolean` field on `SessionProgram` (infrastructure; no UI yet) |
+| **T-084** `ready` | `AnalyticsRepository.computeAvgDrainPerMinute()` + `HistoryViewModel.avgDrainPerMinute` StateFlow + `SessionViewModel` estimation helpers |
+| **T-046** `ready` | Chip row UI for program selection, `startSessionWithProgram()`, `ActiveProgramHolder` singleton, `setBoost()` coroutine job — **programs execute for the first time** |
+| **T-056** `blocked by T-046` | `MainViewModel` writes `appliedProgramId` to `session_metadata` on session complete via `ActiveProgramHolder.consume()` |
+| **T-057** `blocked by T-056` | `appliedProgramName` in `SessionSummary`, history badge `▶ ProgramName`, `SessionReportActivity` program line |
+| **T-085** `blocked by T-046, T-084` | SessionFragment hero window `MM:SS (est.)` + drain preview `−X% (Ym est.)` when program is selected and idle |
 
-**UI Components:**
-1. **Program Grid** (2×3):
-   - Top 3: Default programs (non-deletable)
-   - Bottom 3: User custom programs (optional delete button)
-   - Each button shows: program name (label), target temp (subtitle)
-   - Visual state: selected/active program highlighted
-
-2. **Program Editor Dialog**:
-   - Opens when clicking a program or "New Program" button
-   - Sections:
-     - Program name (text input)
-     - Base target temperature (temp selector, 40–230°C)
-     - Steps list:
-       - Each step: time offset (minutes) + boost offset (°C) controls
-       - Add/remove buttons for steps
-       - Auto-calculate total duration and estimated battery drain
-     - Preview: "Total: MM:SS | Est. drain: X%"
-     - Save/Cancel buttons
-
-3. **Program Application**:
-   - Clicking a program button applies it and optionally triggers session start
-   - If session is not running: apply program to staging, optionally auto-start with "IGNITE" button
-   - If session is running: queue boost steps for execution (detailed in T-046)
-
-**Design Constraints:**
-- Reuse existing color scheme and typography (Matrix cyber-green theme)
-- Keep program selection intuitive and visually compact
-- Battery drain estimation should use existing `AnalyticsRepository` heuristics
-- Do NOT store user programs in session_metadata on creation — only on session complete (T-056)
-
-**Dependencies:**
-- `SessionViewModel` — extend with program control methods
-- `HistoryViewModel` — reuse battery drain estimation logic
-- `ProgramRepository` — already has CRUD and defaults seeding
+#### Architecture notes
+- `boostStepsJson` format: `[{offsetSec: Int, boostC: Int}, …]` — cumulative offsets from session start; `boostC` is the delta above `targetTempC`
+- Execution uses `setBoost()` (WRITE_BOOST command), never `setTemp(base + boost)` — avoids disrupting hit detection in `SessionTracker`
+- `ActiveProgramHolder` (@Singleton) bridges `SessionViewModel` → `MainViewModel` without a cross-ViewModel dependency
+- `appliedProgramName` is always resolved at query time from `session_programs` — never stored as a string in the DB
 
 ---
 
