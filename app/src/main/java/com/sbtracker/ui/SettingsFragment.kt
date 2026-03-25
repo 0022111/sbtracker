@@ -247,6 +247,183 @@ class SettingsFragment : Fragment() {
                 .setNegativeButton("Cancel", null)
                 .show()
         }
+
+        // Collect and display session programs
+        viewLifecycleOwner.lifecycleScope.launch {
+            settingsVm.programs.collect { programs ->
+                updateProgramsList(programs)
+            }
+        }
+    }
+
+    private fun updateProgramsList(programs: List<com.sbtracker.data.SessionProgram>) {
+        val container = binding.programsContainer
+        container.removeAllViews()
+
+        // Add each program as a row
+        for ((index, program) in programs.withIndex()) {
+            if (index > 0) {
+                // Add divider between items
+                val divider = View(requireContext()).apply {
+                    layoutParams = android.widget.LinearLayout.LayoutParams(
+                        android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                        1
+                    ).apply {
+                        marginStart = 16.dpToPx()
+                        marginEnd = 16.dpToPx()
+                    }
+                    setBackgroundColor(android.graphics.Color.parseColor("#141E17"))
+                }
+                container.addView(divider)
+            }
+
+            // Program row: [name] [temp] [DELETE button if not default]
+            val rowLayout = android.widget.LinearLayout(requireContext()).apply {
+                layoutParams = android.widget.LinearLayout.LayoutParams(
+                    android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                    64.dpToPx()
+                )
+                orientation = android.widget.LinearLayout.HORIZONTAL
+                gravity = android.view.Gravity.CENTER_VERTICAL
+                setPadding(16.dpToPx(), 0, 16.dpToPx(), 0)
+                isClickable = true
+                isFocusable = true
+                background = android.graphics.drawable.RippleDrawable(
+                    android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#1A1A1A")),
+                    null,
+                    null
+                )
+            }
+
+            // Program info column
+            val infoLayout = android.widget.LinearLayout(requireContext()).apply {
+                layoutParams = android.widget.LinearLayout.LayoutParams(
+                    0,
+                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
+                    1f
+                )
+                orientation = android.widget.LinearLayout.VERTICAL
+            }
+
+            val nameView = android.widget.TextView(requireContext()).apply {
+                text = program.name
+                setTextColor(android.graphics.Color.parseColor("#FFFFFF"))
+                textSize = 16f
+            }
+            infoLayout.addView(nameView)
+
+            val tempView = android.widget.TextView(requireContext()).apply {
+                text = "${program.targetTempC}°C"
+                setTextColor(android.graphics.Color.parseColor("#80A88F"))
+                textSize = 12f
+            }
+            infoLayout.addView(tempView)
+
+            rowLayout.addView(infoLayout)
+
+            // Delete button (only for non-default programs)
+            if (!program.isDefault) {
+                val deleteBtn = android.widget.Button(requireContext()).apply {
+                    text = "DELETE"
+                    layoutParams = android.widget.LinearLayout.LayoutParams(
+                        android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
+                        android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+                    ).apply {
+                        marginStart = 16.dpToPx()
+                    }
+                    setBackgroundColor(android.graphics.Color.parseColor("#FF453A"))
+                    setTextColor(android.graphics.Color.parseColor("#FFFFFF"))
+                    textSize = 12f
+                    setPadding(8.dpToPx(), 4.dpToPx(), 8.dpToPx(), 4.dpToPx())
+                    setOnClickListener {
+                        settingsVm.deleteProgram(program.id)
+                        android.widget.Toast.makeText(requireContext(), "${program.name} deleted", android.widget.Toast.LENGTH_SHORT).show()
+                    }
+                }
+                rowLayout.addView(deleteBtn)
+            }
+
+            container.addView(rowLayout)
+        }
+
+        // Add "+ New Program" button
+        val addBtnLayout = android.widget.LinearLayout(requireContext()).apply {
+            layoutParams = android.widget.LinearLayout.LayoutParams(
+                android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                64.dpToPx()
+            )
+            orientation = android.widget.LinearLayout.HORIZONTAL
+            gravity = android.view.Gravity.CENTER_VERTICAL
+            setPadding(16.dpToPx(), 0, 16.dpToPx(), 0)
+        }
+
+        val addBtn = android.widget.Button(requireContext()).apply {
+            text = "+ New Program"
+            layoutParams = android.widget.LinearLayout.LayoutParams(
+                android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                48.dpToPx()
+            )
+            setBackgroundColor(android.graphics.Color.parseColor("#00FF41"))
+            setTextColor(android.graphics.Color.parseColor("#000000"))
+            textSize = 14f
+            setOnClickListener {
+                showNewProgramDialog()
+            }
+        }
+        addBtnLayout.addView(addBtn)
+        container.addView(addBtnLayout)
+    }
+
+    private fun showNewProgramDialog() {
+        val nameInput = android.widget.EditText(requireContext()).apply {
+            hint = "Program name (e.g., 'Morning Session')"
+            inputType = android.text.InputType.TYPE_CLASS_TEXT
+        }
+
+        val tempInput = android.widget.EditText(requireContext()).apply {
+            hint = "Target temperature (°C, 130-220)"
+            inputType = android.text.InputType.TYPE_CLASS_NUMBER
+        }
+
+        val inputLayout = android.widget.LinearLayout(requireContext()).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            setPadding(16.dpToPx(), 16.dpToPx(), 16.dpToPx(), 16.dpToPx())
+            addView(nameInput)
+            addView(tempInput)
+        }
+
+        android.app.AlertDialog.Builder(requireContext())
+            .setTitle("Create New Program")
+            .setView(inputLayout)
+            .setPositiveButton("Create") { _, _ ->
+                val name = nameInput.text.toString().trim()
+                val tempStr = tempInput.text.toString().trim()
+                if (name.isNotEmpty() && tempStr.isNotEmpty()) {
+                    val temp = tempStr.toIntOrNull()
+                    if (temp != null && temp in 130..220) {
+                        // TODO: T-045 will implement the full create/edit dialog
+                        android.widget.Toast.makeText(
+                            requireContext(),
+                            "Program creation dialog (T-045)",
+                            android.widget.Toast.LENGTH_SHORT
+                        ).show()
+                    } else {
+                        android.widget.Toast.makeText(
+                            requireContext(),
+                            "Invalid temperature",
+                            android.widget.Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                } else {
+                    android.widget.Toast.makeText(
+                        requireContext(),
+                        "Please fill in all fields",
+                        android.widget.Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun updateNotificationPermissionStatus() {
@@ -278,4 +455,6 @@ class SettingsFragment : Fragment() {
         }
         startActivity(intent)
     }
+
+    private fun Int.dpToPx(): Int = (this * requireContext().resources.displayMetrics.density).toInt()
 }

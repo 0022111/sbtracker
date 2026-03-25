@@ -634,6 +634,32 @@
             android:textColor="#FF453A"
             app:cornerRadius="16dp" />
 
+        <!-- SESSION PROGRAMS -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="SESSION PROGRAMS"
+            android:textColor="#80A88F"
+            android:textSize="11sp"
+            android:letterSpacing="0.1"
+            android:textStyle="bold" />
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            app:cardBackgroundColor="#0B110D"
+            app:cardCornerRadius="20dp">
+
+            <LinearLayout
+                android:id="@+id/programs_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="8dp" />
+        </androidx.cardview.widget.CardView>
+
         <!-- HEALTH & DOSAGE -->
         <TextView
             android:layout_width="wrap_content"

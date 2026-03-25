@@ -6,6 +6,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.sbtracker.analytics.AnalyticsRepository
 import com.sbtracker.data.AppDatabase
+import com.sbtracker.data.ProgramRepository
+import com.sbtracker.data.SessionProgram
 import com.sbtracker.data.UserPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -18,12 +20,14 @@ import javax.inject.Inject
 
 /**
  * Owns user preferences: day start hour, data retention, capsule weight, default pack type.
+ * Also manages session programs.
  */
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val db: AppDatabase,
     private val analyticsRepo: AnalyticsRepository,
     private val prefsRepo: UserPreferencesRepository,
+    private val programRepository: ProgramRepository,
     application: Application
 ) : AndroidViewModel(application) {
 
@@ -42,6 +46,9 @@ class SettingsViewModel @Inject constructor(
     val defaultIsCapsule: StateFlow<Boolean> = prefsRepo.userPreferencesFlow
         .map { it.defaultIsCapsule }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    val programs: StateFlow<List<SessionProgram>> = programRepository.programs
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     init {
         viewModelScope.launch {
@@ -72,6 +79,12 @@ class SettingsViewModel @Inject constructor(
     fun setDefaultIsCapsule(isCapsule: Boolean) {
         viewModelScope.launch {
             prefsRepo.updateDefaultIsCapsule(isCapsule)
+        }
+    }
+
+    fun deleteProgram(id: Long) {
+        viewModelScope.launch {
+            programRepository.deleteProgram(id)
         }
     }
 }
