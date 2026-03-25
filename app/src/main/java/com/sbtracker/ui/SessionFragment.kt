@@ -7,6 +7,10 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.TextView
+import android.widget.GridLayout
+import android.widget.LinearLayout
+import android.widget.EditText
+import android.app.AlertDialog
 import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -14,9 +18,11 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.sbtracker.*
 import com.sbtracker.databinding.FragmentSessionBinding
+import com.sbtracker.data.SessionProgram
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
 @AndroidEntryPoint
 class SessionFragment : Fragment() {
@@ -175,5 +181,172 @@ class SessionFragment : Fragment() {
                 }
             }
         }
+
+        // Setup Session Programs Grid (2x3)
+        setupProgramsGrid()
+    }
+
+    private fun setupProgramsGrid() {
+        val scrollView = binding.sessionContentScroll
+        val layout = scrollView.getChildAt(0) as LinearLayout
+
+        // Create section label
+        val sectionLabel = TextView(requireContext()).apply {
+            text = "SESSION PROGRAMS"
+            textSize = 12f
+            setTextColor(ContextCompat.getColor(requireContext(), R.color.color_boost_bar_fill))
+            setPadding(0, 32, 0, 12)
+            setTypeface(null, android.graphics.Typeface.BOLD)
+            letterSpacing = 0.1f
+        }
+        layout.addView(sectionLabel)
+
+        // Create 2x3 grid
+        val gridLayout = GridLayout(requireContext()).apply {
+            columnCount = 3
+            rowCount = 2
+            layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+        }
+        layout.addView(gridLayout)
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            combine(sessionVm.defaultPrograms, sessionVm.customPrograms) { defaults, customs ->
+                defaults to customs
+            }.collect { (defaults, customs) ->
+                gridLayout.removeAllViews()
+
+                val allPrograms = (defaults + customs).take(6)
+
+                allPrograms.forEachIndexed { idx, program ->
+                    val isDefaultProgram = program.isDefault
+                    val btnProgram = Button(requireContext()).apply {
+                        text = "${program.name}\n${program.targetTempC}°C"
+                        textSize = 12f
+                        setTextColor(0xFFFFFFFF.toInt())
+                        setBackgroundTintList(android.content.res.ColorStateList.valueOf(
+                            ContextCompat.getColor(requireContext(), R.color.color_surface)
+                        ))
+                        layoutParams = GridLayout.LayoutParams().apply {
+                            width = 0
+                            height = ViewGroup.LayoutParams.WRAP_CONTENT
+                            columnSpec = GridLayout.spec(idx % 3, 1f)
+                            rowSpec = GridLayout.spec(idx / 3)
+                            setMargins(6, 6, 6, 6)
+                        }
+                        setPadding(16, 24, 16, 24)
+
+                        setOnClickListener {
+                            showProgramEditor(program)
+                        }
+                    }
+                    gridLayout.addView(btnProgram)
+                }
+
+                // Add "New Program" button if fewer than 6 programs
+                if (allPrograms.size < 6) {
+                    for (idx in allPrograms.size until 6) {
+                        val btnNew = Button(requireContext()).apply {
+                            text = "+ NEW"
+                            textSize = 12f
+                            setTextColor(ContextCompat.getColor(requireContext(), R.color.color_boost_bar_fill))
+                            setBackgroundTintList(android.content.res.ColorStateList.valueOf(
+                                ContextCompat.getColor(requireContext(), R.color.color_surface)
+                            ))
+                            layoutParams = GridLayout.LayoutParams().apply {
+                                width = 0
+                                height = ViewGroup.LayoutParams.WRAP_CONTENT
+                                columnSpec = GridLayout.spec(idx % 3, 1f)
+                                rowSpec = GridLayout.spec(idx / 3)
+                                setMargins(6, 6, 6, 6)
+                            }
+                            setPadding(16, 24, 16, 24)
+
+                            setOnClickListener {
+                                showProgramEditor(null)
+                            }
+                        }
+                        gridLayout.addView(btnNew)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun showProgramEditor(program: SessionProgram?) {
+        val context = requireContext()
+        val isNew = program == null
+
+        val nameInput = EditText(context).apply {
+            setText(program?.name ?: "")
+            hint = "Program name (e.g., Terpene Boost)"
+            textSize = 14f
+            setTextColor(0xFFFFFFFF.toInt())
+            setHintTextColor(ContextCompat.getColor(context, R.color.color_gray_dim))
+            setPadding(16, 8, 16, 8)
+        }
+
+        val tempInput = EditText(context).apply {
+            val defaultTemp = program?.targetTempC ?: bleVm.targetTemp.value
+            setText(defaultTemp.toString())
+            hint = "Target temp (40-230°C)"
+            inputType = android.text.InputType.TYPE_CLASS_NUMBER
+            textSize = 14f
+            setTextColor(0xFFFFFFFF.toInt())
+            setHintTextColor(ContextCompat.getColor(context, R.color.color_gray_dim))
+            setPadding(16, 8, 16, 8)
+        }
+
+        val stepsInfo = TextView(context).apply {
+            text = "Steps: ${program?.boostStepsJson ?: "[]"}"
+            textSize = 12f
+            setTextColor(ContextCompat.getColor(context, R.color.color_boost_bar_fill))
+            setPadding(16, 16, 16, 8)
+        }
+
+        val container = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(16, 16, 16, 16)
+            addView(nameInput)
+            addView(tempInput)
+            addView(stepsInfo)
+        }
+
+        AlertDialog.Builder(context)
+            .setTitle(if (isNew) "New Program" else "Edit Program")
+            .setView(container)
+            .setPositiveButton("Save") { _, _ ->
+                val name = nameInput.text.toString().trim()
+                val temp = tempInput.text.toString().toIntOrNull()?.coerceIn(40, 230) ?: 180
+
+                if (name.isNotEmpty()) {
+                    val updated = (program ?: SessionProgram(
+                        name = name,
+                        targetTempC = temp,
+                        boostStepsJson = "[{\"offsetSec\":0,\"boostC\":0}]",
+                        isDefault = false
+                    )).copy(name = name, targetTempC = temp)
+
+                    sessionVm.saveProgram(updated)
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .apply {
+                if (!isNew && !program!!.isDefault) {
+                    setNeutralButton("Delete") { _, _ ->
+                        AlertDialog.Builder(context)
+                            .setTitle("Delete Program?")
+                            .setMessage("Are you sure? This cannot be undone.")
+                            .setPositiveButton("Delete") { _, _ ->
+                                sessionVm.deleteProgram(program.id)
+                            }
+                            .setNegativeButton("Cancel", null)
+                            .show()
+                    }
+                }
+            }
+            .show()
     }
 }
