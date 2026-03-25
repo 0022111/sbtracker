@@ -160,7 +160,7 @@ main  ← stable, merges only from dev
 
 | ID | Status | Title | Task File | Blocked by |
 |---|---|---|---|---|
-| T-053 | `ready` | Session Report: Redesign Layout with Labeled Sections | [T-053](tasks/T-053-session-report-layout-redesign.md) | — |
+| T-053 | `done` | Session Report: Redesign Layout with Labeled Sections | [T-053](tasks/T-053-session-report-layout-redesign.md) | — |
 | T-054 | `blocked` | Session Report: Human-Readable Extraction Timeline | [T-054](tasks/T-054-session-report-hit-timeline.md) | T-053 |
 | T-055 | `blocked` | Session Report: Session Classification Label | [T-055](tasks/T-055-session-classification-label.md) | T-054 |
 
