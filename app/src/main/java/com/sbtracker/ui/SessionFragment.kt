@@ -41,8 +41,14 @@ class SessionFragment : Fragment() {
     }
 
     override fun onDestroyView() {
+        sessionVm.cancelBoostSchedule()
         super.onDestroyView()
         _binding = null
+    }
+
+    override fun onPause() {
+        sessionVm.selectProgram(null)
+        super.onPause()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -199,6 +205,15 @@ class SessionFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             bleVm.sessionStats.collect { stats ->
                 // chipRow visibility will be handled in setupProgramChipRow
+            }
+        }
+
+        // Cancel boost Job when session ends
+        viewLifecycleOwner.lifecycleScope.launch {
+            bleVm.sessionStats.collectLatest { stats ->
+                if (stats.state == SessionTracker.State.IDLE) {
+                    sessionVm.cancelBoostSchedule()
+                }
             }
         }
 

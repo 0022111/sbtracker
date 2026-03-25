@@ -1,5 +1,6 @@
 package com.sbtracker
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.CancellationException
 import com.sbtracker.data.ProgramRepository
 import com.sbtracker.data.SessionProgram
 import org.json.JSONArray
@@ -67,11 +69,13 @@ class SessionViewModel @Inject constructor(
                 BoostStep(obj.optInt("offsetSec", 0), obj.optInt("boostC", 0))
             }
         } catch (e: Exception) {
+            Log.w("SessionViewModel", "Failed to parse boostStepsJson: ${e.message}")
             emptyList()
         }
     }
 
     fun startSessionWithProgram(program: SessionProgram) {
+        Log.d("SessionViewModel", "Starting session with program: ${program.name}")
         boostJob?.cancel()
 
         // 1. Set target temperature (mode 1 = standard heater mode)
@@ -80,14 +84,21 @@ class SessionViewModel @Inject constructor(
         // 2. Start the heater
         setHeater(true)
 
-        // 3. Schedule boost steps
+        // 3. Schedule boost steps with disconnect recovery
         val steps = parseBoostSteps(program.boostStepsJson)
         if (steps.isEmpty()) return
 
         boostJob = viewModelScope.launch {
             for (step in steps) {
-                if (step.offsetSec > 0) delay(step.offsetSec * 1000L)
-                if (!isActive) break // cancelled — do not fire further commands
+                if (step.offsetSec > 0) {
+                    try {
+                        delay(step.offsetSec * 1000L)
+                    } catch (e: CancellationException) {
+                        // Job was cancelled (disconnect or user action)
+                        break
+                    }
+                }
+                if (!isActive) break // Check again after delay
                 if (step.boostC > 0) {
                     setBoost(step.boostC)
                 }
@@ -96,6 +107,7 @@ class SessionViewModel @Inject constructor(
     }
 
     fun cancelBoostSchedule() {
+        Log.d("SessionViewModel", "Cancelling boost schedule")
         boostJob?.cancel()
         boostJob = null
     }
@@ -123,8 +135,13 @@ class SessionViewModel @Inject constructor(
         bleManager.sendWrite(BlePacket.buildStatusWrite(mask, tempC = clamped, mode = currentMode))
     }
 
-    fun setBoost(offsetC: Int) =
+    fun setBoost(offsetC: Int) {
+        // If a program is executing (boostJob is active), ignore manual boost commands
+        if (boostJob?.isActive == true) {
+            return // Silent ignore — program controls boost timing
+        }
         bleManager.sendWrite(BlePacket.buildStatusWrite(BleConstants.WRITE_BOOST, boostC = offsetC.coerceAtLeast(0)))
+    }
 
     fun setSuperBoost(offsetC: Int) =
         bleManager.sendWrite(BlePacket.buildStatusWrite(BleConstants.WRITE_SUPERBOOST, superBoostC = offsetC.coerceAtLeast(0)))
