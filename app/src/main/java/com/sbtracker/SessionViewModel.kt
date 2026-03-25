@@ -98,6 +98,20 @@ class SessionViewModel @Inject constructor(
         }
     }
 
+    /** Calculate program duration in minutes from boost steps. */
+    fun estimateProgramDurationMinutes(program: SessionProgram): Float {
+        val steps = parseBoostSteps(program.boostStepsJson)
+        val lastOffsetSec = steps.lastOrNull()?.offsetSec ?: 0
+        return (lastOffsetSec / 60f).coerceAtLeast(1f) // At least 1 minute for estimates
+    }
+
+    /** Estimate battery drain for a program given average drain rate per minute. */
+    fun estimateProgramDrain(program: SessionProgram, drainPerMinute: Float): Int {
+        if (drainPerMinute <= 0f) return 0
+        val durationMin = estimateProgramDurationMinutes(program)
+        return (durationMin * drainPerMinute).toInt()
+    }
+
     fun startSessionWithProgram(program: SessionProgram) {
         Log.d("SessionViewModel", "Starting session with program: ${program.name}")
         boostJob?.cancel()

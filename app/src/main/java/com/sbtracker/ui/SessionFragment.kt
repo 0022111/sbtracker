@@ -286,9 +286,24 @@ class SessionFragment : Fragment() {
             }
         }
 
-        // Update chips when selectedProgram changes
+        // Update chips and preview when selectedProgram changes
         viewLifecycleOwner.lifecycleScope.launch {
-            sessionVm.selectedProgram.collect { _ ->
+            kotlinx.coroutines.flow.combine(
+                sessionVm.selectedProgram,
+                historyVm.avgDrainPerMinute
+            ) { program, drainPerMin ->
+                Pair(program, drainPerMin)
+            }.collect { (selectedProgram, drainPerMin) ->
+                // Update temp preview
+                updateTempPreview(selectedProgram)
+
+                // Update drain preview if program is selected
+                if (selectedProgram != null) {
+                    val estimatedDrain = sessionVm.estimateProgramDrain(selectedProgram, drainPerMin)
+                    val durationMin = sessionVm.estimateProgramDurationMinutes(selectedProgram)
+                    binding.sessionTvDrain.text = "-${estimatedDrain}% (${durationMin.toInt()}m est.)"
+                }
+
                 // Rebuild chips to reflect new selection state
                 chipContainer.removeAllViews()
 

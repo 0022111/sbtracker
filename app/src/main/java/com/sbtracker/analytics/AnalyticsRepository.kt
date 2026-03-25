@@ -473,6 +473,19 @@ class AnalyticsRepository(private val db: AppDatabase) {
         )
     }
 
+    /**
+     * Calculate average battery drain per minute from session history.
+     * Used for program execution drain estimation.
+     * Returns 0f if no sessions available.
+     * Pure function — no DB access.
+     */
+    fun computeAvgDrainPerMinute(summaries: List<SessionSummary>): Float {
+        val drainsPerMin = summaries
+            .filter { it.durationMs > 0 && it.batteryConsumed > 0 }
+            .map { it.batteryConsumed.toFloat() / (it.durationMs / 60_000f) }
+        return if (drainsPerMin.isNotEmpty()) drainsPerMin.average().toFloat() else 0f
+    }
+
     // ── Personal records ──────────────────────────────────────────────────────
 
     /**

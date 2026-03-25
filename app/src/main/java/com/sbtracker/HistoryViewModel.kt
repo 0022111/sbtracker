@@ -260,6 +260,12 @@ class HistoryViewModel @Inject constructor(
             analyticsRepo.computeDailyStats(summaries, startHour)
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    /** Average battery drain per minute across device sessions — used for program drain estimation. */
+    val avgDrainPerMinute: StateFlow<Float> =
+        deviceSessionSummaries
+            .map { analyticsRepo.computeAvgDrainPerMinute(it) }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0f)
+
     // ── Graph ──
 
     private val _graphPeriod = MutableStateFlow(GraphPeriod.DAY)
