@@ -73,7 +73,7 @@ The current dev codebase (v0.1) is extremely close to a functional Alpha. To off
 | F-035 | `done` | UI Polish Pass | Consistent styling, colours, spacing | All screens feel cohesive and premium |
 | F-036 | `done` | Settings Screen | Dedicated settings (day start hour, units, alerts) | Currently scattered in ViewModel, needs proper UI |
 | F-051 | `done` | Heat-up Calculation Enhancement | Improve F-017 with real-time weighted calculation based on proximity to last session; back-to-back sessions are more efficient | ETA accounts for device temperature, time since last session, average heat-up history |
-| F-052 | `in-progress` | Analytics Display Refactoring | Reorganize confusing analytics: frequency focus, hit analysis (large hits, many sips, temperature-based achievements), clear dose/session/cycle insights | Analytics clearly categorized by use pattern, dose amounts visible, hit achievements shown |
+| F-052 | `parked` | Hit Analytics & Achievement System | Classify hits by duration + temperature; live hit-type display during session; labeled hit log in session report; session-level achievements; lifetime achievement ledger with timeline. Parked pending re-entry conditions (see Notes). | Hit types labeled in session report; session badges; analytics card showing hit-type distribution |
 | F-053 | `in-progress` | Session Battery Starting Level | Show starting battery level during active session for battery drain context | Session screen displays starting battery alongside current drain |
 | F-054 | `in-progress` | Session Page Complete Redesign | Full rework of session detail: extraction log with clear labels, context for raw data (not just numbers) | Session report shows labeled data, extraction timeline is human-readable |
 | F-055 | `in-progress` | Homepage/Landing Page Redesign | Overhaul command center: remove idle 0°C/32°F display, improve charge state visibility, enable access during sessions | Homepage is accessible during session, temperature display accurate, charge state prominently visible |
@@ -131,10 +131,38 @@ The current dev codebase (v0.1) is extremely close to a functional Alpha. To off
 | 2026-03-24 | Multi-device infrastructure enhancements | Added synthetic test device and cross-device landing page aggregates for better testability and transparency. |
 | 2026-03-24 | Introduce Hilt Dependency Injection (T-006) | Standardized dependency management; unblocked ViewModel decomposition and testing. |
 | 2026-03-25 | Oracle full-codebase audit | Comprehensive review of implementation vs. claims across all layers. Verdict: architecture sound, core bug B-010 (temp accuracy) is the primary release blocker. Added B-012–B-015 from audit findings. See CHANGELOG for full report. |
+| 2026-03-25 | Park F-052 Hit Analytics (Oracle verdict) | The threshold problem: no real hit-duration distribution data exists yet. Hardcoded thresholds (e.g. 3s "large hit") are arbitrary and will need ripping out after Alpha. Re-entry conditions: B-010 resolved, F-054 done, F-056 done, Alpha shipped. T-076 reverted; T-077/T-080/T-081 demoted to `planned`. |
 
 ---
 
 ## Draft Feature Specs
+
+### F-052: Hit Analytics & Achievement System
+*Status: **Parked** — Oracle verdict 2026-03-25. Do not build until re-entry conditions are met.*
+
+**Re-entry conditions (all must be true before any code is written):**
+1. **B-010 resolved** — temperature data is trustworthy. `peakTempC` is meaningless for temp-based achievements until this closes.
+2. **F-054 complete** — `SessionReportActivity` redesign gives the hit log its stable display surface.
+3. **F-056 complete** — Analytics sub-tab exists as the home for hit-type aggregate cards.
+4. **Alpha shipped** — real users have produced real hit data. Look at the actual duration distribution before writing a single threshold value.
+
+**Why parked:** The central risk is the threshold problem. There is no dataset. A "large hit" threshold of 3 seconds is a guess that could classify 10% or 90% of all hits as large. Building classification tiers before Alpha ships means building on sand, then ripping it out. The T-076 attempt (reverted 2026-03-25) proved this.
+
+**The 80% version (build first when re-entry conditions met):**
+- Hit type labels per row in session report hit log (duration + temp based, user-calibrated thresholds)
+- Session-level badges computed at query time (no new DB tables — pure analytics)
+- One aggregate card in Analytics sub-tab: hit type distribution, most achievement-dense session
+
+**The full ideal (later decision):**
+- Lifetime achievement ledger: persistent `achievements` table `(id, deviceAddress, type, earnedAtMs, sessionId)` — first deliberate exception to "no stored derived data" rule
+- Achievement timeline view
+- Live hit annotation during session in `SessionFragment`
+
+**Data already available in `hits` table:** `durationMs`, `peakTempC`, `sessionId`, `startTime`, `endTime`. No schema changes needed for 80% version.
+
+**Do NOT:** hardcode any duration or temperature thresholds before inspecting real hit distribution data.
+
+---
 
 ### F-018: Health & Dosage Tracking
 *Status: Partially unblocked! Database Schema for `SessionMetadata` successfully merged in schema v3.*
