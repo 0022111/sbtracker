@@ -1,5 +1,11 @@
 # SBTracker — Changelog
 
+### 2026-03-24 20:15 — Fix BLE UI Stuck in Offline State After Reconnect (Antigravity)
+- **PR to `dev`** (Origin: Bug report — device connected but UI stays in offline state)
+- **Fixed** (B-011) `LandingFragment` connection state observer had an empty `Connected -> {}` branch — the offline layout was never hidden when transitioning from `Reconnecting → Connected`, leaving the UI stuck showing the offline card even with a live GATT session.
+- **Root cause**: Two independent collectors drive the hero card. The connection state collector handles layout visibility; the status+connection combined collector handles live data. The `Connected` case was empty, so `layoutOffline` remained `VISIBLE` until the first status packet arrived and the second collector ran — a visible race condition on every reconnect.
+- **Fix**: `Connected` branch now immediately sets `layoutOffline = GONE` / `layoutOnline = VISIBLE` so the UI transitions as soon as the connection state changes, independent of when the first status packet arrives.
+
 ### 2026-03-24 20:10 — Fix KSP Resolution Failure (Operator/Apoc)
 - **PR to `dev`** (Origin: KSP build issue)
 - **Fixed** Resolves regression where `UserPreferencesRepository` could not be resolved by Hilt KSP processor in `BleViewModel`, `BatteryViewModel`, and `HistoryViewModel`.
