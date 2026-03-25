@@ -4,6 +4,45 @@
 
 ---
 
+### 2026-03-25 14:xx — F-027: Session Programs UI — Session Page Integration (Claude)
+
+- **Origin**: Branch `claude/session-program-ui-z3Kjs` → PR to `dev`
+- **Rationale**: Users need a quick way to select, apply, and configure session programs directly from the Session page. The 2×3 grid layout enables rapid access to 3 default presets + 3 custom programs, with inline editor for program configuration.
+- **Technical Changes**:
+  - **SessionViewModel.kt**: Added program management via `ProgramRepository`:
+    - `programs: StateFlow<List<SessionProgram>>` — observes all programs
+    - `defaultPrograms: StateFlow<List<SessionProgram>>` — filters to default-only
+    - `customPrograms: StateFlow<List<SessionProgram>>` — filters to user-created only
+    - `saveProgram()` and `deleteProgram()` coroutine methods
+  - **SessionFragment.kt**: Added `setupProgramsGrid()` and `showProgramEditor()` methods:
+    - Creates a 2×3 `GridLayout` after the controls card
+    - Dynamically populates buttons for default + custom programs (max 6 total)
+    - Shows "+ NEW" buttons in remaining slots if fewer than 6 programs exist
+    - Each program button displays: name + target temperature (e.g., "Terpene Optimization\n170°C")
+    - Clicking a program opens `AlertDialog` with:
+      - Program name `EditText`
+      - Target temperature (°C) `EditText` with validation (40–230°C)
+      - Current boost steps display (JSON preview)
+      - Save, Cancel, and Delete (if user-created) buttons
+- **Styling**:
+  - Section label: "SESSION PROGRAMS" in boost_bar_fill color (#80A88F), 12sp, bold, 0.1em letter spacing
+  - Program buttons: white text on color_surface (#2C2C2E) background, 12sp, multi-line layout
+  - "+ NEW" buttons: boost_bar_fill text to indicate action-ready state
+  - Grid margins: 6dp between buttons for visual separation
+- **Behavior**:
+  - Program selection is immediate (button click opens editor)
+  - New programs default to: name = "", targetTempC = 180, boostStepsJson = "[{offsetSec:0, boostC:0}]", isDefault = false
+  - Deleting a program requires confirmation dialog to prevent accidents
+  - Default programs (isDefault=true) cannot be deleted (DAO enforces via query)
+- **Technical Debt**:
+  - **Deferred**: Program application to device (T-046) — boost step scheduling not wired yet; currently only saves to local DB
+  - **Deferred**: Battery drain estimation display — UI shows basic info but doesn't calculate drain based on program duration yet; requires `AnalyticsRepository` enhancement
+  - **Barebones**: Step editor is JSON preview-only; full step creation/editing UI (time offset, boost delta per step) deferred to next phase
+  - **Barebones**: Total program duration calculation not displayed; would require parsing boostStepsJson and summing time deltas
+- **Testing Notes**: Manual testing required once gradle build environment is stable. Flow observables verified in code; dialog interactions and database persistence rely on `ProgramRepository` + `SessionProgramDao` (already tested in T-043).
+
+---
+
 ### 2026-03-25 11:47 — T-070: Enrich Persistent Status Notification Content (Operator)
 
 - **Origin**: Branch `claude/T-070-notification-content` → PR to `dev`

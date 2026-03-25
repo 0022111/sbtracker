@@ -1,8 +1,16 @@
 package com.sbtracker
 
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import com.sbtracker.data.ProgramRepository
+import com.sbtracker.data.SessionProgram
 
 /**
  * Owns device write commands: heater control, temperature, boost, brightness,
@@ -10,8 +18,28 @@ import androidx.lifecycle.ViewModel
  */
 @HiltViewModel
 class SessionViewModel @Inject constructor(
-    private val bleManager: BleManager
+    private val bleManager: BleManager,
+    private val programRepository: ProgramRepository
 ) : ViewModel() {
+
+    val programs: StateFlow<List<SessionProgram>> = programRepository.programs
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val defaultPrograms: StateFlow<List<SessionProgram>> = programs
+        .map { it.filter { p -> p.isDefault } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val customPrograms: StateFlow<List<SessionProgram>> = programs
+        .map { it.filter { p -> !p.isDefault } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun saveProgram(program: SessionProgram) {
+        viewModelScope.launch { programRepository.saveProgram(program) }
+    }
+
+    fun deleteProgram(id: Long) {
+        viewModelScope.launch { programRepository.deleteProgram(id) }
+    }
 
     fun startSession(targetTemp: Int) {
         val clamped = targetTemp.coerceIn(40, 230)

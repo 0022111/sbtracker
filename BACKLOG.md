@@ -147,6 +147,61 @@ The codebase is currently in the "Final Hardening" phase. To reach a technical A
 
 ---
 
+### F-027: Session Programs UI — Session Page Integration
+
+*Status: **In Development** — Session page UI for program selection and configuration.*
+
+**User Story:**
+As a user, I want to see a 2×3 grid of session programs on the Session page where I can:
+- Quickly select and apply pre-configured heating profiles (3 default + 3 custom)
+- View program details including total duration and estimated battery drain
+- Configure custom programs by defining temperature steps and durations
+- Apply a program to immediately start a session with that profile
+
+**Technical Architecture:**
+- **Data Model**: `SessionProgram` entity contains `boostStepsJson` (array of `{offsetSec: Int, boostC: Int}`)
+  - Each step represents a boost offset to apply at a given time offset
+  - Example: `[{offsetSec: 0, boostC: 0}, {offsetSec: 60, boostC: 5}]` = normal temp for 60s, then +5° boost
+- **UI Placement**: `SessionFragment` (active session page)
+- **Layout**: Programmatic Views (no new XML layouts — follow existing pattern)
+
+**UI Components:**
+1. **Program Grid** (2×3):
+   - Top 3: Default programs (non-deletable)
+   - Bottom 3: User custom programs (optional delete button)
+   - Each button shows: program name (label), target temp (subtitle)
+   - Visual state: selected/active program highlighted
+
+2. **Program Editor Dialog**:
+   - Opens when clicking a program or "New Program" button
+   - Sections:
+     - Program name (text input)
+     - Base target temperature (temp selector, 40–230°C)
+     - Steps list:
+       - Each step: time offset (minutes) + boost offset (°C) controls
+       - Add/remove buttons for steps
+       - Auto-calculate total duration and estimated battery drain
+     - Preview: "Total: MM:SS | Est. drain: X%"
+     - Save/Cancel buttons
+
+3. **Program Application**:
+   - Clicking a program button applies it and optionally triggers session start
+   - If session is not running: apply program to staging, optionally auto-start with "IGNITE" button
+   - If session is running: queue boost steps for execution (detailed in T-046)
+
+**Design Constraints:**
+- Reuse existing color scheme and typography (Matrix cyber-green theme)
+- Keep program selection intuitive and visually compact
+- Battery drain estimation should use existing `AnalyticsRepository` heuristics
+- Do NOT store user programs in session_metadata on creation — only on session complete (T-056)
+
+**Dependencies:**
+- `SessionViewModel` — extend with program control methods
+- `HistoryViewModel` — reuse battery drain estimation logic
+- `ProgramRepository` — already has CRUD and defaults seeding
+
+---
+
 ### F-018b: Health & Dosage (Phase 2 Insights)
 *Status: Partially unblocked! Database Schema for `SessionMetadata` successfully merged in schema v3.*
 
