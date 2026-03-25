@@ -57,10 +57,10 @@ class BleService : Service() {
         this.bleViewModel = vm
 
         serviceScope.launch {
-            combine(vm.latestStatus, vm.connectionState) { status, state ->
-                status to state
-            }.collect { (status, state) ->
-                updateNotification(status, state)
+            combine(vm.latestStatus, vm.connectionState, vm.sessionStats) { status, state, stats ->
+                Triple(status, state, stats)
+            }.collect { (status, state, stats) ->
+                updateNotification(status, state, stats)
             }
         }
     }
@@ -81,26 +81,55 @@ class BleService : Service() {
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentIntent(pendingIntent)
             .setOngoing(true)
+            .setOnlyAlertOnce(true)
             .build()
     }
 
-    private fun updateNotification(status: com.sbtracker.data.DeviceStatus?, state: BleManager.ConnectionState) {
+    private fun updateNotification(
+        status: com.sbtracker.data.DeviceStatus?,
+        state: BleManager.ConnectionState,
+        stats: SessionTracker.SessionStats
+    ) {
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        val title = when (state) {
-            is BleManager.ConnectionState.Connected -> "Device Online"
-            is BleManager.ConnectionState.Connecting -> "Linking..."
-            is BleManager.ConnectionState.Scanning -> "Scanning..."
-            is BleManager.ConnectionState.Reconnecting -> if (state.attempt == 0) "Waiting for device..." else "Reconnecting (${state.attempt})..."
-            else -> "Disconnected"
-        }
-
-        val content = if (status != null && state is BleManager.ConnectionState.Connected) {
-            val heaterText = if (status.heaterMode > 0) "${status.currentTempC}°C" else "OFF"
-            val batteryText = "Batt: ${status.batteryLevel}%"
-            "$heaterText • $batteryText"
-        } else {
-            "Background tracking active"
+        val (title, content) = when {
+            state is BleManager.ConnectionState.Connected && status != null -> {
+                if (status.heaterMode > 0) {
+                    // Session active: "Session Active — 185°C → 195°C"
+                    val titleStr = "Session Active \u2014 ${status.currentTempC}\u00b0C \u2192 ${status.targetTempC}\u00b0C"
+                    // Content: "Battery: 72% • Hit #4 • 3m 12s"
+                    val elapsedSecs = stats.durationSeconds
+                    val minutes = elapsedSecs / 60
+                    val seconds = elapsedSecs % 60
+                    val elapsedStr = "${minutes}m ${seconds}s"
+                    val hitStr = if (stats.hitCount > 0) "Hit #${stats.hitCount}" else null
+                    val parts = mutableListOf("Battery: ${status.batteryLevel}%")
+                    if (hitStr != null) parts.add(hitStr)
+                    parts.add(elapsedStr)
+                    titleStr to parts.joinToString(" \u2022 ")
+                } else if (status.isCharging) {
+                    // Charging: "Charging" / "Battery: 45% • ETA ~22m"
+                    val eta = stats.chargeEtaMinutes?.let { " \u2022 ETA ~${it}m" } ?: ""
+                    "Charging" to "Battery: ${status.batteryLevel}%$eta"
+                } else {
+                    // Idle: "Device Online" / "Battery: 88% • Idle"
+                    "Device Online" to "Battery: ${status.batteryLevel}% \u2022 Idle"
+                }
+            }
+            state is BleManager.ConnectionState.Connecting -> {
+                "Linking..." to "Background tracking active"
+            }
+            state is BleManager.ConnectionState.Scanning -> {
+                "Scanning..." to "Background tracking active"
+            }
+            state is BleManager.ConnectionState.Reconnecting -> {
+                val titleStr = if (state.attempt == 0) "Waiting for device..." else "Reconnecting (${state.attempt})..."
+                titleStr to "Background tracking active"
+            }
+            else -> {
+                // Disconnected
+                "Disconnected" to "Tap to reconnect"
+            }
         }
 
         manager.notify(NOTIFICATION_ID, createNotification(title, content))
