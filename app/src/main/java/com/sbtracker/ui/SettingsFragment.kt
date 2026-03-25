@@ -1,5 +1,7 @@
 package com.sbtracker.ui
 
+import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -62,6 +64,12 @@ class SettingsFragment : Fragment() {
         val tvRetentionValue = binding.tvRetentionValue
 
         binding.rowPhoneAlerts.setOnClickListener { bleVm.togglePhoneAlerts() }
+
+        // Show notification permission disabled indicator if needed (Android 13+)
+        if (Build.VERSION.SDK_INT >= 33) {
+            updateNotificationPermissionStatus()
+        }
+
         binding.rowDimOnCharge.setOnClickListener { bleVm.toggleDimOnCharge() }
         binding.rowDayStartHour.setOnClickListener {
             val hours = Array(24) { i -> if (i == 0) "12 AM" else if (i < 12) "$i AM" else if (i == 12) "12 PM" else "${i - 12} PM" }
@@ -239,5 +247,35 @@ class SettingsFragment : Fragment() {
                 .setNegativeButton("Cancel", null)
                 .show()
         }
+    }
+
+    private fun updateNotificationPermissionStatus() {
+        val isGranted = NotificationPermissionHelper.isGranted(requireContext())
+        if (!isGranted) {
+            // Find and update the subtitle TextView within the row
+            val linearLayout = binding.rowPhoneAlerts.getChildAt(0) as? android.widget.LinearLayout
+            if (linearLayout != null && linearLayout.childCount > 1) {
+                val subtitleView = linearLayout.getChildAt(1) as? TextView
+                if (subtitleView != null) {
+                    subtitleView.text = "Notifications disabled — tap to enable in system settings"
+                    subtitleView.setTextColor(android.graphics.Color.parseColor("#FF6B6B"))
+                }
+            }
+            // Override click listener to open notification settings
+            binding.rowPhoneAlerts.setOnClickListener {
+                openNotificationSettings()
+            }
+        }
+    }
+
+    private fun openNotificationSettings() {
+        val intent = Intent().apply {
+            action = "android.settings.APP_NOTIFICATION_SETTINGS"
+            putExtra("android.provider.extra.APP_PACKAGE", requireContext().packageName)
+            if (Build.VERSION.SDK_INT >= 31) {
+                putExtra("android.provider.extra.CHANNEL_ID", NotificationChannels.ALERTS)
+            }
+        }
+        startActivity(intent)
     }
 }

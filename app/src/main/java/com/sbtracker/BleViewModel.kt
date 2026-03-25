@@ -428,6 +428,9 @@ class BleViewModel @Inject constructor(
     }
 
     private fun showNotification(title: String, message: String) {
+        if (!NotificationPermissionHelper.isGranted(getApplication())) {
+            return
+        }
         val intent = Intent(getApplication(), MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }

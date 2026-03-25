@@ -74,6 +74,12 @@ class MainActivity : AppCompatActivity() {
             bleVm.startScan()
         }
 
+    private val requestNotificationPermission =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+            // Permission granted or denied; allow app to continue
+            // Notification attempts will be gated by NotificationPermissionHelper.isGranted()
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
@@ -115,6 +121,13 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             withContext(Dispatchers.IO) {
                 runCatching { historyVm.rebuildSessionHistoryFromLogs() }
+            }
+        }
+
+        // Request POST_NOTIFICATIONS permission on first run (API 33+)
+        if (Build.VERSION.SDK_INT >= 33) {
+            if (!NotificationPermissionHelper.isGranted(this)) {
+                requestNotificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         }
 
