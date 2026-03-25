@@ -1,5 +1,22 @@
 # SBTracker — Changelog
 
+### 2026-03-25 — Complete T-043 ProgramRepository with Default Preset Seeding (Switch/Worker)
+
+- **Origin**: Merge from `claude/T-043-program-repository` to `dev`
+- **Task**: T-043 (`ready` → `done`)
+- **Changes**:
+  - Created `app/src/main/java/com/sbtracker/data/ProgramRepository.kt`: singleton repository with @Inject constructor, `programs: Flow<List<SessionProgram>>` observable, idempotent `seedDefaultsIfNeeded()` function.
+  - Seeded three default presets: "Terpene Optimization" (170°C), "Even Step" (185°C), "Full Heat Max Rip" (210°C) with boost step JSON schedules.
+  - Updated `AppModule.kt`: added `provideProgramRepository()` provider (SessionProgramDao already provided).
+  - Updated `MainViewModel.kt`: injected ProgramRepository, called `seedDefaultsIfNeeded()` in init block via `viewModelScope.launch`.
+- **Acceptance**:
+  - ✓ ProgramRepository compiles with @Singleton and @Inject constructor
+  - ✓ seedDefaultsIfNeeded() is idempotent (checks `dao.count() > 0`)
+  - ✓ Three default presets defined with correct names and temps
+  - ✓ seedDefaultsIfNeeded() called at startup from MainViewModel
+  - ✓ Syntax verified (no build errors on syntax layer)
+- **Blocked by**: T-042 (completed in prior feature work)
+
 ### 2026-03-25 16:00 — Plan F-052 Analytics Display Refactoring (Niobe/Planner)
 
 - **Origin**: Direct push to `dev` (meta-file)

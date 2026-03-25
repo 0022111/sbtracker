@@ -95,7 +95,7 @@ main  ← stable, merges only from dev
 | ID | Status | Title | Task File | Blocked by |
 |---|---|---|---|---|
 | T-042 | `ready` | SessionProgram Entity + DAO + Migration 3→4 (incl. appliedProgramId on session_metadata) | [T-042](tasks/T-042-session-program-entity.md) | — |
-| T-043 | `ready` | ProgramRepository: CRUD + Default Preset Seeding | [T-043](tasks/T-043-program-repository.md) | T-042 |
+| T-043 | `done` | ProgramRepository: CRUD + Default Preset Seeding | [T-043](tasks/T-043-program-repository.md) | T-042 |
 | T-044 | `blocked` | Programs List UI in SettingsFragment | [T-044](tasks/T-044-programs-list-ui.md) | T-043 |
 | T-045 | `blocked` | Create/Edit Program Dialog | [T-045](tasks/T-045-create-edit-program-dialog.md) | T-044 |
 | T-046 | `blocked` | Apply Program on Heater Start (setBoost, cancellable Job) | [T-046](tasks/T-046-apply-program-on-start.md) | T-045 |
