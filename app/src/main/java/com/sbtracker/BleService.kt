@@ -1,14 +1,12 @@
 package com.sbtracker
 
 import android.app.Notification
-import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.os.Binder
-import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import dagger.hilt.android.AndroidEntryPoint
@@ -39,7 +37,6 @@ class BleService : Service() {
 
     private var bleViewModel: BleViewModel? = null
 
-    private val CHANNEL_ID = "ble_service_channel"
     private val NOTIFICATION_ID = 101
 
     inner class LocalBinder : Binder() {
@@ -52,7 +49,7 @@ class BleService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        createNotificationChannel()
+        NotificationChannels.createAllChannels(this)
         startForeground(NOTIFICATION_ID, createNotification())
     }
 
@@ -68,18 +65,6 @@ class BleService : Service() {
         }
     }
 
-    private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val serviceChannel = NotificationChannel(
-                CHANNEL_ID,
-                "SB Tracker Service",
-                NotificationManager.IMPORTANCE_LOW
-            )
-            val manager = getSystemService(NotificationManager::class.java)
-            manager.createNotificationChannel(serviceChannel)
-        }
-    }
-
     private fun createNotification(
         statusText: String = "Monitoring device...",
         contentText: String = "Background tracking active"
@@ -90,7 +75,7 @@ class BleService : Service() {
             PendingIntent.FLAG_IMMUTABLE
         )
 
-        return NotificationCompat.Builder(this, CHANNEL_ID)
+        return NotificationCompat.Builder(this, NotificationChannels.STATUS)
             .setContentTitle(statusText)
             .setContentText(contentText)
             .setSmallIcon(R.mipmap.ic_launcher)

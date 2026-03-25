@@ -1,7 +1,6 @@
 package com.sbtracker
 
 import android.app.Application
-import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
@@ -134,7 +133,6 @@ class BleViewModel @Inject constructor(
     private var wasCharging = false
 
     private val notificationManager = application.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-    private val CHANNEL_ID = "device_alerts"
 
     init {
         viewModelScope.launch {
@@ -148,7 +146,6 @@ class BleViewModel @Inject constructor(
 
         viewModelScope.launch { refreshKnownDeviceBatteries() }
 
-        createNotificationChannel()
         setupLifecycleObserver()
 
         // ── BLE data pipeline ──
@@ -418,15 +415,6 @@ class BleViewModel @Inject constructor(
         }
     }
 
-    private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(CHANNEL_ID, "Device Alerts", NotificationManager.IMPORTANCE_HIGH).apply {
-                description = "Vibrations and notifications for temperature and charging events"
-            }
-            notificationManager.createNotificationChannel(channel)
-        }
-    }
-
     private fun showNotification(title: String, message: String) {
         if (!NotificationPermissionHelper.isGranted(getApplication())) {
             return
@@ -435,7 +423,7 @@ class BleViewModel @Inject constructor(
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
         val pendingIntent = PendingIntent.getActivity(getApplication(), 0, intent, PendingIntent.FLAG_IMMUTABLE)
-        val builder = NotificationCompat.Builder(getApplication(), CHANNEL_ID)
+        val builder = NotificationCompat.Builder(getApplication(), NotificationChannels.ALERTS)
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle(title)
             .setContentText(message)
