@@ -1,5 +1,18 @@
 # SBTracker — Changelog
 
+### 2026-03-25 12:00 — T-067: Add startingBattery to SessionStats (Apoc/Worker)
+
+- **Origin**: Branch `claude/T-067-session-stats-starting-battery` → PR to `dev`
+- **Task**: T-067 (`ready` → `done`)
+- **Changes**:
+  - Added `startingBattery: Int = 0` field to `SessionStats` data class in `SessionTracker.kt`.
+  - Populated `startingBattery` in the stats construction block: set to `startBattery` when ACTIVE, `0` when IDLE.
+- **Acceptance**:
+  - `SessionStats` exposes `startingBattery` with default `0`.
+  - When session is ACTIVE, value equals the battery level at session start.
+  - When IDLE, value is `0`.
+  - `./gradlew assembleDebug` passes.
+
 ### 2026-03-25 — Complete T-043 ProgramRepository with Default Preset Seeding (Switch/Worker)
 
 - **Origin**: Merge from `claude/T-043-program-repository` to `dev`
