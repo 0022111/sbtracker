@@ -51,7 +51,7 @@ The codebase is currently in the "Final Hardening" phase. To reach a technical A
 |---|---|---|---|---|
 | F-025 | `in-progress` | History Clear | Per-device clear of all tables | All 6 tables wiped for target device |
 | F-026 | `in-progress` | Data Backup / Restore | Export/import full database | User can backup and restore DB file |
-| F-027 | `in-progress` | Session Programs | User-defined or preset session profiles with automatic boost scheduling | Presets trigger immediate session start |
+| F-027 | `done` | Session Programs | User-defined or preset session profiles with automatic boost scheduling | Presets trigger immediate session start |
 | F-050 | `in-progress` | Notifications Redesign | Modernize notification system; persistent status | Rich status tray + quick controls |
 
 ### 🎨 Epic: The "v0.2 Visual Refresh" (UX Overhaul)
