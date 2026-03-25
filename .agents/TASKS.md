@@ -53,7 +53,6 @@ main  ← stable, merges only from dev
 | T-010 | `done` | Unit Tests | [T-010](tasks/T-010-unit-tests.md) | — |
 | T-026 | `done` | Enable ViewBinding | [T-026](tasks/T-026-enable-viewbinding.md) | — |
 | T-027 | `done` | Extract Hardcoded Colors to colors.xml | [T-027](tasks/T-027-extract-colors-xml.md) | — |
-| T-083 | `ready` | Comprehensive Analytics Logic Tests | [T-083](tasks/T-083-analytics-logic-tests.md) | T-010 |
 
 ## Phase 2 — F-018 Health & Dosage Tracking
 
@@ -164,14 +163,6 @@ main  ← stable, merges only from dev
 | T-053 | `done` | Session Report: Redesign Layout with Labeled Sections | [T-053](tasks/T-053-session-report-layout-redesign.md) | — |
 | T-054 | `blocked` | Session Report: Human-Readable Extraction Timeline | [T-054](tasks/T-054-session-report-hit-timeline.md) | T-053 |
 | T-055 | `blocked` | Session Report: Session Classification Label | [T-055](tasks/T-055-session-classification-label.md) | T-054 |
-
-## Phase 3 — Critical Data Trust (B-010/B-012/B-015)
-
-| ID | Status | Title | Task File | Blocked by |
-|---|---|---|---|---|
-| T-083 | `ready` | Comprehensive Analytics Logic Tests (F-042) | [T-083](tasks/T-083-analytics-logic-tests.md) | T-010 |
-| T-085 | `ready` | Parser Guardrails: BLE Packet Length Validation (B-012) | [T-085](tasks/T-085-parser-guardrails.md) | — |
-| T-084 | `blocked` | Drain Confidence Flag in SessionStats (B-015) | [T-084](tasks/T-084-drain-confidence-flag.md) | T-083 |
 
 ## Phase 3 — F-050 Notifications Overhaul
 
