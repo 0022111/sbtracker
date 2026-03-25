@@ -19,8 +19,10 @@ dev    ← NEVER push feature code directly. PRs only.
 ```
 
 - Workers submit PRs to `dev`. Never to `main`. Never direct pushes.
-- The ONLY direct-to-dev push a worker makes is the meta-file status update (`.agents/TASKS.md`) after their PR is open.
+- **NO direct-to-dev pushes at all** — meta status update goes in the PR branch, not a separate push to dev.
 - Spawn workers only for tasks that share NO files. If tasks share a file, serialize them.
+- **`CHANGELOG.md` is ALWAYS a shared-file conflict.** Workers must NOT touch it. The orchestrator writes one consolidated CHANGELOG entry to `dev` after all PRs in a wave are merged.
+- **Always spawn workers with `isolation: "worktree"`** — this gives each worker an isolated git directory, preventing branch hijacking and commit cross-contamination in the shared workspace.
 
 ---
 
@@ -72,42 +74,44 @@ phase complete and recommend what to plan next.
 
 ## Step 4 — Worker kickoff template
 
-For each worker task, output exactly this block (filled in):
+For each worker task, use the Agent tool with **`isolation: "worktree"`** (mandatory — prevents git workspace conflicts).
+
+The prompt for each worker:
 
 ```
 === WORKER KICKOFF: T-XXX — <Task Title> ===
 
-Neo, this is Operator. You are a worker agent for the SBTracker Android project at /home/user/sbtracker.
-Your ONLY job is T-XXX. Do not touch anything outside your task file's scope. 
+Neo, this is Operator. You are a worker agent for the SBTracker Android project.
+Your ONLY job is T-XXX. Do not touch anything outside your task file's scope.
 Maintain your hacker persona (Apoc, Switch, Mouse, etc.).
 
 BRANCHING RULES (mandatory):
 - Branch FROM dev: git fetch origin dev && git checkout -b claude/T-XXX-<name> origin/dev
 - PR TO dev (never main): use mcp__github__create_pull_request with base="dev"
-- NEVER push feature code directly to dev or main
-- Only direct-to-dev push allowed: meta status update to .agents/TASKS.md after PR is open
+- NEVER push directly to dev or main — not even for meta updates
+- Meta status update (.agents/TASKS.md) goes in your PR branch as a final commit, NOT a separate push to dev
+
+DO NOT TOUCH:
+- CHANGELOG.md — the orchestrator writes this after all PRs merge. Skip it entirely.
+- Any file not listed in your task's "Change only these files" section.
 
 Steps:
 1. Read `.agents/tasks/T-XXX-<name>.md` — your complete scope. Follow it exactly.
 2. Jack in: git fetch origin dev && git checkout -b claude/T-XXX-<name> origin/dev
-3. Make only the changes in the task file (modify the Matrix).
-4. Compile/bend the spoon: ./gradlew assembleDebug — must pass. Fix glitches, do not skip.
+3. Make only the changes listed in the task file.
+4. DO NOT run ./gradlew assembleDebug — build environment restriction, skip this step.
 5. Commit: git add <changed files> && git commit -m "T-XXX: <one-line description>"
-6. Append one line to CHANGELOG.md under [Unreleased], commit on your branch.
+6. Update meta: Edit .agents/TASKS.md to mark T-XXX as `done`, then:
+   git add .agents/TASKS.md && git commit -m "meta: T-XXX done"
 7. Rebase: git fetch origin dev && git rebase origin/dev  (resolve conflicts if any)
 8. Establish hardline: git push -u origin claude/T-XXX-<name>
 9. Create PR: mcp__github__create_pull_request owner=0022111 repo=sbtracker head=claude/T-XXX-<name> base=dev title="T-XXX — <Task Title>"
-10. # TASKS.md meta update — must be isolated from feature code:
-    git fetch origin dev
-    git checkout -b meta-T-XXX-done origin/dev
-    # Edit .agents/TASKS.md status to `done`
-    git add .agents/TASKS.md && git commit -m "meta: T-XXX done"
-    git push origin HEAD:dev
-    git checkout claude/T-XXX-<name> && git branch -d meta-T-XXX-done
 
 Do not go beyond these steps. Disconnect when done.
 === END KICKOFF ===
 ```
+
+**Orchestrator post-merge responsibility**: After all PRs in a wave are merged to `dev`, write one consolidated CHANGELOG entry directly to `dev` covering all completed tasks.
 
 ---
 
