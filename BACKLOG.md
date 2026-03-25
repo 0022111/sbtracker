@@ -150,7 +150,7 @@ The codebase is currently in the "Final Hardening" phase. To reach a technical A
 
 ### F-027: Session Programs UI — Session Page Integration
 
-*Status: **In Development** — Session page UI for program selection and configuration. Execution phase (T-046) decomposed into T-083–T-086 for atomic task tracking. **Progress**: T-083 (JSON parsing helper) complete; T-084 (SessionViewModel execution logic) ready.*
+*Status: **In Development** — Session page UI for program selection and configuration. Execution phase (T-046) decomposed into T-083–T-086 for atomic task tracking. **Progress**: T-083, T-084 complete; T-085 (SessionFragment UI) ready.*
 
 **User Story:**
 As a user, I want to see a 2×3 grid of session programs on the Session page where I can:
