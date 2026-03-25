@@ -100,4 +100,10 @@ object AppModule {
     fun provideAnalyticsRepository(db: AppDatabase): AnalyticsRepository {
         return AnalyticsRepository(db)
     }
+
+    @Provides
+    @Singleton
+    fun provideProgramRepository(dao: SessionProgramDao): ProgramRepository {
+        return ProgramRepository(dao)
+    }
 }

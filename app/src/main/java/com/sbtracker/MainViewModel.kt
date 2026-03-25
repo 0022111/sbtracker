@@ -2,8 +2,11 @@ package com.sbtracker
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import com.sbtracker.data.ProgramRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.launch
 
 /**
  * Thin backward-compatibility shell.
@@ -20,5 +23,12 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    application: Application
-) : AndroidViewModel(application)
+    application: Application,
+    private val programRepository: ProgramRepository
+) : AndroidViewModel(application) {
+    init {
+        viewModelScope.launch {
+            programRepository.seedDefaultsIfNeeded()
+        }
+    }
+}
