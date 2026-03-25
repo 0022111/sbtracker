@@ -221,7 +221,7 @@ class HistoryViewModel @Inject constructor(
     // ── Today summaries ──
 
     val todaySummaries: StateFlow<List<SessionSummary>> =
-        combine(allSessionSummaries, _dayStartHour) { summaries, startHour ->
+        combine(allSessionSummaries, dayStartHour) { summaries, startHour ->
             val c = java.util.Calendar.getInstance()
             if (c.get(java.util.Calendar.HOUR_OF_DAY) < startHour) c.add(java.util.Calendar.DAY_OF_YEAR, -1)
             c.set(java.util.Calendar.HOUR_OF_DAY, startHour)
@@ -246,17 +246,17 @@ class HistoryViewModel @Inject constructor(
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ProfileStats())
 
     val historyStats: StateFlow<HistoryStats> =
-        combine(sessionSummaries, _dayStartHour) { summaries, startHour ->
+        combine(sessionSummaries, dayStartHour) { summaries, startHour ->
             analyticsRepo.computeHistoryStats(summaries, startHour)
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HistoryStats())
 
     val usageInsights: StateFlow<UsageInsights> =
-        combine(deviceSessionSummaries, _dayStartHour) { summaries, startHour ->
+        combine(deviceSessionSummaries, dayStartHour) { summaries, startHour ->
             analyticsRepo.computeUsageInsights(summaries, startHour)
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UsageInsights())
 
     val dailyStats: StateFlow<List<DailyStats>> =
-        combine(deviceSessionSummaries, _dayStartHour) { summaries, startHour ->
+        combine(deviceSessionSummaries, dayStartHour) { summaries, startHour ->
             analyticsRepo.computeDailyStats(summaries, startHour)
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -281,13 +281,13 @@ class HistoryViewModel @Inject constructor(
         }
     }
 
-    val graphWindowStartMs: StateFlow<Long> = combine(_graphPeriod, _dayStartHour) { period, startHour ->
+    val graphWindowStartMs: StateFlow<Long> = combine(_graphPeriod, dayStartHour) { period, startHour ->
         computeGraphWindowStart(period, startHour)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, computeGraphWindowStart(GraphPeriod.DAY, 4))
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val graphStatuses: StateFlow<List<DeviceStatus>> =
-        combine(_activeDevice, _graphPeriod, _dayStartHour) { device, period, startHour ->
+        combine(_activeDevice, _graphPeriod, dayStartHour) { device, period, startHour ->
             Triple(device, period, startHour)
         }.flatMapLatest { (device, period, startHour) ->
             if (device == null) flowOf(emptyList())

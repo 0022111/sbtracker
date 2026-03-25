@@ -144,7 +144,12 @@ class LandingFragment : Fragment() {
                         layoutOffline.visibility = View.VISIBLE
                         layoutOnline.visibility = View.GONE
                     }
-                    is BleManager.ConnectionState.Connected -> {}
+                    is BleManager.ConnectionState.Connected -> {
+                        // Immediately swap to online layout so the UI doesn't stay stuck
+                        // in the offline/reconnecting state while waiting for status data.
+                        layoutOffline.visibility = View.GONE
+                        layoutOnline.visibility = View.VISIBLE
+                    }
                 }
             }
         }

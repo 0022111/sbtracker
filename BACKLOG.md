@@ -109,6 +109,7 @@ The current dev codebase (v0.1) is extremely close to a functional Alpha. To off
 | B-008 | `planned` | P3 | Autoshutdown in settings doesnt show full granularity of data |
 | B-009 | `done` | P2 | Dim LED while charging doesnt restore to previous level, and acts funny if LED level is changed manually while charging. |
 | B-010 | `planned` | P2 | Boost offset does not seem correct, or target temp is reporting incorrectly. is effective temp really the best method? |
+| B-011 | `done` | P1 | BLE device stays physically connected but UI remains stuck in offline/reconnecting state — `LandingFragment` `Connected` branch was empty, never hid the offline layout. |
 
 ---
 
