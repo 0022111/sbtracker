@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import com.sbtracker.data.ProgramRepository
 import com.sbtracker.data.SessionProgram
+import org.json.JSONArray
 
 /**
  * Owns device write commands: heater control, temperature, boost, brightness,
@@ -39,6 +40,21 @@ class SessionViewModel @Inject constructor(
 
     fun deleteProgram(id: Long) {
         viewModelScope.launch { programRepository.deleteProgram(id) }
+    }
+
+    // BoostStep data class and parsing helper for program execution
+    private data class BoostStep(val offsetSec: Int, val boostC: Int)
+
+    private fun parseBoostSteps(json: String): List<BoostStep> {
+        return try {
+            val arr = JSONArray(json)
+            (0 until arr.length()).map {
+                val obj = arr.getJSONObject(it)
+                BoostStep(obj.optInt("offsetSec", 0), obj.optInt("boostC", 0))
+            }
+        } catch (e: Exception) {
+            emptyList()
+        }
     }
 
     fun startSession(targetTemp: Int) {
