@@ -22,24 +22,25 @@
                 android:orientation="vertical"
                 android:padding="24dp">
 
+                <!-- Eyebrow label -->
                 <TextView
-                    android:id="@+id/report_tv_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Session Report"
-                    android:textColor="#FFFFFF"
-                    android:textSize="32sp"
+                    android:text="SESSION REPORT"
+                    android:textColor="#80A88F"
+                    android:textSize="11sp"
+                    android:letterSpacing="0.1"
                     android:textStyle="bold" />
 
+                <!-- Date / hero line -->
                 <TextView
                     android:id="@+id/report_tv_date"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="8dp"
                     android:text="OCT 24, 14:20"
-                    android:textColor="#80A88F"
-                    android:textSize="14sp"
-                    android:letterSpacing="0.05"
+                    android:textColor="#FFFFFF"
+                    android:textSize="24sp"
                     android:textStyle="bold" />
 
                 <!-- Session Graph -->
@@ -129,97 +130,320 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="20dp">
+            android:padding="16dp">
 
-            <!-- Hero Stats -->
+            <!-- SUMMARY -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="SUMMARY"
+                android:textColor="#80A88F"
+                android:textSize="11sp"
+                android:letterSpacing="0.1"
+                android:textStyle="bold" />
+
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="20dp"
                 app:cardBackgroundColor="#0B110D"
-                app:cardCornerRadius="24dp">
+                app:cardCornerRadius="12dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Hits"
+                                android:textColor="#80A88F"
+                                android:textSize="11sp" />
+                            <TextView
+                                android:id="@+id/report_tv_hits"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="0"
+                                android:textColor="#FFD60A"
+                                android:textSize="24sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Duration"
+                                android:textColor="#80A88F"
+                                android:textSize="11sp" />
+                            <TextView
+                                android:id="@+id/report_tv_duration"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="0m 0s"
+                                android:textColor="#FFFFFF"
+                                android:textSize="24sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Battery Used"
+                                android:textColor="#80A88F"
+                                android:textSize="11sp" />
+                            <TextView
+                                android:id="@+id/report_tv_drain"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="0%"
+                                android:textColor="#FF453A"
+                                android:textSize="24sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="16dp"
+                        android:layout_marginBottom="16dp"
+                        android:background="#1A1A1A" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Session Class"
+                            android:textColor="#80A88F"
+                            android:textSize="11sp" />
+                        <TextView
+                            android:id="@+id/report_tv_session_class"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="--"
+                            android:textColor="#FFFFFF"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- TEMPERATURE -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="TEMPERATURE"
+                android:textColor="#80A88F"
+                android:textSize="11sp"
+                android:letterSpacing="0.1"
+                android:textStyle="bold" />
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="20dp"
+                app:cardBackgroundColor="#0B110D"
+                app:cardCornerRadius="12dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:padding="24dp">
+                    android:padding="16dp">
 
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:gravity="center"
                         android:orientation="vertical">
                         <TextView
-                            android:id="@+id/report_tv_hits"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="0"
-                            android:textColor="#FFD60A"
-                            android:textSize="28sp"
-                            android:textStyle="bold" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Hits"
+                            android:text="Peak Temp"
                             android:textColor="#80A88F"
-                            android:textSize="12sp" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1.2"
-                        android:gravity="center"
-                        android:orientation="vertical">
+                            android:textSize="11sp" />
                         <TextView
-                            android:id="@+id/report_tv_duration"
+                            android:id="@+id/report_tv_peak_temp"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="0m 0s"
+                            android:layout_marginTop="4dp"
+                            android:text="--C"
                             android:textColor="#FFFFFF"
-                            android:textSize="28sp"
+                            android:textSize="20sp"
                             android:textStyle="bold" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Total Time"
-                            android:textColor="#80A88F"
-                            android:textSize="12sp" />
                     </LinearLayout>
 
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:gravity="center"
                         android:orientation="vertical">
                         <TextView
-                            android:id="@+id/report_tv_drain"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="0%"
-                            android:textColor="#FF453A"
-                            android:textSize="28sp"
-                            android:textStyle="bold" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Battery"
+                            android:text="Heat-up Time"
                             android:textColor="#80A88F"
-                            android:textSize="12sp" />
+                            android:textSize="11sp" />
+                        <TextView
+                            android:id="@+id/report_tv_latency"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="--s"
+                            android:textColor="#FFFFFF"
+                            android:textSize="20sp"
+                            android:textStyle="bold" />
                     </LinearLayout>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Capsule / Free-Pack toggle -->
+            <!-- BATTERY -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="BATTERY"
+                android:textColor="#80A88F"
+                android:textSize="11sp"
+                android:letterSpacing="0.1"
+                android:textStyle="bold" />
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="20dp"
+                app:cardBackgroundColor="#0B110D"
+                app:cardCornerRadius="12dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="16dp">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Charge Range"
+                            android:textColor="#80A88F"
+                            android:textSize="11sp" />
+                        <TextView
+                            android:id="@+id/report_tv_battery_range"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="--% to --%"
+                            android:textColor="#FFFFFF"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Start Battery"
+                            android:textColor="#80A88F"
+                            android:textSize="11sp" />
+                        <TextView
+                            android:id="@+id/report_tv_start_battery"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="--%"
+                            android:textColor="#FFFFFF"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- EXTRACTION TIMELINE -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="EXTRACTION TIMELINE"
+                android:textColor="#80A88F"
+                android:textSize="11sp"
+                android:letterSpacing="0.1"
+                android:textStyle="bold" />
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="20dp"
+                app:cardBackgroundColor="#0B110D"
+                app:cardCornerRadius="12dp">
+
+                <TextView
+                    android:id="@+id/report_tv_hit_log"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="16dp"
+                    android:fontFamily="monospace"
+                    android:lineSpacingExtra="6dp"
+                    android:text="No individual hit data"
+                    android:textColor="#FFFFFF"
+                    android:textSize="13sp" />
+            </androidx.cardview.widget.CardView>
+
+            <!-- PACK TYPE -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="PACK TYPE"
+                android:textColor="#80A88F"
+                android:textSize="11sp"
+                android:letterSpacing="0.1"
+                android:textStyle="bold" />
+
             <LinearLayout
-                android:id="@+id/report_pack_type_row"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:layout_marginTop="12dp"
-                android:layout_marginBottom="4dp">
+                android:layout_marginBottom="20dp">
 
                 <Button
                     android:id="@+id/report_btn_capsule"
@@ -228,7 +452,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="CAPSULE"
-                    android:layout_marginEnd="4dp" />
+                    android:layout_marginEnd="8dp" />
 
                 <Button
                     android:id="@+id/report_btn_free_pack"
@@ -236,93 +460,64 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_marginStart="4dp"
-                    android:text="FREE PACK" />
+                    android:text="FREE PACK"
+                    android:layout_marginStart="8dp" />
 
             </LinearLayout>
 
-            <!-- Technical Breakdown -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
-                android:text="TECHNICAL DATA"
-                android:textColor="#80A88F"
-                android:textSize="11sp"
-                android:letterSpacing="0.1"
-                android:textStyle="bold" />
-
-            <androidx.cardview.widget.CardView
+            <!-- FOOTER -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                app:cardBackgroundColor="#0B110D"
-                app:cardCornerRadius="20dp">
+                android:orientation="vertical"
+                android:layout_marginBottom="16dp">
 
-                <GridLayout
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="20dp"
-                    android:columnCount="2">
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="16dp">
 
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Peak Extraction Temp" android:textColor="#80A88F" android:layout_marginBottom="12dp" />
-                    <TextView android:id="@+id/report_tv_peak_temp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="end" android:layout_gravity="fill_horizontal" android:text="--°C" android:textColor="#FFFFFF" android:textStyle="bold" />
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Heater Wear"
+                            android:textColor="#80A88F"
+                            android:textSize="11sp" />
+                        <TextView
+                            android:id="@+id/report_tv_wear"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="+0 min"
+                            android:textColor="#30D158"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </LinearLayout>
 
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Initial Heat Time" android:textColor="#80A88F" android:layout_marginBottom="12dp" />
-                    <TextView android:id="@+id/report_tv_latency" android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="end" android:layout_gravity="fill_horizontal" android:text="--s" android:textColor="#FFFFFF" />
-
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Active Hit Time" android:textColor="#80A88F" android:layout_marginBottom="12dp" />
-                    <TextView android:id="@+id/report_tv_active_hit" android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="end" android:layout_gravity="fill_horizontal" android:text="--s" android:textColor="#FFFFFF" />
-
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Battery Range" android:textColor="#80A88F" android:layout_marginBottom="12dp" />
-                    <TextView android:id="@+id/report_tv_battery_range" android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="end" android:layout_gravity="fill_horizontal" android:text="--% → --%" android:textColor="#FFFFFF" />
-
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Device Wear (Heater)" android:textColor="#80A88F" />
-                    <TextView android:id="@+id/report_tv_wear" android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="end" android:layout_gravity="fill_horizontal" android:text="+0 min" android:textColor="#30D158" android:textStyle="bold" />
-                </GridLayout>
-            </androidx.cardview.widget.CardView>
-
-            <!-- Extraction Log -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
-                android:text="EXTRACTION LOG"
-                android:textColor="#80A88F"
-                android:textSize="11sp"
-                android:letterSpacing="0.1"
-                android:textStyle="bold" />
-
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                app:cardBackgroundColor="#0B110D"
-                app:cardCornerRadius="20dp">
-
-                <TextView
-                    android:id="@+id/report_tv_hit_log"
+                <Button
+                    android:id="@+id/report_btn_close"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="20dp"
-                    android:fontFamily="monospace"
-                    android:lineSpacingExtra="6dp"
-                    android:text="No individual hit data"
-                    android:textColor="#FFFFFF"
-                    android:textSize="13sp" />
-            </androidx.cardview.widget.CardView>
+                    android:layout_height="48dp"
+                    android:backgroundTint="#FFFFFF"
+                    android:text="DONE"
+                    android:textColor="#000000"
+                    android:textStyle="bold"
+                    app:cornerRadius="12dp" />
+            </LinearLayout>
 
-            <Button
-                android:id="@+id/report_btn_close"
-                android:layout_width="match_parent"
-                android:layout_height="64dp"
-                android:layout_marginTop="32dp"
-                android:layout_marginBottom="40dp"
-                android:backgroundTint="#FFFFFF"
-                android:text="DONE"
-                android:textColor="#000000"
-                android:textStyle="bold"
-                app:cornerRadius="20dp" />
+            <!-- Hidden: active_hit referenced in SessionReportActivity -->
+            <TextView
+                android:id="@+id/report_tv_active_hit"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:visibility="gone"
+                android:text="--s" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
