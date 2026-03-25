@@ -118,6 +118,21 @@ main  ← stable, merges only from dev
 | T-051 | `ready` | HealthTabFragment: Health & Intake Sub-Page | [T-051](tasks/T-051-health-tab-fragment.md) | — |
 | T-052 | `blocked` | Wire History Tabs: TabLayout + ViewPager2 | [T-052](tasks/T-052-history-tabs-wire.md) | T-049, T-050, T-051 |
 
+## Phase 3 — F-025 History Clear
+
+| ID | Status | Title | Task File | Blocked by |
+|---|---|---|---|---|
+| T-064 | `ready` | History Clear: Data Layer Fix (SessionMetadataDao + HistoryViewModel) | [T-064](tasks/T-064-history-clear-data-layer.md) | — |
+| T-065 | `ready` | History Clear: Settings UI Entry Point | [T-065](tasks/T-065-history-clear-settings-ui.md) | T-064 |
+| T-066 | `ready` | History Clear: Integration Verification | [T-066](tasks/T-066-history-clear-verification.md) | T-064, T-065 |
+
+## Phase 3 — F-053 Session Battery Starting Level
+
+| ID | Status | Title | Task File | Blocked by |
+|---|---|---|---|---|
+| T-067 | `ready` | Add startingBattery to SessionStats | [T-067](tasks/T-067-session-stats-starting-battery.md) | — |
+| T-068 | `blocked` | Display Starting Battery in Active Session UI | [T-068](tasks/T-068-session-fragment-starting-battery-ui.md) | T-067 |
+
 ## Phase 3 — F-054 Session Page Complete Redesign
 
 | ID | Status | Title | Task File | Blocked by |

@@ -1,5 +1,14 @@
 # SBTracker — Changelog
 
+### 2026-03-25 — Plan F-053 Session Battery Starting Level (Niobe/Planner)
+
+- **Origin**: Direct push to `dev` (meta-file)
+- **F-053 status**: `planned` → `in-progress`
+- **Tasks created**:
+  - `T-067` (`ready`) — Add `startingBattery: Int` field to `SessionTracker.SessionStats` and populate it from the existing private `startBattery` field.
+  - `T-068` (`blocked` by T-067) — Wire `startingBattery` to a new "START: XX%" label in `fragment_session.xml` and `SessionFragment.kt`.
+- **Architecture note**: `startBattery` is already tracked privately in `SessionTracker`; this feature only surfaces it through `SessionStats` and the live UI — no DB schema change or new DAO query required.
+
 ### 2026-03-25 17:35 — Deploy Bug Squash: B-010, B-012, B-013, B-014, B-015 (Worker)
 
 - **Branch**: `claude/fix-deployment-bugs-q3v1X` → commit b01b4c2
