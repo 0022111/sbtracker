@@ -1,5 +1,16 @@
 # SBTracker — Changelog
 
+### 2026-03-25 — Oracle Report: F-052 Hit Analytics & Achievement System (Oracle)
+
+- **Origin**: Direct push to `dev` (meta-file)
+- **Type**: Analysis only — no code changes
+- **Summary**: Full Oracle analysis of F-052. Key findings:
+  - Feature is architecturally feasible but has two hard prerequisites: (1) B-010 temp accuracy must be resolved before any temperature-based classification is meaningful; (2) `LARGE_HIT_DURATION_MS = 3000L` must be validated on a real device before duration-based classification is trusted.
+  - T-076 revert (PR #56) was incomplete: `HitAnalysisSummary` and `LARGE_HIT_DURATION_MS` still exist in `AnalyticsModels.kt` and `BleConstants.kt` as dead code — cleanup or explicit annotation required.
+  - The 80% version (time-based classification, analytics display) is medium complexity, requires no schema changes, and can be built as a pure function over `List<SessionSummary>` plus `HitDao`.
+  - The achievement system (stored state, timeline, badges) is a separate, higher-complexity item that creates genuine tension with the event-sourcing invariant and should be tracked as a distinct feature.
+  - Recommended: park full feature; clean up T-076 residue now; build the display layer during F-054/F-056 UI redesign window; validate thresholds after B-010 closes.
+
 ### 2026-03-25 12:00 — T-067: Add startingBattery to SessionStats (Apoc/Worker)
 
 - **Origin**: Branch `claude/T-067-session-stats-starting-battery` → PR to `dev`
