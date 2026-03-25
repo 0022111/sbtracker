@@ -106,7 +106,7 @@ main  ← stable, merges only from dev
 
 | ID | Status | Title | Task File | Blocked by |
 |---|---|---|---|---|
-| T-047 | `ready` | Landing: Suppress Idle 0°C + Charge State Badge | [T-047](tasks/T-047-landing-idle-temp-charge-state.md) | — |
+| T-047 | `done` | Landing: Suppress Idle 0°C + Charge State Badge | [T-047](tasks/T-047-landing-idle-temp-charge-state.md) | — |
 | T-048 | `ready` | Landing: Active Session Banner | [T-048](tasks/T-048-landing-session-banner.md) | T-047 |
 
 ## Phase 3 — F-056 History/Analytics Page Organization
@@ -168,7 +168,7 @@ main  ← stable, merges only from dev
 
 | ID | Status | Title | Task File | Blocked by |
 |---|---|---|---|---|
-| T-069 | `ready` | Notification Channel Consolidation | [T-069](tasks/T-069-notification-channels.md) | — |
+| T-069 | `done` | Notification Channel Consolidation | [T-069](tasks/T-069-notification-channels.md) | — |
 | T-070 | `ready` | Persistent Status Notification Content | [T-070](tasks/T-070-persistent-status-notification.md) | T-069 |
 | T-071 | `blocked` | Notification Drawer Quick Controls | [T-071](tasks/T-071-notification-quick-controls.md) | T-070, T-008 |
 | T-072 | `ready` | Configurable Alert Settings UI | [T-072](tasks/T-072-alert-settings-ui.md) | — |
