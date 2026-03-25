@@ -1,5 +1,13 @@
 # SBTracker — Changelog
 
+### 2026-03-25 — Evaluate & Expand F-027 Session Programs/Presets (Link/Planner)
+- **Direct push to dev** (Origin: User request — comprehensive evaluation of F-027 for DB/history implications)
+- **Rewrote T-042**: extended Migration 3→4 to ALSO add `appliedProgramId INTEGER` column to `session_metadata`; removed top-level `boostOffsetC` field from `SessionProgram` (all boost lives in `boostStepsJson`); added `SessionMetadataDao.getSessionsForProgram()` query; updated `SessionMetadata.kt` entity.
+- **Rewrote T-046**: corrected boost scheduling to use `setBoost(offsetC)` (not `setTemp(base+offset)`) to avoid corrupting hit detection; added `boostJob: Job?` reference for cancellation; added `cancelBoostSchedule()` called on session end; hid chip row during active session.
+- **Created T-056**: new task — record `appliedProgramId` in `session_metadata` when session completes; introduces `ActiveProgramHolder` singleton to bridge `SessionViewModel` → `MainViewModel` without cross-ViewModel injection.
+- **Created T-057**: new task — surface applied program name in session history list (badge) and `SessionReportActivity` header; resolves name at query time from `session_programs` table; gracefully handles deleted programs.
+- **Updated** `.agents/TASKS.md`: T-042 title updated, T-046 title updated, T-056 and T-057 added as `blocked` rows in F-027 section.
+
 ### 2026-03-25 — Plan Features F-027, F-054, F-055, F-056 (Link/Planner)
 - **Direct push to dev** (Origin: User request — decompose four planned UI/feature backlog items)
 - **Planned** F-027 Session Programs/Presets → T-042–T-046 (5 tasks: entity+DAO, repository, settings list UI, create/edit dialog, apply-on-start)
