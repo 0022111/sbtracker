@@ -1,5 +1,14 @@
 # SBTracker — Changelog
 
+### 2026-03-25 — Plan Features F-027, F-054, F-055, F-056 (Link/Planner)
+- **Direct push to dev** (Origin: User request — decompose four planned UI/feature backlog items)
+- **Planned** F-027 Session Programs/Presets → T-042–T-046 (5 tasks: entity+DAO, repository, settings list UI, create/edit dialog, apply-on-start)
+- **Planned** F-055 Homepage/Landing Page Redesign → T-047–T-048 (2 tasks: suppress idle 0°C + charge badge, active session banner)
+- **Planned** F-056 History/Analytics Page Organization → T-049–T-052 (4 tasks: 3 tab fragment extractions + ViewPager2 wire-up)
+- **Planned** F-054 Session Page Complete Redesign → T-053–T-055 (3 tasks: layout redesign, human-readable hit timeline, session classification label)
+- **Updated** BACKLOG.md: F-027, F-054, F-055, F-056 → `in-progress`
+- **Updated** .agents/TASKS.md: 14 new task rows added across 4 feature sections
+
 ### 2026-03-25 14:32 — Fix Gradle Build: AGP 9.1.0 → 7.4.2, Gradle 9.3.1 → 8.5 (Operator)
 - **PR to `dev`** (Origin: Build failure — AGP version incompatibility with Gradle wrapper)
 - **Fixed** Gradle build failing due to unsupported version pair: AGP 9.1.0 requires Gradle 8.9+, but wrapper was at 9.3.1.

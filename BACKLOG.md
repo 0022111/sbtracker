@@ -58,7 +58,7 @@ The current dev codebase (v0.1) is extremely close to a functional Alpha. To off
 | F-024 | `done` | CSV Export | Export session history to CSV | File generated, share intent fires |
 | F-025 | `planned` | History Clear | Per-device clear of all tables | All 6 tables wiped for target device |
 | F-026 | `planned` | Data Backup / Restore | Export/import full database | User can backup and restore DB file |
-| F-027 | `planned` | Session Programs/Presets | User-defined or preset session profiles with automatic boost scheduling | Create/edit profiles with custom names, define boost times & amounts, select from default presets (terpene optimization, even step, full heat max rip), profiles trigger immediate session start with parameters |
+| F-027 | `in-progress` | Session Programs/Presets | User-defined or preset session profiles with automatic boost scheduling | Create/edit profiles with custom names, define boost times & amounts, select from default presets (terpene optimization, even step, full heat max rip), profiles trigger immediate session start with parameters |
 | F-050 | `planned` | Notifications Overhaul | Modernize and expand the notification system to support persistent status, rich controls, and configurable alerts. | Persistent status notification, drawer-based quick controls, and proper channel implementation. |
 
 ## UI & Visualization (P1 — Next Up)
@@ -75,9 +75,9 @@ The current dev codebase (v0.1) is extremely close to a functional Alpha. To off
 | F-051 | `done` | Heat-up Calculation Enhancement | Improve F-017 with real-time weighted calculation based on proximity to last session; back-to-back sessions are more efficient | ETA accounts for device temperature, time since last session, average heat-up history |
 | F-052 | `planned` | Analytics Display Refactoring | Reorganize confusing analytics: frequency focus, hit analysis (large hits, many sips, temperature-based achievements), clear dose/session/cycle insights | Analytics clearly categorized by use pattern, dose amounts visible, hit achievements shown |
 | F-053 | `planned` | Session Battery Starting Level | Show starting battery level during active session for battery drain context | Session screen displays starting battery alongside current drain |
-| F-054 | `planned` | Session Page Complete Redesign | Full rework of session detail: extraction log with clear labels, context for raw data (not just numbers) | Session report shows labeled data, extraction timeline is human-readable |
-| F-055 | `planned` | Homepage/Landing Page Redesign | Overhaul command center: remove idle 0°C/32°F display, improve charge state visibility, enable access during sessions | Homepage is accessible during session, temperature display accurate, charge state prominently visible |
-| F-056 | `planned` | History/Analytics Page Organization | Implement sub-pages/tabs to separate session log, analytics dashboard, and health/intake tracking | History page tabs/sub-pages for: Sessions, Analytics, Health & Intake; no single-page clutter |
+| F-054 | `in-progress` | Session Page Complete Redesign | Full rework of session detail: extraction log with clear labels, context for raw data (not just numbers) | Session report shows labeled data, extraction timeline is human-readable |
+| F-055 | `in-progress` | Homepage/Landing Page Redesign | Overhaul command center: remove idle 0°C/32°F display, improve charge state visibility, enable access during sessions | Homepage is accessible during session, temperature display accurate, charge state prominently visible |
+| F-056 | `in-progress` | History/Analytics Page Organization | Implement sub-pages/tabs to separate session log, analytics dashboard, and health/intake tracking | History page tabs/sub-pages for: Sessions, Analytics, Health & Intake; no single-page clutter |
 
 ## Quality & Infra (P2 — Foundation for Scale)
 

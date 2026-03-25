@@ -89,3 +89,37 @@ main  ← stable, merges only from dev
 | T-019 | `blocked` | Notification Action Buttons | [T-019](tasks/T-019-notification-actions.md) | T-008 |
 | T-020 | `blocked` | Quick Settings Tile | [T-020](tasks/T-020-quick-settings-tile.md) | T-008 |
 | T-021 | `blocked` | Localization Groundwork | [T-021](tasks/T-021-localization-groundwork.md) | T-008 |
+
+## Phase 3 — F-027 Session Programs/Presets
+
+| ID | Status | Title | Task File | Blocked by |
+|---|---|---|---|---|
+| T-042 | `ready` | SessionProgram Entity + DAO + Migration 3→4 | [T-042](tasks/T-042-session-program-entity.md) | — |
+| T-043 | `ready` | ProgramRepository: CRUD + Default Preset Seeding | [T-043](tasks/T-043-program-repository.md) | T-042 |
+| T-044 | `blocked` | Programs List UI in SettingsFragment | [T-044](tasks/T-044-programs-list-ui.md) | T-043 |
+| T-045 | `blocked` | Create/Edit Program Dialog | [T-045](tasks/T-045-create-edit-program-dialog.md) | T-044 |
+| T-046 | `blocked` | Apply Program on Heater Start | [T-046](tasks/T-046-apply-program-on-start.md) | T-045 |
+
+## Phase 3 — F-055 Homepage Redesign
+
+| ID | Status | Title | Task File | Blocked by |
+|---|---|---|---|---|
+| T-047 | `ready` | Landing: Suppress Idle 0°C + Charge State Badge | [T-047](tasks/T-047-landing-idle-temp-charge-state.md) | — |
+| T-048 | `ready` | Landing: Active Session Banner | [T-048](tasks/T-048-landing-session-banner.md) | T-047 |
+
+## Phase 3 — F-056 History/Analytics Page Organization
+
+| ID | Status | Title | Task File | Blocked by |
+|---|---|---|---|---|
+| T-049 | `ready` | SessionsTabFragment: Sessions List Sub-Page | [T-049](tasks/T-049-sessions-tab-fragment.md) | — |
+| T-050 | `ready` | AnalyticsTabFragment: Analytics Dashboard Sub-Page | [T-050](tasks/T-050-analytics-tab-fragment.md) | — |
+| T-051 | `ready` | HealthTabFragment: Health & Intake Sub-Page | [T-051](tasks/T-051-health-tab-fragment.md) | — |
+| T-052 | `blocked` | Wire History Tabs: TabLayout + ViewPager2 | [T-052](tasks/T-052-history-tabs-wire.md) | T-049, T-050, T-051 |
+
+## Phase 3 — F-054 Session Page Complete Redesign
+
+| ID | Status | Title | Task File | Blocked by |
+|---|---|---|---|---|
+| T-053 | `ready` | Session Report: Redesign Layout with Labeled Sections | [T-053](tasks/T-053-session-report-layout-redesign.md) | — |
+| T-054 | `blocked` | Session Report: Human-Readable Extraction Timeline | [T-054](tasks/T-054-session-report-hit-timeline.md) | T-053 |
+| T-055 | `blocked` | Session Report: Session Classification Label | [T-055](tasks/T-055-session-classification-label.md) | T-054 |
