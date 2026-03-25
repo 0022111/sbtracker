@@ -148,7 +148,7 @@ main  ← stable, merges only from dev
 
 | ID | Status | Title | Task File | Blocked by |
 |---|---|---|---|---|
-| T-076 | `ready` | Hit Classification Fields in AnalyticsModels | [T-076](tasks/T-076-hit-classification-fields.md) | — |
+| T-076 | `done` | Hit Classification Fields in AnalyticsModels | [T-076](tasks/T-076-hit-classification-fields.md) | — |
 | T-077 | `ready` | Compute Hit Achievement Metrics in AnalyticsRepository | [T-077](tasks/T-077-hit-achievement-metrics.md) | T-076 |
 | T-078 | `blocked` | Analytics Tab: Frequency & Dose Section Reorganization | [T-078](tasks/T-078-analytics-frequency-dose-section.md) | T-050 |
 | T-079 | `blocked` | Dose Visibility in Session Cards | [T-079](tasks/T-079-dose-visibility-session-cards.md) | T-049 |
