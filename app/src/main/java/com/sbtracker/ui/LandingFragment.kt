@@ -56,6 +56,7 @@ class LandingFragment : Fragment() {
         val btnDisconnect = binding.btnCmdDisconnect
         val tvLiveTemp = binding.tvCmdLiveTemp
         val tvLiveTarget = binding.tvCmdLiveTarget
+        val tvCmdChargeBadge = binding.tvCmdChargeBadge
         val cardHero = binding.cardCmdHero
         val btnHeater = binding.btnCmdHeater
         val tvBtnHeaterText = binding.tvBtnHeaterText
@@ -178,10 +179,17 @@ class LandingFragment : Fragment() {
                 layoutOffline.visibility = View.GONE
                 layoutOnline.visibility = View.VISIBLE
 
-                tvLiveTemp.text = s.currentTempC.toDisplayTemp(celsius).toString()
-                tvLiveTarget.text = "/ ${s.targetTempC.toDisplayTemp(celsius)}${celsius.unitSuffix()}"
-
                 val isOn = s.heaterMode > 0
+
+                // Suppress temp views when heater is OFF
+                tvLiveTemp.visibility = if (isOn) View.VISIBLE else View.GONE
+                tvLiveTarget.visibility = if (isOn) View.VISIBLE else View.GONE
+
+                if (isOn) {
+                    tvLiveTemp.text = s.currentTempC.toDisplayTemp(celsius).toString()
+                    tvLiveTarget.text = "/ ${s.targetTempC.toDisplayTemp(celsius)}${celsius.unitSuffix()}"
+                }
+
                 if (isOn) {
                     tvBtnHeaterText.text = "Stop Heater"
                     tvBtnHeaterText.setTextColor(ContextCompat.getColor(requireContext(), R.color.color_red))
@@ -205,6 +213,9 @@ class LandingFragment : Fragment() {
                     tvLiveStatus.setTextColor(ContextCompat.getColor(requireContext(), R.color.color_gray_mid))
                     cardHero.setCardBackgroundColor(ContextCompat.getColor(requireContext(), R.color.color_background))
                 }
+
+                // Show/hide charge badge based on isCharging
+                tvCmdChargeBadge.visibility = if (s.isCharging) View.VISIBLE else View.GONE
 
                 tvTileBatteryVal.text = "${s.batteryLevel}%"
                 tvTileBatteryVal.setTextColor(if (s.batteryLevel <= 20) ContextCompat.getColor(requireContext(), R.color.color_red) else ContextCompat.getColor(requireContext(), R.color.color_green))
