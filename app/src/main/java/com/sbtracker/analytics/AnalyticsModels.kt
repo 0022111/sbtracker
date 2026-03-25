@@ -160,3 +160,25 @@ data class IntakeStats(
     /** Grams per day averaged over the last 30 days. */
     val gramsPerDay30d: Float = 0f
 )
+
+/**
+ * Per-session hit classification counts derived from the hits table.
+ * Used to power the hit-achievement display on the Analytics tab.
+ *
+ * Classification is time-based: a hit is "large" if its durationMs
+ * exceeds [BleConstants.LARGE_HIT_DURATION_MS].
+ *
+ * This is a framework skeleton — add achievement fields here as needed.
+ */
+data class HitAnalysisSummary(
+    /** Total hits classified across all sessions in scope. */
+    val totalHits: Int = 0,
+    /** Hits whose duration exceeded LARGE_HIT_DURATION_MS. */
+    val largeHitCount: Int = 0,
+    /** Hits whose duration was below LARGE_HIT_DURATION_MS. */
+    val sipCount: Int = 0,
+    /** Highest large-hit count recorded in a single session. */
+    val mostLargeHitsInSession: Int = 0,
+    /** Highest sip count recorded in a single session. */
+    val mostSipsInSession: Int = 0
+)
