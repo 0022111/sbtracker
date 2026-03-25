@@ -11,6 +11,23 @@
   - The achievement system (stored state, timeline, badges) is a separate, higher-complexity item that creates genuine tension with the event-sourcing invariant and should be tracked as a distinct feature.
   - Recommended: park full feature; clean up T-076 residue now; build the display layer during F-054/F-056 UI redesign window; validate thresholds after B-010 closes.
 
+### 2026-03-25 17:00 — T-042: SessionProgram Entity, DAO, and Migration 3→4 (Apoc/Worker)
+
+- **Origin**: Branch `claude/T-042-session-program-entity` → PR to `dev`
+- **Task**: T-042 (`ready` → `done`)
+- **Changes**:
+  - Created `app/src/main/java/com/sbtracker/data/SessionProgram.kt`: `@Entity(tableName = "session_programs")` with `id`, `name`, `targetTempC`, `boostStepsJson` (default `"[]"`), `isDefault`; plus `SessionProgramDao` with `observeAll()`, `getById()`, `insertOrUpdate()`, `deleteUserProgram()`, `count()`.
+  - Updated `app/src/main/java/com/sbtracker/data/SessionMetadata.kt`: added `appliedProgramId: Long? = null` field; added `getSessionsForProgram(programId)` query to `SessionMetadataDao`.
+  - Updated `app/src/main/java/com/sbtracker/data/AppDatabase.kt`: bumped `version` from `3` to `4`; added `SessionProgram::class` to entities list; added `abstract fun sessionProgramDao(): SessionProgramDao`.
+  - Updated `app/src/main/java/com/sbtracker/di/AppModule.kt`: added `MIGRATION_3_4` creating `session_programs` table and `ALTER TABLE session_metadata ADD COLUMN appliedProgramId INTEGER`; registered migration; added `provideSessionProgramDao()`.
+- **Acceptance**:
+  - `session_programs` table created by Migration(3, 4) with correct columns
+  - `session_metadata` gains `appliedProgramId INTEGER` (nullable) column
+  - `SessionProgramDao` compiled with all five methods
+  - `SessionMetadataDao` has `getSessionsForProgram()` query
+  - `AppDatabase.version` is `4` with `SessionProgram::class` in entity list
+  - `SessionProgramDao` provided via `AppModule`
+
 ### 2026-03-25 12:00 — T-067: Add startingBattery to SessionStats (Apoc/Worker)
 
 - **Origin**: Branch `claude/T-067-session-stats-starting-battery` → PR to `dev`
