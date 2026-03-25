@@ -20,6 +20,9 @@ class SessionTracker {
         private const val RATE_HISTORY_SIZE   = 20
         private const val RATE_WINDOW_SIZE    = 60  // ~30s of samples — enough to see a 1% tick
 
+        /** B-015: Minimum samples for reliable drain estimate. Users with fewer samples may see misleading predictions. */
+        private const val MIN_DRAIN_SAMPLES_FOR_CONFIDENCE = 10
+
         private const val CRITICAL_BATTERY_LEVEL = 15
         private const val TAPER_START       = 70
 
@@ -49,6 +52,8 @@ class SessionTracker {
         val avgDrainPctPerSession: Float = 0f,
         /** Number of sessions in the drain history */
         val drainSampleCount:    Int     = 0,
+        /** B-015: True if drain estimate is based on enough samples (≥10) for reliable predictions */
+        val drainEstimateReliable: Boolean = false,
         /** Pessimistic remaining sessions estimate (mean + 1σ drain) */
         val sessionsRemainingLow:  Int   = 0,
         /** Optimistic remaining sessions estimate (mean − 1σ drain) */
@@ -137,6 +142,11 @@ class SessionTracker {
      *  - 70–80%: taper begins (60% of fast rate)
      *  - 80–90%: deeper taper  (35% of fast rate)
      *  - 90–100%: trickle      (15% of fast rate)
+     *
+     * NOTE: B-014 — The taper multipliers (0.60, 0.35, 0.15) are UNVALIDATED magic numbers.
+     * They are reasonable approximations of S&B charging curves but have not been measured
+     * against real devices. ETA accuracy at 70%+ battery is unknown.
+     * Action required: Measure real S&B taper curve before production release.
      */
     private val taperBands = listOf(70 to 1.0, 80 to 0.60, 90 to 0.35, 100 to 0.15)
 
@@ -341,6 +351,7 @@ class SessionTracker {
             sessionsToCritical = sessionsToCritical,
             avgDrainPctPerSession = avgDrain.toFloat(),
             drainSampleCount = drainHistory.size,
+            drainEstimateReliable = drainHistory.size >= MIN_DRAIN_SAMPLES_FOR_CONFIDENCE,
             sessionsRemainingLow  = sessionsLow,
             sessionsRemainingHigh = sessionsHigh,
             chargeEtaMinutes = chargeEta,

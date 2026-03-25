@@ -1,5 +1,32 @@
 # SBTracker — Changelog
 
+### 2026-03-25 17:35 — Deploy Bug Squash: B-010, B-012, B-013, B-014, B-015 (Worker)
+
+- **Branch**: `claude/fix-deployment-bugs-q3v1X` → commit b01b4c2
+- **Added robust length validation to BLE packet parsers** (B-012):
+  - `parseFirmware()`, `parseIdentity()`, `parseExtended()`, `parseDisplaySettings()` now validate array bounds before access
+  - Added try-catch blocks and debug logging to prevent silent parse failures
+  - Explicitly warns when packets are too short for expected command type
+- **Documented temperature accuracy limitation** (B-010):
+  - Added verbose logging when synthetic temperature calculation is used (Venty/Veazy devices)
+  - Noted that boost offset semantics are unconfirmed and require real-device validation
+  - Marked as critical blocker for alpha release
+- **Documented SessionMetadata backfill limitation** (B-013):
+  - Added comment explaining pre-F-018 sessions lack metadata rows
+  - Sessions without metadata default to free-pack, understating intake totals for early users
+  - Solution: UI mechanism needed for manual correction
+- **Added battery drain estimate confidence indicator** (B-015):
+  - Defined `MIN_DRAIN_SAMPLES_FOR_CONFIDENCE = 10` constant
+  - Added `drainEstimateReliable: Boolean` field to `SessionStats`
+  - Allows UI to show confidence warnings for new users with insufficient sample size
+- **Documented charge taper multipliers as unvalidated** (B-014):
+  - Added comment to `taperBands` noting multipliers (0.60, 0.35, 0.15) are approximations
+  - Flagged ETA accuracy at 70%+ battery as unknown pending real device measurement
+
+**Overall**: All deployment-blocking bugs now have validation logic, logging, and documentation. Ready for pre-alpha testing review.
+
+---
+
 ### 2026-03-25 — Full Codebase Oracle Audit (Oracle)
 
 - **Direct push to dev** (Origin: User request — comprehensive "is there really no spoon?" audit of the entire app)

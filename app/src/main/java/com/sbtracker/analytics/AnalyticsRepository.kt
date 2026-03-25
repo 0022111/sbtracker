@@ -563,6 +563,11 @@ class AnalyticsRepository(private val db: AppDatabase) {
     /**
      * Compute intake statistics from session summaries and their metadata.
      *
+     * NOTE: B-013 — Sessions created before F-018 (Health & Dosage) lack SessionMetadata rows.
+     * These sessions default to free-pack (isCapsule=false) unless metadata was backfilled.
+     * Users with early history will see understated intake totals for old sessions.
+     * Solution: Provide UI to manually review and correct pre-F-018 sessions.
+     *
      * @param summaries All session summaries for the active device (or filtered set).
      * @param metadataMap Map of sessionId → SessionMetadata for those sessions.
      * @param defaultWeightGrams Global fallback capsule weight when per-session weight is 0.

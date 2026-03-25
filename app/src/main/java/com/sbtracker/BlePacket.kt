@@ -40,14 +40,22 @@ object BlePacket {
 
         // For devices that don't report current temp (Venty/Veazy), fall back to the
         // effective target temp so that graphs and hit-temp recording are meaningful.
+        // NOTE: B-010 — This synthetic temperature calculation is unvalidated.
+        // Boost offset semantics (additive delta vs. absolute) are unconfirmed.
+        // Real-device packet capture needed before alpha to confirm accuracy.
         val currentTempC = if (parsedCurrentC > 0) {
             parsedCurrentC
         } else {
-            when (heaterMode) {
+            val syntheticTemp = when (heaterMode) {
                 2    -> targetTempC + boostOffsetC
                 3    -> targetTempC + superBoostOffsetC
                 else -> if (heaterMode > 0) targetTempC else 0
             }
+            if (syntheticTemp > 0) {
+                Log.v("BlePacket", "[B-010] Using synthetic temp for $deviceType: $syntheticTemp°C " +
+                    "(target=$targetTempC°C, boost=$boostOffsetC°C, mode=$heaterMode)")
+            }
+            syntheticTemp
         }
         val batteryLevel      = bytes[8].toInt() and 0xFF
         val autoShutdownSecs  = (bytes[9].toInt() and 0xFF) or ((bytes[10].toInt() and 0xFF) shl 8)
@@ -122,61 +130,118 @@ object BlePacket {
     }
 
     fun parseFirmware(bytes: ByteArray): String? {
-        if (bytes.size < 5) return null
+        if (bytes.size < 5) {
+            if (bytes.isNotEmpty() && bytes[0] == BleConstants.CMD_INITIAL_RESET) {
+                Log.w("BlePacket", "parseFirmware: packet too short (${bytes.size} bytes, need ≥5)")
+            }
+            return null
+        }
         if (bytes[0] != BleConstants.CMD_INITIAL_RESET) return null
-        val fw = "${bytes[1].toInt() and 0xFF}.${bytes[2].toInt() and 0xFF}.${bytes[3].toInt() and 0xFF}.${bytes[4].toInt() and 0xFF}"
-        // Bytes 5-8 are bootloader version (if present)
-        val bl = if (bytes.size >= 9)
-            "${bytes[5].toInt() and 0xFF}.${bytes[6].toInt() and 0xFF}.${bytes[7].toInt() and 0xFF}.${bytes[8].toInt() and 0xFF}"
-        else null
-        return if (bl != null) "$fw / BL $bl" else fw
+
+        try {
+            val fw = "${bytes[1].toInt() and 0xFF}.${bytes[2].toInt() and 0xFF}.${bytes[3].toInt() and 0xFF}.${bytes[4].toInt() and 0xFF}"
+            // Bytes 5-8 are bootloader version (if present)
+            val bl = if (bytes.size >= 9)
+                "${bytes[5].toInt() and 0xFF}.${bytes[6].toInt() and 0xFF}.${bytes[7].toInt() and 0xFF}.${bytes[8].toInt() and 0xFF}"
+            else null
+            return if (bl != null) "$fw / BL $bl" else fw
+        } catch (e: IndexOutOfBoundsException) {
+            Log.e("BlePacket", "parseFirmware: IndexOutOfBoundsException at index (packet size: ${bytes.size})", e)
+            return null
+        }
     }
 
     fun parseExtended(bytes: ByteArray, address: String): ExtendedData? {
-        if (bytes.size < 7) return null
+        if (bytes.size < 7) {
+            if (bytes.isNotEmpty() && bytes[0] == BleConstants.CMD_EXTENDED) {
+                Log.w("BlePacket", "parseExtended: packet too short (${bytes.size} bytes, need ≥7)")
+            }
+            return null
+        }
         if (bytes[0] != BleConstants.CMD_EXTENDED) return null
 
-        val heaterRuntime = (bytes[1].toInt() and 0xFF) or
-                            ((bytes[2].toInt() and 0xFF) shl 8) or
-                            ((bytes[3].toInt() and 0xFF) shl 16)
-        val chargingTime  = (bytes[4].toInt() and 0xFF) or
-                            ((bytes[5].toInt() and 0xFF) shl 8) or
-                            ((bytes[6].toInt() and 0xFF) shl 16)
+        try {
+            val heaterRuntime = (bytes[1].toInt() and 0xFF) or
+                                ((bytes[2].toInt() and 0xFF) shl 8) or
+                                ((bytes[3].toInt() and 0xFF) shl 16)
+            val chargingTime  = (bytes[4].toInt() and 0xFF) or
+                                ((bytes[5].toInt() and 0xFF) shl 8) or
+                                ((bytes[6].toInt() and 0xFF) shl 16)
 
-        return ExtendedData(
-            deviceAddress              = address,
-            lastUpdatedMs              = System.currentTimeMillis(),
-            heaterRuntimeMinutes       = heaterRuntime,
-            batteryChargingTimeMinutes = chargingTime
-        )
+            return ExtendedData(
+                deviceAddress              = address,
+                lastUpdatedMs              = System.currentTimeMillis(),
+                heaterRuntimeMinutes       = heaterRuntime,
+                batteryChargingTimeMinutes = chargingTime
+            )
+        } catch (e: IndexOutOfBoundsException) {
+            Log.e("BlePacket", "parseExtended: IndexOutOfBoundsException at index (packet size: ${bytes.size})", e)
+            return null
+        }
     }
 
     fun parseIdentity(bytes: ByteArray, address: String): DeviceInfo? {
-        if (bytes.size < 19) return null
+        if (bytes.size < 19) {
+            if (bytes.isNotEmpty() && bytes[0] == BleConstants.CMD_IDENTITY) {
+                Log.w("BlePacket", "parseIdentity: packet too short (${bytes.size} bytes, need ≥19)")
+            }
+            return null
+        }
         if (bytes[0] != BleConstants.CMD_IDENTITY) return null
 
-        val namePart   = bytes.copyOfRange(9,  15).toString(Charsets.UTF_8).trimEnd('\u0000')
-        val prefixPart = bytes.copyOfRange(15, 17).toString(Charsets.UTF_8).trimEnd('\u0000')
-        val colorIndex = bytes[18].toInt() and 0xFF
-        val serial     = prefixPart + namePart
+        try {
+            // Validate ranges before copyOfRange to prevent silent failures
+            if (bytes.size < 17) {
+                Log.w("BlePacket", "parseIdentity: insufficient bytes for prefix (need ≥17, have ${bytes.size})")
+                return null
+            }
+            if (bytes.size < 19) {
+                Log.w("BlePacket", "parseIdentity: insufficient bytes for color index (need ≥19, have ${bytes.size})")
+                return null
+            }
 
-        return DeviceInfo(
-            deviceAddress = address,
-            lastSeenMs    = System.currentTimeMillis(),
-            serialNumber  = serial,
-            colorIndex    = colorIndex,
-            deviceType    = detectDeviceType(prefixPart)
-        )
+            val namePart   = bytes.copyOfRange(9,  15).toString(Charsets.UTF_8).trimEnd('\u0000')
+            val prefixPart = bytes.copyOfRange(15, 17).toString(Charsets.UTF_8).trimEnd('\u0000')
+            val colorIndex = bytes[18].toInt() and 0xFF
+            val serial     = prefixPart + namePart
+
+            if (serial.isBlank()) {
+                Log.w("BlePacket", "parseIdentity: serial number is blank")
+                return null
+            }
+
+            return DeviceInfo(
+                deviceAddress = address,
+                lastSeenMs    = System.currentTimeMillis(),
+                serialNumber  = serial,
+                colorIndex    = colorIndex,
+                deviceType    = detectDeviceType(prefixPart)
+            )
+        } catch (e: IndexOutOfBoundsException) {
+            Log.e("BlePacket", "parseIdentity: IndexOutOfBoundsException at index (packet size: ${bytes.size})", e)
+            return null
+        }
     }
 
     fun parseDisplaySettings(bytes: ByteArray): DisplaySettings? {
-        if (bytes.size < 7) return null
+        if (bytes.size < 7) {
+            if (bytes.isNotEmpty() && bytes[0] == BleConstants.CMD_BRIGHTNESS_VIBRATION) {
+                Log.w("BlePacket", "parseDisplaySettings: packet too short (${bytes.size} bytes, need ≥7)")
+            }
+            return null
+        }
         if (bytes[0] != BleConstants.CMD_BRIGHTNESS_VIBRATION) return null
-        return DisplaySettings(
-            brightness    = (bytes[2].toInt() and 0xFF).coerceIn(1, 9),
-            vibrationLevel = bytes[5].toInt() and 0xFF,
-            boostTimeout  = bytes[6].toInt() and 0xFF
-        )
+
+        try {
+            return DisplaySettings(
+                brightness    = (bytes[2].toInt() and 0xFF).coerceIn(1, 9),
+                vibrationLevel = bytes[5].toInt() and 0xFF,
+                boostTimeout  = bytes[6].toInt() and 0xFF
+            )
+        } catch (e: IndexOutOfBoundsException) {
+            Log.e("BlePacket", "parseDisplaySettings: IndexOutOfBoundsException at index (packet size: ${bytes.size})", e)
+            return null
+        }
     }
 
     fun buildSetHeater(on: Boolean): ByteArray =
