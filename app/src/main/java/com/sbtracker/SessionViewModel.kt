@@ -8,7 +8,11 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.Job
 import com.sbtracker.data.ProgramRepository
 import com.sbtracker.data.SessionProgram
 import org.json.JSONArray
@@ -34,6 +38,16 @@ class SessionViewModel @Inject constructor(
         .map { it.filter { p -> !p.isDefault } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    // Program execution state
+    private val _selectedProgram = MutableStateFlow<SessionProgram?>(null)
+    val selectedProgram: StateFlow<SessionProgram?> = _selectedProgram.asStateFlow()
+
+    private var boostJob: Job? = null
+
+    fun selectProgram(program: SessionProgram?) {
+        _selectedProgram.value = program
+    }
+
     fun saveProgram(program: SessionProgram) {
         viewModelScope.launch { programRepository.saveProgram(program) }
     }
@@ -55,6 +69,35 @@ class SessionViewModel @Inject constructor(
         } catch (e: Exception) {
             emptyList()
         }
+    }
+
+    fun startSessionWithProgram(program: SessionProgram) {
+        boostJob?.cancel()
+
+        // 1. Set target temperature (mode 1 = standard heater mode)
+        setTemp(program.targetTempC, 1)
+
+        // 2. Start the heater
+        setHeater(true)
+
+        // 3. Schedule boost steps
+        val steps = parseBoostSteps(program.boostStepsJson)
+        if (steps.isEmpty()) return
+
+        boostJob = viewModelScope.launch {
+            for (step in steps) {
+                if (step.offsetSec > 0) delay(step.offsetSec * 1000L)
+                if (!isActive) break // cancelled — do not fire further commands
+                if (step.boostC > 0) {
+                    setBoost(step.boostC)
+                }
+            }
+        }
+    }
+
+    fun cancelBoostSchedule() {
+        boostJob?.cancel()
+        boostJob = null
     }
 
     fun startSession(targetTemp: Int) {
