@@ -75,6 +75,7 @@ The codebase is currently in the "Final Hardening" phase. To reach a technical A
 | B-014 | `documented` | Charge Taper Validation | Multipliers need real measurement | ETA accuracy at 70%+ |
 | B-015 | `in-progress` | Drain Confidence | Add `drainEstimateReliable` flag to stats | UI shows confidence warning |
 | B-013 | `documented` | Legacy Metadata Gap | pre-F-018 sessions lack metadata rows | Documented; UI fix planned |
+| B-016 | `backlog` | Program Editor Temp Units | Program editor ignores C/F setting; always shows Celsius | Respect `bleVm.isCelsius` in editor, convert on load/save |
 
 ## 🏗️ Future Architecture (v0.3 — Beta)
 | ID | Status | Feature | Description |
