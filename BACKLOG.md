@@ -131,6 +131,7 @@ The current dev codebase (v0.1) is extremely close to a functional Alpha. To off
 | 2026-03-24 | Multi-device infrastructure enhancements | Added synthetic test device and cross-device landing page aggregates for better testability and transparency. |
 | 2026-03-24 | Introduce Hilt Dependency Injection (T-006) | Standardized dependency management; unblocked ViewModel decomposition and testing. |
 | 2026-03-25 | Oracle full-codebase audit | Comprehensive review of implementation vs. claims across all layers. Verdict: architecture sound, core bug B-010 (temp accuracy) is the primary release blocker. Added B-012–B-015 from audit findings. See CHANGELOG for full report. |
+| 2026-03-25 | Widget exploration (F-083 TBD) | Idea: Live status widget (temp, battery, session state) + quick controls. Scope TBD; no MVP yet. Awaits F-050 and T-008 completion. |
 
 ---
 
