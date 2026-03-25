@@ -279,39 +279,171 @@ class SessionFragment : Fragment() {
         val context = requireContext()
         val isNew = program == null
 
+        // Parse existing steps or create default
+        data class StepUI(var durationSec: Int, var boostC: Int)
+        val baseTemp = program?.targetTempC ?: bleVm.targetTemp.value
+        val steps = mutableListOf<StepUI>()
+
+        // Parse boostStepsJson into StepUI list (duration between steps)
+        try {
+            val json = program?.boostStepsJson ?: "[{\"offsetSec\":0,\"boostC\":0}]"
+            val stepsArray = org.json.JSONArray(json)
+            for (i in 0 until stepsArray.length()) {
+                val obj = stepsArray.getJSONObject(i)
+                val offsetSec = obj.getInt("offsetSec")
+                val boostC = obj.getInt("boostC")
+                val nextOffset = if (i + 1 < stepsArray.length()) {
+                    stepsArray.getJSONObject(i + 1).getInt("offsetSec")
+                } else {
+                    offsetSec + 60 // Default 60s duration if last step
+                }
+                steps.add(StepUI(nextOffset - offsetSec, boostC))
+            }
+        } catch (e: Exception) {
+            steps.add(StepUI(60, 0))
+        }
+
         val nameInput = EditText(context).apply {
             setText(program?.name ?: "")
-            hint = "Program name (e.g., Terpene Boost)"
+            hint = "Program name"
             textSize = 14f
             setTextColor(0xFFFFFFFF.toInt())
             setHintTextColor(ContextCompat.getColor(context, R.color.color_gray_dim))
-            setPadding(16, 8, 16, 8)
+            setPadding(16, 12, 16, 12)
         }
 
-        val tempInput = EditText(context).apply {
-            val defaultTemp = program?.targetTempC ?: bleVm.targetTemp.value
-            setText(defaultTemp.toString())
-            hint = "Target temp (40-230°C)"
+        val baseTempInput = EditText(context).apply {
+            setText(baseTemp.toString())
+            hint = "Base temp (°C)"
             inputType = android.text.InputType.TYPE_CLASS_NUMBER
             textSize = 14f
             setTextColor(0xFFFFFFFF.toInt())
             setHintTextColor(ContextCompat.getColor(context, R.color.color_gray_dim))
-            setPadding(16, 8, 16, 8)
+            setPadding(16, 12, 16, 12)
         }
 
-        val stepsInfo = TextView(context).apply {
-            text = "Steps: ${program?.boostStepsJson ?: "[]"}"
-            textSize = 12f
-            setTextColor(ContextCompat.getColor(context, R.color.color_boost_bar_fill))
-            setPadding(16, 16, 16, 8)
+        val stepsContainer = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+        }
+
+        fun updateStepsUI() {
+            stepsContainer.removeAllViews()
+            var totalSec = 0
+            steps.forEachIndexed { idx, step ->
+                totalSec += step.durationSec
+                val stepLayout = LinearLayout(context).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    ).apply { setMargins(0, 8, 0, 8) }
+                    gravity = android.view.Gravity.CENTER_VERTICAL
+                    setPadding(12, 8, 12, 8)
+                    setBackgroundColor(ContextCompat.getColor(context, R.color.color_tint_green))
+                }
+
+                val durationInput = EditText(context).apply {
+                    setText(step.durationSec.toString())
+                    hint = "Duration (s)"
+                    inputType = android.text.InputType.TYPE_CLASS_NUMBER
+                    textSize = 12f
+                    setTextColor(0xFFFFFFFF.toInt())
+                    setHintTextColor(ContextCompat.getColor(context, R.color.color_gray_dim))
+                    layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                    setPadding(8, 8, 8, 8)
+                }
+
+                val boostInput = EditText(context).apply {
+                    setText(step.boostC.toString())
+                    hint = "Boost (°C)"
+                    inputType = android.text.InputType.TYPE_CLASS_NUMBER
+                    textSize = 12f
+                    setTextColor(0xFFFFFFFF.toInt())
+                    setHintTextColor(ContextCompat.getColor(context, R.color.color_gray_dim))
+                    layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                    setPadding(8, 8, 8, 8)
+                }
+
+                val removeBtn = Button(context).apply {
+                    text = "−"
+                    textSize = 14f
+                    setTextColor(ContextCompat.getColor(context, R.color.color_red))
+                    setBackgroundTintList(android.content.res.ColorStateList.valueOf(
+                        ContextCompat.getColor(context, R.color.color_surface)
+                    ))
+                    layoutParams = LinearLayout.LayoutParams(56, LinearLayout.LayoutParams.WRAP_CONTENT)
+                    setOnClickListener {
+                        steps.removeAt(idx)
+                        updateStepsUI()
+                    }
+                }
+
+                stepLayout.addView(durationInput)
+                stepLayout.addView(boostInput)
+                stepLayout.addView(removeBtn)
+
+                stepsContainer.addView(stepLayout)
+
+                // Update step from inputs
+                durationInput.onFocusChangeListener = android.view.View.OnFocusChangeListener { _, _ ->
+                    step.durationSec = durationInput.text.toString().toIntOrNull() ?: 60
+                }
+                boostInput.onFocusChangeListener = android.view.View.OnFocusChangeListener { _, _ ->
+                    step.boostC = boostInput.text.toString().toIntOrNull() ?: 0
+                }
+            }
+
+            // Add Step button
+            val addStepBtn = Button(context).apply {
+                text = "+ ADD STEP"
+                textSize = 12f
+                setTextColor(ContextCompat.getColor(context, R.color.color_boost_bar_fill))
+                setBackgroundTintList(android.content.res.ColorStateList.valueOf(
+                    ContextCompat.getColor(context, R.color.color_surface)
+                ))
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply { setMargins(0, 8, 0, 8) }
+                setPadding(16, 12, 16, 12)
+                setOnClickListener {
+                    steps.add(StepUI(60, 5))
+                    updateStepsUI()
+                }
+            }
+            stepsContainer.addView(addStepBtn)
+
+            // Total time summary
+            val summaryText = TextView(context).apply {
+                text = "Total: ${totalSec / 60}m ${totalSec % 60}s"
+                textSize = 12f
+                setTextColor(ContextCompat.getColor(context, R.color.color_boost_bar_fill))
+                setPadding(12, 12, 12, 4)
+                setTypeface(null, android.graphics.Typeface.BOLD)
+            }
+            stepsContainer.addView(summaryText)
+        }
+
+        updateStepsUI()
+
+        val scrollView = android.widget.ScrollView(context).apply {
+            addView(stepsContainer)
         }
 
         val container = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(16, 16, 16, 16)
+            setPadding(12, 12, 12, 12)
             addView(nameInput)
-            addView(tempInput)
-            addView(stepsInfo)
+            addView(baseTempInput)
+            val stepsLabel = TextView(context).apply {
+                text = "HEATING STEPS"
+                textSize = 12f
+                setTextColor(ContextCompat.getColor(context, R.color.color_boost_bar_fill))
+                setPadding(12, 16, 12, 8)
+                setTypeface(null, android.graphics.Typeface.BOLD)
+            }
+            addView(stepsLabel)
+            addView(scrollView)
         }
 
         AlertDialog.Builder(context)
@@ -319,15 +451,24 @@ class SessionFragment : Fragment() {
             .setView(container)
             .setPositiveButton("Save") { _, _ ->
                 val name = nameInput.text.toString().trim()
-                val temp = tempInput.text.toString().toIntOrNull()?.coerceIn(40, 230) ?: 180
+                val baseTemp = baseTempInput.text.toString().toIntOrNull()?.coerceIn(40, 230) ?: 180
 
-                if (name.isNotEmpty()) {
+                if (name.isNotEmpty() && steps.isNotEmpty()) {
+                    // Rebuild boostStepsJson from steps
+                    val stepsJson = mutableListOf<String>()
+                    var offsetSec = 0
+                    steps.forEach { step ->
+                        stepsJson.add("{\"offsetSec\":$offsetSec,\"boostC\":${step.boostC}}")
+                        offsetSec += step.durationSec
+                    }
+                    val json = "[${stepsJson.joinToString(",")}]"
+
                     val updated = (program ?: SessionProgram(
                         name = name,
-                        targetTempC = temp,
-                        boostStepsJson = "[{\"offsetSec\":0,\"boostC\":0}]",
+                        targetTempC = baseTemp,
+                        boostStepsJson = json,
                         isDefault = false
-                    )).copy(name = name, targetTempC = temp)
+                    )).copy(name = name, targetTempC = baseTemp, boostStepsJson = json)
 
                     sessionVm.saveProgram(updated)
                 }
