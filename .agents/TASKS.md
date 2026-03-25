@@ -116,7 +116,7 @@ main  ← stable, merges only from dev
 | T-083 | `done` | Program Executor Helper (JSON Parsing + Job Management) | [T-083](tasks/T-083-program-executor-helper.md) | T-045 |
 | T-084 | `done` | Program Execution Lifecycle (SessionViewModel Integration) | [T-084](tasks/T-084-program-execution-lifecycle.md) | T-083 |
 | T-085 | `done` | SessionFragment Program Chip UI and Start Button Wiring | [T-085](tasks/T-085-session-fragment-program-ui.md) | T-084 |
-| T-086 | `ready` | Program Execution Edge Cases & Lifecycle Cleanup | [T-086](tasks/T-086-program-execution-edge-cases.md) | T-085 |
+| T-086 | `done` | Program Execution Edge Cases & Lifecycle Cleanup | [T-086](tasks/T-086-program-execution-edge-cases.md) | T-085 |
 
 ### Part C: Post-Execution Integration
 | ID | Status | Title | Task File | Blocked by |
