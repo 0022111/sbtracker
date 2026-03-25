@@ -113,8 +113,8 @@ main  ← stable, merges only from dev
 ### Part B: Program Execution (T-046 Decomposed into T-083–T-086)
 | ID | Status | Title | Task File | Blocked by |
 |---|---|---|---|---|
-| T-083 | `ready` | Program Executor Helper (JSON Parsing + Job Management) | [T-083](tasks/T-083-program-executor-helper.md) | T-045 |
-| T-084 | `blocked` | Program Execution Lifecycle (SessionViewModel Integration) | [T-084](tasks/T-084-program-execution-lifecycle.md) | T-083 |
+| T-083 | `done` | Program Executor Helper (JSON Parsing + Job Management) | [T-083](tasks/T-083-program-executor-helper.md) | T-045 |
+| T-084 | `ready` | Program Execution Lifecycle (SessionViewModel Integration) | [T-084](tasks/T-084-program-execution-lifecycle.md) | T-083 |
 | T-085 | `blocked` | SessionFragment Program Chip UI and Start Button Wiring | [T-085](tasks/T-085-session-fragment-program-ui.md) | T-084 |
 | T-086 | `blocked` | Program Execution Edge Cases & Lifecycle Cleanup | [T-086](tasks/T-086-program-execution-edge-cases.md) | T-085 |
 
