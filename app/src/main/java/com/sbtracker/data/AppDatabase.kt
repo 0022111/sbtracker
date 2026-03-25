@@ -26,9 +26,10 @@ import androidx.room.RoomDatabase
         Session::class,
         ChargeCycle::class,
         Hit::class,
-        SessionMetadata::class
+        SessionMetadata::class,
+        SessionProgram::class
     ],
-    version      = 3,
+    version      = 4,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -40,4 +41,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun chargeCycleDao():  ChargeCycleDao
     abstract fun hitDao():          HitDao
     abstract fun sessionMetadataDao(): SessionMetadataDao
+    abstract fun sessionProgramDao(): SessionProgramDao
 }

@@ -21,7 +21,8 @@ data class SessionMetadata(
     @PrimaryKey val sessionId: Long,
     val isCapsule: Boolean = false,
     val capsuleWeightGrams: Float = 0.0f,
-    val notes: String? = null
+    val notes: String? = null,
+    val appliedProgramId: Long? = null
 )
 
 @Dao
@@ -40,4 +41,7 @@ interface SessionMetadataDao {
 
     @Query("SELECT * FROM session_metadata WHERE sessionId IN (:sessionIds)")
     suspend fun getMetadataForSessions(sessionIds: List<Long>): List<SessionMetadata>
+
+    @Query("SELECT * FROM session_metadata WHERE appliedProgramId = :programId")
+    suspend fun getSessionsForProgram(programId: Long): List<SessionMetadata>
 }

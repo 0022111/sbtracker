@@ -40,12 +40,28 @@ object AppModule {
             }
         }
 
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `session_programs` (" +
+                            "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                            "`name` TEXT NOT NULL, " +
+                            "`targetTempC` INTEGER NOT NULL, " +
+                            "`boostStepsJson` TEXT NOT NULL, " +
+                            "`isDefault` INTEGER NOT NULL)"
+                )
+                db.execSQL(
+                    "ALTER TABLE `session_metadata` ADD COLUMN `appliedProgramId` INTEGER"
+                )
+            }
+        }
+
         return Room.databaseBuilder(
             context,
             AppDatabase::class.java,
             "sbtracker.db"
         )
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
             .build()
     }
 
@@ -71,6 +87,9 @@ object AppModule {
     fun provideSessionMetadataDao(db: AppDatabase): SessionMetadataDao = db.sessionMetadataDao()
 
     @Provides
+    fun provideSessionProgramDao(db: AppDatabase): SessionProgramDao = db.sessionProgramDao()
+
+    @Provides
     @Singleton
     fun provideBleManager(@ApplicationContext context: Context): BleManager {
         return BleManager(context)
@@ -80,5 +99,11 @@ object AppModule {
     @Singleton
     fun provideAnalyticsRepository(db: AppDatabase): AnalyticsRepository {
         return AnalyticsRepository(db)
+    }
+
+    @Provides
+    @Singleton
+    fun provideProgramRepository(dao: SessionProgramDao): ProgramRepository {
+        return ProgramRepository(dao)
     }
 }
