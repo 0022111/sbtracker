@@ -58,6 +58,7 @@ The current dev codebase (v0.1) is extremely close to a functional Alpha. To off
 | F-024 | `done` | CSV Export | Export session history to CSV | File generated, share intent fires |
 | F-025 | `planned` | History Clear | Per-device clear of all tables | All 6 tables wiped for target device |
 | F-026 | `planned` | Data Backup / Restore | Export/import full database | User can backup and restore DB file |
+| F-027 | `planned` | Session Programs/Presets | User-defined or preset session profiles with automatic boost scheduling | Create/edit profiles with custom names, define boost times & amounts, select from default presets (terpene optimization, even step, full heat max rip), profiles trigger immediate session start with parameters |
 | F-050 | `planned` | Notifications Overhaul | Modernize and expand the notification system to support persistent status, rich controls, and configurable alerts. | Persistent status notification, drawer-based quick controls, and proper channel implementation. |
 
 ## UI & Visualization (P1 — Next Up)
