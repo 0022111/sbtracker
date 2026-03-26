@@ -160,7 +160,7 @@ main  ← stable, merges only from dev
 | T-076 | `planned` | Hit Classification Fields in AnalyticsModels | [T-076](tasks/T-076-hit-classification-fields.md) | oracle F-052 redesign |
 | T-077 | `planned` | Compute Hit Achievement Metrics in AnalyticsRepository | [T-077](tasks/T-077-hit-achievement-metrics.md) | oracle F-052 redesign |
 | T-078 | `ready` | Analytics Tab: Frequency & Dose Section Reorganization | [T-078](tasks/T-078-analytics-frequency-dose-section.md) | T-050 |
-| T-079 | `ready` | Dose Visibility in Session Cards | [T-079](tasks/T-079-dose-visibility-session-cards.md) | T-049 |
+| T-079 | `done` | Dose Visibility in Session Cards | [T-079](tasks/T-079-dose-visibility-session-cards.md) | T-049 |
 | T-080 | `planned` | Hit Achievements Display on Analytics Tab | [T-080](tasks/T-080-hit-achievements-display.md) | oracle F-052 redesign |
 | T-081 | `planned` | Temperature-Based Achievement Display | [T-081](tasks/T-081-temperature-achievement-display.md) | oracle F-052 redesign |
 | T-082 | `blocked` | Analytics Tab: Cycle & Session Insights Card | [T-082](tasks/T-082-analytics-cycle-insights-card.md) | T-078 |
