@@ -39,8 +39,10 @@ The entire system follows an **event-sourcing pattern**. One table rules everyth
 | `Session` | `sessions` | Heater session boundaries | auto PK, idx on `deviceAddress`, `serialNumber` |
 | `ChargeCycle` | `charge_cycles` | Charging events (start/end battery, rate) | auto PK, idx on `deviceAddress`, `serialNumber` |
 | `Hit` | `hits` | Individual hits within a session | auto PK, idx on `sessionId`, `deviceAddress` |
+| `SessionMetadata` | `session_metadata` | User-provided metadata (notes, grams, appliedProgramId) | `sessionId` (PK) |
+| `SessionProgram` | `session_programs` | Reusable heating profiles (boost steps, stayOnAtEnd) | auto PK |
 
-**Schema version**: 2 (see `MIGRATIONS.md` in `data/`).
+**Schema version**: 5 (see `AppModule.kt` for migrations).
 **Migration strategy**: explicit `Migration(N, N+1)` + `fallbackToDestructiveMigration()` as dev safety net.
 
 ---
@@ -63,9 +65,13 @@ The entire system follows an **event-sourcing pattern**. One table rules everyth
 
 | File | Purpose |
 |---|---|
-| `MainViewModel.kt` | Central orchestrator: BLE → DB → analytics → UI state. ~1074 lines. |
+| `BleViewModel.kt` | Owns connection lifecycle, data pipeline, and device persistence |
+| `SessionViewModel.kt` | Device control logic (temp, modes, program execution) |
+| `HistoryViewModel.kt` | Session list, analytics, and CSV exports |
+| `BatteryViewModel.kt` | Battery health and charge cycle management |
 | `SessionTracker.kt` | Real-time session state machine (heater-on/off transitions, grace periods) |
 | `HitDetector.kt` | Detects hits from `DeviceStatus` temperature patterns |
+| `ActiveProgramHolder.kt` | Singleton for cross-VM session program state management |
 | `TempUtils.kt` | °C ↔ °F conversion helpers |
 
 ---
