@@ -120,6 +120,55 @@ The entire system follows an **event-sourcing pattern**. One table rules everyth
 
 ---
 
+## UX Principles
+
+*Established by Oracle audit 2026-03-26. Any agent writing UI code must internalize these before touching a screen.*
+
+### The Three User Moments
+
+Every screen serves one of three states. Screens that conflate multiple states become confusing:
+
+| Moment | When | Goal | Feeling |
+|---|---|---|---|
+| **Pre-Session** | Device connected, about to start | Minimum friction to ignite | Ready |
+| **Mid-Session** | Heater on, session active | Calm feedback; show only what matters | In control |
+| **Post-Session / Review** | Session ended or reviewing history | Reflection and insight; meaning from data | Informed |
+
+### Screen-to-Moment Map
+
+| Screen | Primary Moment | Core Promise |
+|---|---|---|
+| `LandingFragment` | Pre-session + Status | "Your device, right now" — connect, ignite, go |
+| `SessionFragment` | Mid-session | "You are in control" — temperature, mode, program |
+| `SessionReportActivity` | Post-session | "Here is what happened" — clear, contextual, annotatable |
+| `HistoryFragment` | Review | "Here is your pattern" — trends, not just numbers |
+| `BatteryFragment` | Review + Maintenance | "Here is your device's health" — drain, cycles, care |
+| `SettingsFragment` | Configuration | Device and app preferences — rarely visited, always correct |
+
+### Empty States
+
+Every screen must have a designed empty state. An empty screen is a **teaching moment**, not a failure. Empty states must:
+- Explain what the screen shows when populated
+- Tell the user what action will populate it
+- Be visually distinct from a loading state
+
+### Data Presentation Rules
+
+- **Never show a raw number without context.** "247 minutes of heater runtime" is arcane. "247 min — consider cleaning soon" is useful.
+- **Derivable data should be derived.** Don't make the user mentally compute what the app already knows.
+- **Confidence signals matter.** When an estimate is unreliable (see `drainEstimateReliable` in B-015), say so, concisely and without burying the value.
+- **Developer data is not user data.** MAC addresses, colour indices, and raw firmware strings belong behind a "Device Info" expandable, not in the main settings flow. Developer tools (test device injection, history rebuild) must be hidden behind a developer mode toggle.
+
+### Session Flow Invariant
+
+The primary session lifecycle — **connect → ignite → session → report** — must feel like one continuous arc, not four disconnected screens. Any design decision that interrupts this arc requires explicit justification. See F-062 for the full vision.
+
+### Design Language
+
+SBTracker uses a dark "Cyber Green" aesthetic. Until a formal design language document exists (tracked under B-007), agents must not invent new colors or type sizes. Use the existing established values in the codebase consistently. When B-007 is built, it will define the canonical palette, type scale, and component library that all agents must follow.
+
+---
+
 ## Rules for Agents
 
 > **If you are an agent picking up a task: go to `.agents/TASKS.md` first.**
