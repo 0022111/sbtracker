@@ -92,6 +92,7 @@ class SessionViewModel @Inject constructor(
                     
                     if (delayMs > 0) {
                         _nextStageTimeMs.value = targetTime
+                        _nextStageTempC.value = program.targetTempC + boostC
                         delay(delayMs)
                     }
                     setBoost(boostC)
