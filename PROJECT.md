@@ -169,6 +169,31 @@ SBTracker uses a dark "Cyber Green" aesthetic. Until a formal design language do
 
 ---
 
+## Future Platforms / Portability
+
+The architecture is intentionally split to maximise portability:
+
+**High portability — port these first:**
+- Analytics layer — pure functions over `List<SessionSummary>`, zero platform dependencies
+- Data model — event-sourcing pattern and SQL schema translate directly to any SQLite wrapper
+- Session/hit detection algorithms — pure logic, no Android APIs
+
+**Requires native reimplementation per platform:**
+- BLE layer — same S&B protocol, different platform API (Android BLE, CoreBluetooth, react-native-ble-plx, etc.)
+- Foreground service keepalive — Android-specific; equivalent needed on each target platform
+- UI — full rewrite regardless of target
+
+**Porting priority principle:**
+> Prefer completing logic, data, and analytics work over UI/aesthetic work.
+> A port inherits correctness; it doesn't inherit pixels.
+
+**Platform notes:**
+- iOS App Store: likely blocked by guideline 1.4.3 (cannabis device facilitation)
+- PWA: not viable — background BLE keepalive is impossible in a browser context
+- React Native: viable for Android; BLE layer is the prototype risk, validate keepalive first
+
+---
+
 ## Rules for Agents
 
 > **If you are an agent picking up a task: go to `.agents/TASKS.md` first.**
@@ -181,7 +206,7 @@ SBTracker uses a dark "Cyber Green" aesthetic. Until a formal design language do
 4. **Never skip schema versions** — always increment by 1.
 5. **Keep `fallbackToDestructiveMigration()`** during development (removed in T-016).
 6. **Update `BACKLOG.md`** when starting and completing work.
-7. **Append to `CHANGELOG.md`** after completing changes.
+7. **Drop a fragment in `changelogs/`** — one `.md` file per PR, named after your task or branch slug. Never edit `CHANGELOG.md` directly. See `changelogs/README.md`.
 8. **Mark tasks done in `.agents/TASKS.md`** when complete.
 9. **Use agent branches** — `claude/T-XXX-description` for task work.
 10. **Follow PR-based workflow** — create a branch, implement, verify, submit PR. Never commit directly to `main`.
@@ -191,4 +216,4 @@ SBTracker uses a dark "Cyber Green" aesthetic. Until a formal design language do
 ---
 
 ## Agent Infrastructure
-Detailed guidelines and branch strategies for AI assistants are maintained in [AGENT_INFO.md](file:///Users/a0110/AndroidStudioProjects/sbtracker/AGENT_INFO.md).
+Detailed guidelines and branch strategies for AI assistants are maintained in [AGENT_INFO.md](./AGENT_INFO.md).
