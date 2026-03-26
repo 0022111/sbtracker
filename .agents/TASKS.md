@@ -116,7 +116,7 @@ main  ← stable, merges only from dev
 | ID | Status | Title | Task File | Blocked by |
 |---|---|---|---|---|
 | T-047 | `done` | Landing: Suppress Idle 0°C + Charge State Badge | [T-047](tasks/T-047-landing-idle-temp-charge-state.md) | — |
-| T-048 | `ready` | Landing: Active Session Banner | [T-048](tasks/T-048-landing-session-banner.md) | T-047 |
+| T-048 | `done` | Landing: Active Session Banner | [T-048](tasks/T-048-landing-session-banner.md) | T-047 |
 
 ## Phase 3 — F-056 History/Analytics Page Organization
 
@@ -183,4 +183,4 @@ main  ← stable, merges only from dev
 | T-072 | `ready` | Configurable Alert Settings UI | [T-072](tasks/T-072-alert-settings-ui.md) | — |
 | T-073 | `blocked` | Alert Delivery Logic (Temp Ready, Charge 80%, Session End) | [T-073](tasks/T-073-alert-delivery-logic.md) | T-069, T-072 |
 | T-074 | `blocked` | Alert Notification Action Buttons (T-019 implementation) | [T-074](tasks/T-074-t019-alert-action-buttons.md) | T-073, T-008 |
-| T-075 | `ready` | POST_NOTIFICATIONS Permission Handling (Android 13+) | [T-075](tasks/T-075-notification-permission-handling.md) | — |
+| T-075 | `done` | POST_NOTIFICATIONS Permission Handling (Android 13+) | [T-075](tasks/T-075-notification-permission-handling.md) | — |
