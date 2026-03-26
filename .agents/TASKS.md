@@ -143,7 +143,7 @@ main  ← stable, merges only from dev
 | ID | Status | Title | Task File | Blocked by |
 |---|---|---|---|---|
 | T-064 | `done` | History Clear: Data Layer Fix (SessionMetadataDao + HistoryViewModel) | [T-064](tasks/T-064-history-clear-data-layer.md) | — |
-| T-065 | `ready` | History Clear: Settings UI Entry Point | [T-065](tasks/T-065-history-clear-settings-ui.md) | T-064 |
+| T-065 | `done` | History Clear: Settings UI Entry Point | [T-065](tasks/T-065-history-clear-settings-ui.md) | T-064 |
 | T-066 | `ready` | History Clear: Integration Verification | [T-066](tasks/T-066-history-clear-verification.md) | T-064, T-065 |
 
 ## Phase 3 — F-053 Session Battery Starting Level
