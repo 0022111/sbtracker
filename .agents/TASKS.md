@@ -70,9 +70,9 @@ main  ← stable, merges only from dev
 |---|---|---|---|---|
 | T-011 | `done` | Session Notes + Rating | [T-011](tasks/T-011-session-notes-rating.md) | T-007 |
 | T-012 | `done` | Temperature Presets | [T-012](tasks/T-012-temperature-presets.md) | T-009 |
-| T-013 | `ready` | History Search & Filtering | [T-013](tasks/T-013-history-filtering.md) | T-007 |
-| T-014 | `ready` | Tolerance Break Tracker | [T-014](tasks/T-014-tolerance-break-tracker.md) | T-007 |
-| T-015 | `ready` | Onboarding Flow | [T-015](tasks/T-015-onboarding-flow.md) | T-009 |
+| T-013 | `done` | History Search & Filtering | [T-013](tasks/T-013-history-filtering.md) | T-007 |
+| T-014 | `done` | Tolerance Break Tracker | [T-014](tasks/T-014-tolerance-break-tracker.md) | T-007 |
+| T-015 | `done` | Onboarding Flow | [T-015](tasks/T-015-onboarding-flow.md) | T-009 |
 | T-030 | `ready` | Migrate to Jetpack Compose | [T-030](tasks/T-030-migrate-to-jetpack-compose.md) | — |
 | T-031 | `done` | Overhaul BLE State Machine | [T-031](tasks/T-031-overhaul-ble-state-machine.md) | — |
 | T-032 | `ready` | Consolidate Multi-Device Analytics | [T-032](tasks/T-032-consolidate-multi-device-analytics.md) | — |
@@ -144,7 +144,7 @@ main  ← stable, merges only from dev
 |---|---|---|---|---|
 | T-064 | `done` | History Clear: Data Layer Fix (SessionMetadataDao + HistoryViewModel) | [T-064](tasks/T-064-history-clear-data-layer.md) | — |
 | T-065 | `done` | History Clear: Settings UI Entry Point | [T-065](tasks/T-065-history-clear-settings-ui.md) | T-064 |
-| T-066 | `ready` | History Clear: Integration Verification | [T-066](tasks/T-066-history-clear-verification.md) | T-064, T-065 |
+| T-066 | `done` | History Clear: Integration Verification | [T-066](tasks/T-066-history-clear-verification.md) | T-064, T-065 |
 
 ## Phase 3 — F-053 Session Battery Starting Level
 
@@ -179,7 +179,7 @@ main  ← stable, merges only from dev
 |---|---|---|---|---|
 | T-069 | `done` | Notification Channel Consolidation | [T-069](tasks/T-069-notification-channels.md) | — |
 | T-070 | `done` | Persistent Status Notification Content | [T-070](tasks/T-070-persistent-status-notification.md) | T-069 |
-| T-071 | `ready` | Notification Drawer Quick Controls | [T-071](tasks/T-071-notification-quick-controls.md) | T-070, T-008 |
+| T-071 | `done` | Notification Drawer Quick Controls | [T-071](tasks/T-071-notification-quick-controls.md) | T-070, T-008 |
 | T-072 | `done` | Configurable Alert Settings UI | [T-072](tasks/T-072-alert-settings-ui.md) | — |
 | T-073 | `blocked` | Alert Delivery Logic (Temp Ready, Charge 80%, Session End) | [T-073](tasks/T-073-alert-delivery-logic.md) | T-069, T-072 |
 | T-074 | `blocked` | Alert Notification Action Buttons (T-019 implementation) | [T-074](tasks/T-074-t019-alert-action-buttons.md) | T-073, T-008 |

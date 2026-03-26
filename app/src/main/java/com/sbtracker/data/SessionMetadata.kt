@@ -45,4 +45,16 @@ interface SessionMetadataDao {
 
     @Query("SELECT * FROM session_metadata WHERE appliedProgramId = :programId")
     suspend fun getSessionsForProgram(programId: Long): List<SessionMetadata>
+
+    /**
+     * Bulk-delete all metadata for sessions belonging to [deviceAddress].
+     * Used by F-025 (History Clear) to wipe this table alongside the sessions table.
+     * Must be called BEFORE deleting the sessions rows (FK ordering).
+     */
+    @Query("""
+        DELETE FROM session_metadata WHERE sessionId IN (
+            SELECT id FROM sessions WHERE deviceAddress = :deviceAddress
+        )
+    """)
+    suspend fun clearAllForDevice(deviceAddress: String)
 }

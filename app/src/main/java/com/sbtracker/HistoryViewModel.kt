@@ -423,6 +423,7 @@ class HistoryViewModel @Inject constructor(
             val addr = device.deviceAddress
             val serial = device.serialNumber
             db.hitDao().clearAll(addr)
+            db.sessionMetadataDao().clearAllForDevice(addr)   // must precede sessions delete
             db.sessionDao().clearHistory(serial, addr)
             db.chargeCycleDao().clearAll(addr)
             db.deviceStatusDao().clearAll(addr)
