@@ -50,6 +50,18 @@ class SettingsViewModel @Inject constructor(
     val programs: StateFlow<List<SessionProgram>> = programRepository.programs
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    val alertTempReady: StateFlow<Boolean> = prefsRepo.userPreferencesFlow
+        .map { it.alertTempReady }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    val alertCharge80: StateFlow<Boolean> = prefsRepo.userPreferencesFlow
+        .map { it.alertCharge80 }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    val alertSessionEnd: StateFlow<Boolean> = prefsRepo.userPreferencesFlow
+        .map { it.alertSessionEnd }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
     init {
         viewModelScope.launch {
             prefsRepo.userPreferencesFlow.collect { prefs ->
@@ -86,5 +98,17 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             programRepository.deleteProgram(id)
         }
+    }
+
+    fun setAlertTempReady(enabled: Boolean) {
+        viewModelScope.launch { prefsRepo.updateAlertTempReady(enabled) }
+    }
+
+    fun setAlertCharge80(enabled: Boolean) {
+        viewModelScope.launch { prefsRepo.updateAlertCharge80(enabled) }
+    }
+
+    fun setAlertSessionEnd(enabled: Boolean) {
+        viewModelScope.launch { prefsRepo.updateAlertSessionEnd(enabled) }
     }
 }

@@ -234,6 +234,25 @@ class SettingsFragment : Fragment() {
             bleVm.firmwareVersion.collect { f -> tvFw.text = "Firmware: ${f ?: "---"}" }
         }
 
+        // ── Alert toggles ──────────────────────────────────────────────────────
+        val swAlertTempReady  = binding.switchAlertTempReady
+        val swAlertCharge80   = binding.switchAlertCharge80
+        val swAlertSessionEnd = binding.switchAlertSessionEnd
+
+        binding.rowAlertTempReady.setOnClickListener  { settingsVm.setAlertTempReady(!settingsVm.alertTempReady.value) }
+        binding.rowAlertCharge80.setOnClickListener   { settingsVm.setAlertCharge80(!settingsVm.alertCharge80.value) }
+        binding.rowAlertSessionEnd.setOnClickListener { settingsVm.setAlertSessionEnd(!settingsVm.alertSessionEnd.value) }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            settingsVm.alertTempReady.collect { swAlertTempReady.isChecked = it }
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            settingsVm.alertCharge80.collect { swAlertCharge80.isChecked = it }
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            settingsVm.alertSessionEnd.collect { swAlertSessionEnd.isChecked = it }
+        }
+
         val tvDefaultPackType = binding.tvDefaultPackTypeValue
         val tvCapsuleWeight   = binding.tvCapsuleWeightValue
 
