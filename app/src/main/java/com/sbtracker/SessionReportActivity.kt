@@ -9,6 +9,7 @@ import android.widget.EditText
 import android.widget.RatingBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.sbtracker.data.AppDatabase
 import com.sbtracker.data.UserPreferencesRepository
@@ -133,6 +134,28 @@ class SessionReportActivity : AppCompatActivity() {
 
                     "● $sizeLabel  ${durSec}s${tempStr}  —  $offsetLabel$gapStr"
                 }.joinToString("\n\n")
+            }
+
+            // ── Session classification ────────────────────────────────────────────
+            val durationMin = durationMs / 60_000.0
+            val hitCount    = hitStats.hitCount
+            val classLabel  = when {
+                durationMin < 3  && hitCount <= 3  -> "Quick Sip"
+                durationMin < 5  && hitCount <= 6  -> "Light Session"
+                durationMin < 10 && hitCount <= 12 -> "Standard Session"
+                durationMin < 15                   -> "Heavy Session"
+                else                               -> "Marathon"
+            }
+            val classColor = when (classLabel) {
+                "Quick Sip"        -> ContextCompat.getColor(this, R.color.color_gray_mid)
+                "Light Session"    -> ContextCompat.getColor(this, R.color.color_green)
+                "Standard Session" -> ContextCompat.getColor(this, R.color.color_blue)
+                "Heavy Session"    -> ContextCompat.getColor(this, R.color.color_orange)
+                else               -> ContextCompat.getColor(this, R.color.color_red)
+            }
+            findViewById<TextView>(R.id.report_tv_session_class)?.apply {
+                text = classLabel
+                setTextColor(classColor)
             }
 
             // ── Starting battery ─────────────────────────────────────────────────
