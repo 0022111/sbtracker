@@ -50,6 +50,17 @@
             android:theme="@style/Theme.SBTracker.NoActionBar"
             tools:ignore="LockedOrientationActivity" />
 
+        <receiver
+            android:name=".NotificationActionReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.sbtracker.action.TEMP_UP" />
+                <action android:name="com.sbtracker.action.TEMP_DOWN" />
+                <action android:name="com.sbtracker.action.HEATER_ON" />
+                <action android:name="com.sbtracker.action.HEATER_OFF" />
+            </intent-filter>
+        </receiver>
+
         <service
             android:name=".BleService"
             android:enabled="true"
