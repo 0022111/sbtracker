@@ -83,7 +83,7 @@ main  ← stable, merges only from dev
 
 | ID | Status | Title | Task File | Blocked by |
 |---|---|---|---|---|
-| T-016 | `ready` | Remove fallbackToDestructiveMigration | [T-016](tasks/T-016-remove-fallback-migration.md) | T-011 |
+| T-016 | `done` | Remove fallbackToDestructiveMigration | [T-016](tasks/T-016-remove-fallback-migration.md) | T-011 |
 | T-017 | `ready` | Release Build Pipeline | [T-017](tasks/T-017-release-build-pipeline.md) | T-001 |
 | T-018 | `ready` | Crash Reporting | [T-018](tasks/T-018-crash-reporting.md) | T-001 |
 | T-019 | `ready` | Notification Action Buttons | [T-019](tasks/T-019-notification-actions.md) | T-008 |
