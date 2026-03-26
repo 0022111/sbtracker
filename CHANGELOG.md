@@ -4,26 +4,45 @@
 
 ---
 
-### 2026-03-26 — F-027: Session Programs Execution & Estimations (Antigravity/Worker)
+### 2026-03-25 — UX Audit & Hardening Plan: Session Programs (The Oracle)
 
-- **Rationale**: Completes the core value loop for Session Programs by enabling users to not only define programs but also execute them with real-time feedback. Surfaces data-driven battery drain predictions to help users plan long-range sessions.
+- **Rationale**: The Session Programs feature has reached core logic completion, but requires a hardening phase to ensure stability and clean UI/UX before the Alpha release. Specifically, conflicts between automated program execution and manual user overrides must be resolved to prevent "ghost-heating" scenarios.
 - **Technical Changes**:
-  - **T-083 (Database)**: Updated `SessionProgram` to include `stayOnAtEnd: Boolean` and implemented Migration v4→v5.
-  - **T-084 (Analytics)**: Implemented `AnalyticsRepository.computeAvgDrainPerMinute()` using weighted historical session data; exposed via `HistoryViewModel.avgDrainPerMinute`.
+  - **Audit**: Conducted a full UX review of `SessionFragment`, `SessionViewModel`, and `ProgramRepository`.
+  - **Hardening Plan**: Identified and documented four critical polish tasks:
+    - **T-089 (Safety)**: Cancellation of `programJob` on manual temperature adjustment or power-off.
+    - **T-090 (UI)**: Relocation of drain/program previews to a pre-ignition card to reduce Hero window clutter.
+    - **T-091 (State)**: Disabling of program grid interactions during active sessions to prevent state mismatch.
+    - **T-092 (UX)**: Future migration to a BottomSheet-based visual step editor with a temperature curve graph.
+- **Technical Debt**:
+  - T-089 is a high-priority stability item; manual overrides currently do not stop the background program timer.
+
+---
+
+### 2026-03-26 — F-027: Session Programs Execution, Estimations & History (Antigravity/Worker)
+ 
+- **Rationale**: Completes the core value loop for Session Programs by enabling users to not only define programs but also execute them with real-time feedback, predictive drain estimations, and historical reporting. Surfaces data-driven insights to help users plan long-range sessions.
+- **Technical Changes**:
   - **T-046 (Engine)**: 
     - Created `ActiveProgramHolder` singleton to bridge program selection to the heater control loop.
-    - Implemented `SessionViewModel.startSessionWithProgram()` which schedules temperature boosts using a coroutine-based delay loop.
-    - Added `SessionViewModel.calculateProgramDuration()` helper.
-    - Enhanced `SessionFragment` grid: click to select/deselect, long-press to edit, visual highlight for active selection.
-  - **T-056 (Persistence)**: Updated `BleViewModel` to consume `ActiveProgramHolder` and save `appliedProgramId` to `session_metadata` when a session completes.
-  - **T-085 (UI)**: 
-    - Updated `SessionFragment` hero window to show "MM:SS (est.)" and "−X% (Ym est.)" labels when a program is selected and the device is idle.
-    - Added `session_tv_drain_preview` and `session_tv_next_stage` to `fragment_session.xml`.
-    - **T-087 (UX)**: Implemented live "Next: XXX° in MM:SS" countdown timer in the hero window during program execution; driven by `SessionViewModel.nextStageTimeMs` and `nextStageTempC`.
-    - Integrated `R.color.color_surface_highlight` for selection states.
+    - Implemented `startSessionWithProgram()` scheduling temperature boosts via a coroutine-driven delay loop.
+  - **T-083 (Engine/UX)**: 
+    - Implemented post-program execution logic: heater now waits for the full session duration and triggers a hard shutoff if `stayOnAtEnd` is disabled.
+    - Added "Keep heater on at end" toggle to the Program Editor UI.
+  - **T-084 (Analytics)**: Implemented weighted historical drain calculation (`computeAvgDrainPerMinute`) to provide accurate session estimations on warm devices.
+  - **T-085/087 (UI/UX)**: 
+    - Updated Hero window to show "MM:SS (est)" and battery drain previews when idle.
+    - Added live "Next stage" countdowns (temperature + time) during active program execution.
+    - Added **"Turning off in MM:SS"** status to signal impending automated shutdown.
+  - **T-056 (Persistence)**: Integrated `MainViewModel` to record `appliedProgramId` into `session_metadata` upon session completion.
+  - **T-057 (History/Reporting)**:
+    - Added visual program badges (`▶ PROGRAM NAME`) to the session history list (`SessionHistoryAdapter`).
+    - Updated `SessionReportActivity` to display the "Active Program" name by joining `session_metadata` and `session_programs`.
+  - **T-088 (UX/Haptics)**:
+    - Implemented `BleManager.vibratePhone(durationMs)` to trigger tactile feedback on stage changes.
+    - Integrated ignite buzz (300ms), stage change buzz (150ms), and final shutoff buzz (500ms).
 - **Technical Debt**:
-  - `T-057` (History UI badges) remains planned; program names are saved to DB but not yet displayed in the session history list.
-  - `stayOnAtEnd` logic in the execution loop is "barebones" (currently defaults to heater off at end of last step unless implemented further in T-083 phase 2).
+  - None for F-027 core loop. Alpha-ready.
 
 ---
 

@@ -98,12 +98,18 @@ main  ← stable, merges only from dev
 | T-043 | `done` | ProgramRepository: CRUD + Default Preset Seeding | [T-043](tasks/T-043-program-repository.md) | T-042 |
 | T-044 | `done` | Program Grid + Editor UI in SessionFragment (2×3 grid, table step editor) | [T-044](tasks/T-044-programs-list-ui.md) | T-043 |
 | T-045 | `done` | Create/Edit Program Dialog (table UI: Step# / Temp / Time rows) | [T-045](tasks/T-045-create-edit-program-dialog.md) | T-044 |
-| T-046 | `ready` | Apply Program on Heater Start (chip row, startSessionWithProgram, setBoost job) | [T-046](tasks/T-046-apply-program-on-start.md) | T-045 |
-| T-056 | `blocked` | Record Program Attribution to session_metadata on Session Complete | [T-056](tasks/T-056-record-program-attribution.md) | T-046 |
-| T-057 | `blocked` | Display Program Name in Session History + Session Report | [T-057](tasks/T-057-display-program-in-history.md) | T-056 |
+| T-046 | `done` | Apply Program on Heater Start (chip row, startSessionWithProgram, setBoost job) | [T-046](tasks/T-046-apply-program-on-start.md) | T-045 |
+| T-056 | `done` | Record Program Attribution to session_metadata on Session Complete | [T-056](tasks/T-056-record-program-attribution.md) | T-046 |
+| T-057 | `done` | Display Program Name in Session History + Session Report | [T-057](tasks/T-057-display-program-in-history.md) | T-056 |
 | T-083 | `ready` | DB Migration v4→5: stayOnAtEnd field on SessionProgram | [T-083](tasks/T-083-session-program-stay-on-migration.md) | — |
 | T-084 | `ready` | Program Drain Estimation: AnalyticsRepository + HistoryViewModel + SessionViewModel helpers | [T-084](tasks/T-084-program-drain-estimation.md) | T-043 |
-| T-085 | `blocked` | SessionFragment: Program Hero Window + Drain Estimate Preview | [T-085](tasks/T-085-program-hero-window-and-drain-preview.md) | T-046, T-084 |
+| T-085 | `done` | SessionFragment: Program Hero Window + Drain Estimate Preview | [T-085](tasks/T-085-program-hero-window-and-drain-preview.md) | T-046, T-084 |
+| T-087 | `done` | Live countdown to next program stage | [T-087](tasks/T-087-program-stage-timer.md) | T-085 |
+| T-088 | `done` | Phone haptics (vibrations) on ignite/stage change | [T-088](tasks/T-088-program-haptics.md) | T-087 |
+| T-089 | `ready` | UX: Manual Override Protection (Cancel job on manual temp) | — | T-046 |
+| T-090 | `ready` | UX: Hero Card De-clutter (Split preview from live) | — | T-085 |
+| T-091 | `ready` | UX: Grid Interaction Locking | — | T-088 |
+| T-092 | `ready` | UX: Visual Step Editor (BottomSheet + Curve Graph) | — | T-045 |
 
 ## Phase 3 — F-055 Homepage Redesign
 

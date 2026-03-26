@@ -15,6 +15,9 @@ import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.content.Context
 import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -428,6 +431,25 @@ class BleManager(private val context: Context) {
 
     fun findDevice() {
         commandQueue.enqueue { writeWithResponse(BlePacket.buildFindDevice()) }
+    }
+ 
+    @Suppress("DEPRECATION")
+    fun vibratePhone(durationMs: Long = 200) {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                val vm = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+                vm.defaultVibrator.vibrate(VibrationEffect.createOneShot(durationMs, VibrationEffect.DEFAULT_AMPLITUDE))
+            } else {
+                val v = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    v.vibrate(VibrationEffect.createOneShot(durationMs, VibrationEffect.DEFAULT_AMPLITUDE))
+                } else {
+                    v.vibrate(durationMs)
+                }
+            }
+        } catch (e: Exception) {
+            // Non-critical: ignore if vibration fails (e.g. permission or no hardware)
+        }
     }
 
     private suspend fun sendAndReceive(packet: ByteArray): ByteArray? {

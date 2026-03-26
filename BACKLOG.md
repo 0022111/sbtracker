@@ -149,7 +149,15 @@ The codebase is currently in the "Final Hardening" phase. To reach a technical A
 
 ### F-027: Session Programs — Implementation Status & Remaining Work
 
-*Status: **In Development** — Library management done; execution, persistence, and display pipeline in progress.*
+*Status: **Core Logic Complete** — Transitioning to UX Hardening & Polish phase.*
+
+#### UX Hardening & Polish (Next Steps)
+| Task | Priority | Description | Acceptance Criteria |
+|---|---|---|---|
+| **T-089** | 🔴 High | **Manual Override Protection** | Cancel `programJob` immediately if user adjusts temp +/- or tops "Power Off". Prevents "ghost-boosts". |
+| **T-090** | 🟡 Med | **Hero Card De-clutter** | Move "Drain Preview" and "Program Name" to a temporary "Pre-Ignite" card. Hero card only shows progress. |
+| **T-091** | 🟡 Med | **Grid Interaction Locking** | Disable program grid buttons while a session is active to prevent state mismatch. |
+| **T-092** | 🔵 Low | **Visual Step Editor** | Migrate dialog to BottomSheet; add a CSS-drawn or Canvas line chart showing the temp curve. |
 
 #### What's done (in `dev`)
 | Task | What shipped |
@@ -161,13 +169,18 @@ The codebase is currently in the "Final Hardening" phase. To reach a technical A
 #### Remaining tasks (in order)
 | Task | Status | What it delivers |
 |---|---|---|
-| **T-083** | `done` | DB Migration v4→5: `stayOnAtEnd: Boolean` field on `SessionProgram` (infrastructure; no UI yet) |
+| **T-083** | `done` | DB Migration v4→5 and `stayOnAtEnd` logic in `SessionViewModel`. |
 | **T-084** | `done` | `AnalyticsRepository.computeAvgDrainPerMinute()` + `HistoryViewModel.avgDrainPerMinute` StateFlow + `SessionViewModel` estimation helpers |
 | **T-046** | `done` | Chip row UI for program selection, `startSessionWithProgram()`, `ActiveProgramHolder` singleton, `setBoost()` coroutine job — **programs execute for the first time** |
 | **T-056** | `done` | `MainViewModel` writes `appliedProgramId` to `session_metadata` on session complete via `ActiveProgramHolder.consume()` |
-| **T-057** `blocked by T-056` | `planned` | `appliedProgramName` in `SessionSummary`, history badge `▶ ProgramName`, `SessionReportActivity` program line |
+| **T-057** | `done` | `appliedProgramName` in `SessionSummary`, history badge `▶ ProgramName`, `SessionReportActivity` program line |
 | **T-085** | `done` | SessionFragment hero window `MM:SS (est.)` + drain preview `−X% (Ym est.)` when program is selected and idle |
 | **T-087** | `done` | Live countdown to next program stage in Hero window when program is executing |
+| **T-088** | `done` | Phone haptic feedback (vibrations) on program ignite, stage changes, and auto-shutoff. |
+| **T-089** | `planned` | Manual Override Protection (Cancel job on manual temp +/- or Power Off) |
+| **T-090** | `planned` | Hero Card De-clutter (Split pre-ignite preview from live stats) |
+| **T-091** | `planned` | Grid Interaction Locking (Prevent mid-session program switching) |
+| **T-092** | `planned` | Visual Step Editor (BottomSheet + Curve Graph) |
 
 #### Architecture notes
 - `boostStepsJson` format: `[{offsetSec: Int, boostC: Int}, …]` — cumulative offsets from session start; `boostC` is the delta above `targetTempC`

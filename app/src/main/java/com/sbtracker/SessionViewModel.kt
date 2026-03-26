@@ -75,6 +75,7 @@ class SessionViewModel @Inject constructor(
             // 1. Initial Start
             val mask = BleConstants.WRITE_TEMPERATURE or BleConstants.WRITE_HEATER_STATE
             bleManager.sendWrite(BlePacket.buildStatusWrite(mask, tempC = program.targetTempC, mode = 1))
+            bleManager.vibratePhone(300) // Initial ignite buzz
             
             // 2. Parse and schedule boosts
             runCatching {
@@ -96,6 +97,7 @@ class SessionViewModel @Inject constructor(
                         delay(delayMs)
                     }
                     setBoost(boostC)
+                    bleManager.vibratePhone(150) // Stage change buzz
                     
                     // After setting boost, if there's a next step, update nextStageTimeMs
                     if (i + 1 < steps.length()) {
