@@ -121,8 +121,22 @@ class BleViewModel @Inject constructor(
         .map { it.phoneAlertsEnabled }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
+    val alertTempReady: StateFlow<Boolean> = prefsRepo.userPreferencesFlow
+        .map { it.alertTempReady }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    val alertCharge80: StateFlow<Boolean> = prefsRepo.userPreferencesFlow
+        .map { it.alertCharge80 }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    val alertSessionEnd: StateFlow<Boolean> = prefsRepo.userPreferencesFlow
+        .map { it.alertSessionEnd }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
     private var lastSetpointReached = false
     private var lastCharge80Reached = false
+    private var lastHeaterOn = false
+    private var heaterSessionStartMs = 0L
     private var isAppInForeground = false
     private var statusTick = 0
     private var hasSyncedInitialTemp = false
@@ -329,6 +343,8 @@ class BleViewModel @Inject constructor(
                     _firmwareVersion.value = null
                     lastSetpointReached = false
                     lastCharge80Reached = false
+                    lastHeaterOn = false
+                    heaterSessionStartMs = 0L
                 }
             }
         }
@@ -386,18 +402,27 @@ class BleViewModel @Inject constructor(
 
     private fun checkAlerts(s: DeviceStatus) {
         if (!phoneAlertsEnabled.value) return
-        if (s.heaterMode > 0) {
-            if (s.setpointReached && !lastSetpointReached) {
-                triggerAlert("Device Ready", "Target temperature reached!")
+        val heaterOn = s.heaterMode > 0
+        if (heaterOn) {
+            if (!lastHeaterOn) heaterSessionStartMs = System.currentTimeMillis()
+            if (s.setpointReached && !lastSetpointReached && alertTempReady.value) {
+                triggerAlert("Device Ready", "Target temperature reached!", NOTIF_ID_TEMP_READY)
             }
             lastSetpointReached = s.setpointReached
         } else {
+            if (lastHeaterOn) {
+                val sessionDurationMs = System.currentTimeMillis() - heaterSessionStartMs
+                if (sessionDurationMs >= 60_000L && alertSessionEnd.value) {
+                    triggerAlert("Session Complete", "Your session has ended.", NOTIF_ID_SESSION_END)
+                }
+            }
             lastSetpointReached = false
         }
+        lastHeaterOn = heaterOn
         if (s.isCharging) {
             val reached80 = s.batteryLevel >= 80
-            if (reached80 && !lastCharge80Reached) {
-                triggerAlert("Charging Progress", "Battery has reached 80%.")
+            if (reached80 && !lastCharge80Reached && alertCharge80.value) {
+                triggerAlert("Charging Progress", "Battery has reached 80%.", NOTIF_ID_CHARGE_80)
             }
             lastCharge80Reached = reached80
         } else {
@@ -405,11 +430,9 @@ class BleViewModel @Inject constructor(
         }
     }
 
-    private fun triggerAlert(title: String, message: String) {
+    private fun triggerAlert(title: String, message: String, notifId: Int) {
         vibratePhone()
-        if (!isAppInForeground) {
-            showNotification(title, message)
-        }
+        showNotification(title, message, notifId)
     }
 
     private fun vibratePhone() {
@@ -427,22 +450,73 @@ class BleViewModel @Inject constructor(
         }
     }
 
-    private fun showNotification(title: String, message: String) {
+    private fun showNotification(title: String, message: String, notifId: Int) {
         if (!NotificationPermissionHelper.isGranted(getApplication())) {
             return
         }
-        val intent = Intent(getApplication(), MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        }
-        val pendingIntent = PendingIntent.getActivity(getApplication(), 0, intent, PendingIntent.FLAG_IMMUTABLE)
-        val builder = NotificationCompat.Builder(getApplication(), NotificationChannels.ALERTS)
+        val ctx = getApplication<Application>()
+        val tapIntent = PendingIntent.getActivity(
+            ctx, 0,
+            Intent(ctx, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            },
+            PendingIntent.FLAG_IMMUTABLE
+        )
+
+        fun dismissPendingIntent(reqCode: Int) = PendingIntent.getBroadcast(
+            ctx, reqCode,
+            Intent(ctx, NotificationActionReceiver::class.java).apply {
+                action = NotificationActionReceiver.ACTION_DISMISS_ALERT
+                putExtra(NotificationActionReceiver.EXTRA_NOTIFICATION_ID, notifId)
+            },
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
+        val builder = NotificationCompat.Builder(ctx, NotificationChannels.ALERTS)
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle(title)
             .setContentText(message)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
-            .setContentIntent(pendingIntent)
-        notificationManager.notify(System.currentTimeMillis().toInt(), builder.build())
+            .setContentIntent(tapIntent)
+
+        when (notifId) {
+            NOTIF_ID_TEMP_READY -> {
+                val timerIntent = PendingIntent.getBroadcast(
+                    ctx, NotificationActionReceiver.REQ_START_TIMER,
+                    Intent(ctx, NotificationActionReceiver::class.java).apply {
+                        action = NotificationActionReceiver.ACTION_START_TIMER
+                        putExtra(NotificationActionReceiver.EXTRA_NOTIFICATION_ID, notifId)
+                    },
+                    PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+                )
+                builder.addAction(0, "Start Timer", timerIntent)
+                builder.addAction(0, "Dismiss", dismissPendingIntent(NotificationActionReceiver.REQ_DISMISS_ALERT_TEMP))
+            }
+            NOTIF_ID_CHARGE_80 -> {
+                val disconnectIntent = PendingIntent.getBroadcast(
+                    ctx, NotificationActionReceiver.REQ_DISCONNECT_CHARGE,
+                    Intent(ctx, NotificationActionReceiver::class.java).apply {
+                        action = NotificationActionReceiver.ACTION_DISCONNECT_CHARGE
+                        putExtra(NotificationActionReceiver.EXTRA_NOTIFICATION_ID, notifId)
+                    },
+                    PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+                )
+                builder.addAction(0, "Disconnect", disconnectIntent)
+                builder.addAction(0, "Dismiss", dismissPendingIntent(NotificationActionReceiver.REQ_DISMISS_ALERT_CHARGE))
+            }
+            NOTIF_ID_SESSION_END -> {
+                builder.addAction(0, "Dismiss", dismissPendingIntent(NotificationActionReceiver.REQ_DISMISS_ALERT_SESSION))
+            }
+        }
+
+        notificationManager.notify(notifId, builder.build())
+    }
+
+    companion object {
+        private const val NOTIF_ID_TEMP_READY  = 210
+        private const val NOTIF_ID_CHARGE_80   = 211
+        private const val NOTIF_ID_SESSION_END = 212
     }
 
     private fun setupLifecycleObserver() {
