@@ -28,6 +28,10 @@ class SessionViewModel @Inject constructor(
 ) : ViewModel() {
 
     private var programJob: Job? = null
+    private val _nextStageTimeMs = kotlinx.coroutines.flow.MutableStateFlow<Long?>(null)
+    val nextStageTimeMs: kotlinx.coroutines.flow.StateFlow<Long?> = _nextStageTimeMs
+    private val _nextStageTempC = kotlinx.coroutines.flow.MutableStateFlow<Int?>(null)
+    val nextStageTempC: kotlinx.coroutines.flow.StateFlow<Int?> = _nextStageTempC
 
     val programs: StateFlow<List<SessionProgram>> = programRepository.programs
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -65,6 +69,8 @@ class SessionViewModel @Inject constructor(
 
     fun startSessionWithProgram(program: SessionProgram) {
         programJob?.cancel()
+        _nextStageTimeMs.value = null
+        _nextStageTempC.value = null
         programJob = viewModelScope.launch {
             // 1. Initial Start
             val mask = BleConstants.WRITE_TEMPERATURE or BleConstants.WRITE_HEATER_STATE
@@ -84,10 +90,32 @@ class SessionViewModel @Inject constructor(
                     val targetTime = startTime + (offsetSec * 1000L)
                     val delayMs = targetTime - now
                     
-                    if (delayMs > 0) delay(delayMs)
+                    if (delayMs > 0) {
+                        _nextStageTimeMs.value = targetTime
+                        delay(delayMs)
+                    }
                     setBoost(boostC)
+                    
+                    // After setting boost, if there's a next step, update nextStageTimeMs
+                    if (i + 1 < steps.length()) {
+                        val nextStep = steps.getJSONObject(i + 1)
+                        val nextOffset = nextStep.optInt("offsetSec", 0)
+                        val nextBoost = nextStep.optInt("boostC", 0)
+                        _nextStageTimeMs.value = startTime + (nextOffset * 1000L)
+                        _nextStageTempC.value = program.targetTempC + nextBoost
+                    } else {
+                        _nextStageTimeMs.value = null
+                        _nextStageTempC.value = null
+                    }
                 }
+            }.onFailure { 
+                _nextStageTimeMs.value = null
+                _nextStageTempC.value = null
             }
+        }
+        programJob?.invokeOnCompletion { 
+            _nextStageTimeMs.value = null
+            _nextStageTempC.value = null
         }
     }
 

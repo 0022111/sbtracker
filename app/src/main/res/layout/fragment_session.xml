@@ -97,6 +97,17 @@
                         android:textStyle="bold"
                         android:visibility="gone" />
 
+                    <TextView
+                        android:id="@+id/session_tv_next_stage"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Next stage in: 00:00"
+                        android:textColor="#00FF41"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:visibility="gone" />
+
                     <!-- Running Stats Row -->
                     <LinearLayout
                         android:id="@+id/session_running_stats_row"
