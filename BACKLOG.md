@@ -51,7 +51,7 @@ The codebase is currently in the "Final Hardening" phase. To reach a technical A
 |---|---|---|---|---|
 | F-025 | `in-progress` | History Clear | Per-device clear of all tables | All 6 tables wiped for target device |
 | F-026 | `in-progress` | Data Backup / Restore | Export/import full database | User can backup and restore DB file |
-| F-027 | `in-progress` | Session Programs | User-defined or preset session profiles with automatic boost scheduling | Presets trigger immediate session start |
+| F-027 | `in-progress` | Session Programs | User-defined or preset session profiles with automatic boost scheduling (T-046/T-085 done) | Presets trigger immediate session start |
 | F-050 | `in-progress` | Notifications Redesign | Modernize notification system; persistent status | Rich status tray + quick controls |
 
 ### 🎨 Epic: The "v0.2 Visual Refresh" (UX Overhaul)
@@ -161,12 +161,12 @@ The codebase is currently in the "Final Hardening" phase. To reach a technical A
 #### Remaining tasks (in order)
 | Task | What it delivers |
 |------|-----------------|
-| **T-083** `ready` | DB Migration v4→5: `stayOnAtEnd: Boolean` field on `SessionProgram` (infrastructure; no UI yet) |
-| **T-084** `ready` | `AnalyticsRepository.computeAvgDrainPerMinute()` + `HistoryViewModel.avgDrainPerMinute` StateFlow + `SessionViewModel` estimation helpers |
-| **T-046** `ready` | Chip row UI for program selection, `startSessionWithProgram()`, `ActiveProgramHolder` singleton, `setBoost()` coroutine job — **programs execute for the first time** |
-| **T-056** `blocked by T-046` | `MainViewModel` writes `appliedProgramId` to `session_metadata` on session complete via `ActiveProgramHolder.consume()` |
-| **T-057** `blocked by T-056` | `appliedProgramName` in `SessionSummary`, history badge `▶ ProgramName`, `SessionReportActivity` program line |
-| **T-085** `blocked by T-046, T-084` | SessionFragment hero window `MM:SS (est.)` + drain preview `−X% (Ym est.)` when program is selected and idle |
+| **T-083** | `done` | DB Migration v4→5: `stayOnAtEnd: Boolean` field on `SessionProgram` (infrastructure; no UI yet) |
+| **T-084** | `done` | `AnalyticsRepository.computeAvgDrainPerMinute()` + `HistoryViewModel.avgDrainPerMinute` StateFlow + `SessionViewModel` estimation helpers |
+| **T-046** | `done` | Chip row UI for program selection, `startSessionWithProgram()`, `ActiveProgramHolder` singleton, `setBoost()` coroutine job — **programs execute for the first time** |
+| **T-056** | `done` | `MainViewModel` writes `appliedProgramId` to `session_metadata` on session complete via `ActiveProgramHolder.consume()` |
+| **T-057** `blocked by T-056` | `planned` | `appliedProgramName` in `SessionSummary`, history badge `▶ ProgramName`, `SessionReportActivity` program line |
+| **T-085** | `done` | SessionFragment hero window `MM:SS (est.)` + drain preview `−X% (Ym est.)` when program is selected and idle |
 
 #### Architecture notes
 - `boostStepsJson` format: `[{offsetSec: Int, boostC: Int}, …]` — cumulative offsets from session start; `boostC` is the delta above `targetTempC`

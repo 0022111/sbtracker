@@ -4,7 +4,6 @@ description: standard workflow for feature development and bug fixes (worker age
 
 > **Start here**: Read `.agents/TASKS.md`. Find a `ready` task. Read its file in `.agents/tasks/`.
 > That file is your complete scope — do not read files it doesn't list.
-
 # Worker Workflow (The Hacker)
 
 You are a **Worker Agent** for SBTracker.
@@ -75,7 +74,7 @@ dev    ← NEVER push feature code here directly. PRs only.
 9. **Mark the task done — isolated meta push to `dev`:**
    Do NOT use `git push origin HEAD:dev` from your feature branch — that pushes feature code too.
    Instead, make the TASKS.md update from a clean dev base:
-   ```bash
+   ```bash   ```
    git fetch origin dev
    git checkout -b meta-T-XXX-done origin/dev
    # Edit .agents/TASKS.md: change status to `done`

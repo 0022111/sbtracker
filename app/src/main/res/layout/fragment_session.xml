@@ -86,6 +86,17 @@
                         android:textSize="12sp"
                         android:visibility="gone" />
 
+                    <TextView
+                        android:id="@+id/session_tv_drain_preview"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="Est. drain: --%"
+                        android:textColor="#FF453A"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:visibility="gone" />
+
                     <!-- Running Stats Row -->
                     <LinearLayout
                         android:id="@+id/session_running_stats_row"

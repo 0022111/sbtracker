@@ -14,7 +14,8 @@ data class SessionProgram(
     val name:           String,
     val targetTempC:    Int,
     val boostStepsJson: String = "[]",
-    val isDefault:      Boolean = false
+    val isDefault:      Boolean = false,
+    val stayOnAtEnd:    Boolean = false
 )
 
 @Dao
