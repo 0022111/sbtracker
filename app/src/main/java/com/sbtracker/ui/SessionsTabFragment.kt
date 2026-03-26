@@ -28,7 +28,6 @@ class SessionsTabFragment : Fragment() {
         inflater.inflate(R.layout.fragment_sessions_tab, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val activity = requireActivity() as MainActivity
 
         val rv             = view.findViewById<RecyclerView>(R.id.rv_history)
         val tvCount        = view.findViewById<TextView>(R.id.tv_history_count)
@@ -43,7 +42,14 @@ class SessionsTabFragment : Fragment() {
 
         val adapter = SessionHistoryAdapter(
             onSessionClick = { openSessionReport(it) },
-            onDeleteClick = { activity.confirmDelete(it) }
+            onDeleteClick = { summary ->
+                AlertDialog.Builder(requireContext(), android.R.style.Theme_DeviceDefault_Dialog)
+                    .setTitle("Delete Session")
+                    .setMessage("Remove this session?")
+                    .setPositiveButton("Delete") { _, _ -> historyVm.deleteSession(summary.session) }
+                    .setNegativeButton("Cancel", null)
+                    .show()
+            }
         )
         rv.layoutManager = LinearLayoutManager(context)
         rv.adapter = adapter

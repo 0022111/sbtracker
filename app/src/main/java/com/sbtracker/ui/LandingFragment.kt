@@ -13,6 +13,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.sbtracker.*
+import com.sbtracker.NavigationViewModel
 import com.sbtracker.databinding.FragmentLandingBinding
 import dagger.hilt.android.AndroidEntryPoint
 import com.sbtracker.util.formatDurationShort
@@ -25,6 +26,7 @@ class LandingFragment : Fragment() {
     private val bleVm: BleViewModel by activityViewModels()
     private val sessionVm: SessionViewModel by activityViewModels()
     private val historyVm: HistoryViewModel by activityViewModels()
+    private val navVm: NavigationViewModel by activityViewModels()
     private var _binding: FragmentLandingBinding? = null
     private val binding get() = _binding!!
 
@@ -40,7 +42,6 @@ class LandingFragment : Fragment() {
 
     @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val activity = requireActivity() as MainActivity
 
         // Header
         val tvDeviceInfo = binding.tvCmdDeviceInfo
@@ -83,19 +84,19 @@ class LandingFragment : Fragment() {
         val cardSessionBanner = binding.cardSessionBanner
         val tvSessionBannerTimer = binding.tvSessionBannerTimer
 
-        cardSessionBanner.setOnClickListener { activity.navigateTo(1) }
+        cardSessionBanner.setOnClickListener { navVm.navigateTo(1) }
 
         // ── Navigation ──
-        tileSession.setOnClickListener { activity.navigateTo(1) }
-        tileBattery.setOnClickListener { activity.navigateTo(3) }
-        tileAnalytics.setOnClickListener { activity.navigateTo(2) }
-        tileSettings.setOnClickListener { activity.navigateTo(4) }
-        cardLastSession.setOnClickListener { activity.navigateTo(2) }
+        tileSession.setOnClickListener { navVm.navigateTo(1) }
+        tileBattery.setOnClickListener { navVm.navigateTo(3) }
+        tileAnalytics.setOnClickListener { navVm.navigateTo(2) }
+        tileSettings.setOnClickListener { navVm.navigateTo(4) }
+        cardLastSession.setOnClickListener { navVm.navigateTo(2) }
 
         // ── Connect / Disconnect / Power actions ──
         val scanToggle = {
             if (bleVm.connectionState.value is BleManager.ConnectionState.Disconnected) {
-                activity.checkPermissionsAndScan()
+                navVm.requestScan()
             } else {
                 bleVm.disconnect()
             }

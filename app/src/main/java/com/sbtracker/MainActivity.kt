@@ -44,6 +44,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var historyVm: HistoryViewModel
     lateinit var batteryVm: BatteryViewModel
     lateinit var settingsVm: SettingsViewModel
+    private lateinit var navVm: NavigationViewModel
     private lateinit var binding: ActivityMainPagedBinding
 
     private var bleService: BleService? = null
@@ -90,6 +91,7 @@ class MainActivity : AppCompatActivity() {
         historyVm = ViewModelProvider(this)[HistoryViewModel::class.java]
         batteryVm = ViewModelProvider(this)[BatteryViewModel::class.java]
         settingsVm = ViewModelProvider(this)[SettingsViewModel::class.java]
+        navVm = ViewModelProvider(this)[NavigationViewModel::class.java]
 
         // Cross-VM state sync: activeDevice
         lifecycleScope.launch {
@@ -152,6 +154,14 @@ class MainActivity : AppCompatActivity() {
                 binding.bottomNavigation.menu.getItem(position).isChecked = true
             }
         })
+
+        // Navigation events from fragments
+        lifecycleScope.launch {
+            navVm.navigateTo.collect { tab -> navigateTo(tab) }
+        }
+        lifecycleScope.launch {
+            navVm.requestScan.collect { checkPermissionsAndScan() }
+        }
 
         // Auto-navigate to session tab when heater starts
         lifecycleScope.launch {
