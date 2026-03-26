@@ -12,6 +12,7 @@
   - **T-090 (UI)**: Relocated pre-ignition previews to a dedicated card to reduce Hero window clutter.
   - **T-091 (State)**: Disabled program grid interactions during active sessions to prevent state mismatch.
   - **T-092 (UX)**: Implemented a BottomSheet-based visual step editor with a temperature curve graph.
+  - **Fix**: Resolved AAPT2 `Resource compilation failed` in `item_program_step.xml` by adding missing `xmlns:app` namespace to the root layout.
 - **Technical Debt**:
   - T-089 ensures no ghost-heating occurs; manual overrides are prioritised in the `SessionViewModel`.
 - **Status**: F-027 Hardening Phase **DONE**.
