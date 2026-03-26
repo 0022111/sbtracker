@@ -1,13 +1,14 @@
 package com.sbtracker
 
 import android.app.Application
-import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.sbtracker.analytics.AnalyticsRepository
 import com.sbtracker.data.AppDatabase
 import com.sbtracker.data.BackupRepository
 import com.sbtracker.data.ProgramRepository
+import com.sbtracker.data.RestoreRepository
 import com.sbtracker.data.SessionProgram
 import com.sbtracker.data.TempPreset
 import com.sbtracker.data.UserPreferencesRepository
@@ -17,7 +18,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 /**
@@ -31,10 +31,14 @@ class SettingsViewModel @Inject constructor(
     private val prefsRepo: UserPreferencesRepository,
     private val programRepository: ProgramRepository,
     private val backupRepo: BackupRepository,
+    private val restoreRepo: RestoreRepository,
     application: Application
 ) : AndroidViewModel(application) {
 
     val backupUri = backupRepo.backupUri
+
+    val restoreResult = restoreRepo.restoreResult
+
 
     val dayStartHour: StateFlow<Int> = prefsRepo.userPreferencesFlow
         .map { it.dayStartHour }
@@ -120,6 +124,11 @@ class SettingsViewModel @Inject constructor(
     fun triggerBackup() {
         viewModelScope.launch { backupRepo.createBackup() }
     }
+
+    fun triggerRestore(uri: Uri) {
+        viewModelScope.launch { restoreRepo.restoreFrom(uri) }
+    }
+
 
     val breakGoalDays: StateFlow<Int> = prefsRepo.userPreferencesFlow
         .map { it.breakGoalDays }
