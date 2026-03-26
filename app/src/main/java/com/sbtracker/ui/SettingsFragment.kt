@@ -63,6 +63,22 @@ class SettingsFragment : Fragment() {
         val tvDayStartSubtitle = binding.tvDayStartSubtitle
         val tvRetentionValue = binding.tvRetentionValue
 
+        // ── Developer mode: tap firmware version 7× to unlock ──
+        var devTapCount = 0
+        tvFw.setOnClickListener {
+            devTapCount++
+            val remaining = 7 - devTapCount
+            when {
+                devTapCount < 7 -> android.widget.Toast.makeText(
+                    requireContext(), "$remaining steps away from developer options", android.widget.Toast.LENGTH_SHORT
+                ).show()
+                devTapCount == 7 -> {
+                    binding.layoutDevTools.visibility = View.VISIBLE
+                    android.widget.Toast.makeText(requireContext(), "Developer mode enabled", android.widget.Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
         binding.rowPhoneAlerts.setOnClickListener { bleVm.togglePhoneAlerts() }
 
         // Show notification permission disabled indicator if needed (Android 13+)
@@ -123,6 +139,19 @@ class SettingsFragment : Fragment() {
                 .setNegativeButton("Cancel", null)
                 .show()
         }
+        binding.btnClearDeviceHistory.setOnClickListener {
+            val device = bleVm.activeDevice.value ?: return@setOnClickListener
+            android.app.AlertDialog.Builder(requireContext())
+                .setTitle("Clear Device History")
+                .setMessage("This will permanently delete all sessions, charges, and raw logs for ${device.serialNumber}. This cannot be undone.")
+                .setPositiveButton("Clear") { _, _ ->
+                    historyVm.clearSessionHistory(device)
+                    android.widget.Toast.makeText(requireContext(), "History cleared", android.widget.Toast.LENGTH_SHORT).show()
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+        }
+
         binding.btnDevRebuildHistory.setOnClickListener {
             viewLifecycleOwner.lifecycleScope.launch {
                 historyVm.rebuildSessionHistoryFromLogs()
@@ -205,6 +234,25 @@ class SettingsFragment : Fragment() {
             bleVm.firmwareVersion.collect { f -> tvFw.text = "Firmware: ${f ?: "---"}" }
         }
 
+        // ── Alert toggles ──────────────────────────────────────────────────────
+        val swAlertTempReady  = binding.switchAlertTempReady
+        val swAlertCharge80   = binding.switchAlertCharge80
+        val swAlertSessionEnd = binding.switchAlertSessionEnd
+
+        binding.rowAlertTempReady.setOnClickListener  { settingsVm.setAlertTempReady(!settingsVm.alertTempReady.value) }
+        binding.rowAlertCharge80.setOnClickListener   { settingsVm.setAlertCharge80(!settingsVm.alertCharge80.value) }
+        binding.rowAlertSessionEnd.setOnClickListener { settingsVm.setAlertSessionEnd(!settingsVm.alertSessionEnd.value) }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            settingsVm.alertTempReady.collect { swAlertTempReady.isChecked = it }
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            settingsVm.alertCharge80.collect { swAlertCharge80.isChecked = it }
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            settingsVm.alertSessionEnd.collect { swAlertSessionEnd.isChecked = it }
+        }
+
         val tvDefaultPackType = binding.tvDefaultPackTypeValue
         val tvCapsuleWeight   = binding.tvCapsuleWeightValue
 
@@ -246,6 +294,95 @@ class SettingsFragment : Fragment() {
                 }
                 .setNegativeButton("Cancel", null)
                 .show()
+        }
+
+        // ── Tolerance Break Goal ─────────────────────────────────────────────
+        viewLifecycleOwner.lifecycleScope.launch {
+            settingsVm.breakGoalDays.collect { days ->
+                binding.tvBreakGoalDays.text = "$days ${if (days == 1) "day" else "days"}"
+            }
+        }
+        binding.rowBreakGoal.setOnClickListener {
+            val input = android.widget.EditText(requireContext()).apply {
+                inputType = android.text.InputType.TYPE_CLASS_NUMBER
+                setText(settingsVm.breakGoalDays.value.toString())
+                selectAll()
+            }
+            android.app.AlertDialog.Builder(requireContext())
+                .setTitle("Break Goal")
+                .setMessage("Target days without a session (1–365)")
+                .setView(input)
+                .setPositiveButton("Save") { _, _ ->
+                    val days = input.text.toString().toIntOrNull()
+                    if (days != null) settingsVm.setBreakGoalDays(days)
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+        }
+
+        // ── Temperature Presets ───────────────────────────────────────────────
+        val llPresetList = binding.llPresetList
+        binding.rowAddPreset.setOnClickListener {
+            val nameInput = android.widget.EditText(requireContext()).apply {
+                hint = "Preset name"
+                inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_FLAG_CAP_WORDS
+            }
+            val tempInput = android.widget.EditText(requireContext()).apply {
+                hint = "Temperature (°C)"
+                inputType = android.text.InputType.TYPE_CLASS_NUMBER
+            }
+            val container = android.widget.LinearLayout(requireContext()).apply {
+                orientation = android.widget.LinearLayout.VERTICAL
+                setPadding(48, 16, 48, 0)
+                addView(nameInput)
+                addView(tempInput)
+            }
+            android.app.AlertDialog.Builder(requireContext())
+                .setTitle("Add Temperature Preset")
+                .setView(container)
+                .setPositiveButton("Add") { _, _ ->
+                    val name = nameInput.text.toString().trim()
+                    val tempC = tempInput.text.toString().toIntOrNull()
+                    if (name.isNotEmpty() && tempC != null) {
+                        settingsVm.addTempPreset(name, tempC)
+                    }
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            settingsVm.tempPresets.collect { presets ->
+                llPresetList.removeAllViews()
+                presets.forEachIndexed { index, preset ->
+                    val row = android.widget.LinearLayout(requireContext()).apply {
+                        orientation = android.widget.LinearLayout.HORIZONTAL
+                        gravity = android.view.Gravity.CENTER_VERTICAL
+                        setPadding(48, 0, 48, 0)
+                        minimumHeight = 56.dpToPx()
+                        val tv = android.util.TypedValue()
+                        context.theme.resolveAttribute(android.R.attr.selectableItemBackground, tv, true)
+                        if (tv.resourceId != 0) setBackgroundResource(tv.resourceId)
+                    }
+                    val tvName = android.widget.TextView(requireContext()).apply {
+                        text = "${preset.name}  —  ${preset.tempC}°C"
+                        setTextColor(android.graphics.Color.WHITE)
+                        textSize = 15f
+                        layoutParams = android.widget.LinearLayout.LayoutParams(0, android.widget.LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                    }
+                    row.addView(tvName)
+                    row.setOnLongClickListener {
+                        android.app.AlertDialog.Builder(requireContext())
+                            .setTitle("Delete Preset")
+                            .setMessage("Remove \"${preset.name}\"?")
+                            .setPositiveButton("Delete") { _, _ -> settingsVm.deleteTempPreset(index) }
+                            .setNegativeButton("Cancel", null)
+                            .show()
+                        true
+                    }
+                    llPresetList.addView(row)
+                }
+            }
         }
 
         // (Removed vestigial programs collection - now managed in SessionFragment)

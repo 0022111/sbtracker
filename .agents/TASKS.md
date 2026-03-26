@@ -48,7 +48,7 @@ main  ← stable, merges only from dev
 |---|---|---|---|---|
 | T-006 | `done` | Introduce Hilt DI | [T-006](tasks/T-006-introduce-hilt-di.md) | — |
 | T-007 | `done` | Decompose MainViewModel | [T-007](tasks/T-007-decompose-mainviewmodel.md) | — |
-| T-008 | `ready` | Remove Fragment–Activity Casts | [T-008](tasks/T-008-remove-activity-casts.md) | T-007 |
+| T-008 | `done` | Remove Fragment–Activity Casts | [T-008](tasks/T-008-remove-activity-casts.md) | T-007 |
 | T-009 | `done` | Preferences → DataStore | [T-009](tasks/T-009-preferences-datastore.md) | — |
 | T-010 | `done` | Unit Tests | [T-010](tasks/T-010-unit-tests.md) | — |
 | T-026 | `done` | Enable ViewBinding | [T-026](tasks/T-026-enable-viewbinding.md) | — |
@@ -68,11 +68,11 @@ main  ← stable, merges only from dev
 
 | ID | Status | Title | Task File | Blocked by |
 |---|---|---|---|---|
-| T-011 | `ready` | Session Notes + Rating | [T-011](tasks/T-011-session-notes-rating.md) | T-007 |
-| T-012 | `ready` | Temperature Presets | [T-012](tasks/T-012-temperature-presets.md) | T-009 |
-| T-013 | `ready` | History Search & Filtering | [T-013](tasks/T-013-history-filtering.md) | T-007 |
-| T-014 | `ready` | Tolerance Break Tracker | [T-014](tasks/T-014-tolerance-break-tracker.md) | T-007 |
-| T-015 | `ready` | Onboarding Flow | [T-015](tasks/T-015-onboarding-flow.md) | T-009 |
+| T-011 | `done` | Session Notes + Rating | [T-011](tasks/T-011-session-notes-rating.md) | T-007 |
+| T-012 | `done` | Temperature Presets | [T-012](tasks/T-012-temperature-presets.md) | T-009 |
+| T-013 | `done` | History Search & Filtering | [T-013](tasks/T-013-history-filtering.md) | T-007 |
+| T-014 | `done` | Tolerance Break Tracker | [T-014](tasks/T-014-tolerance-break-tracker.md) | T-007 |
+| T-015 | `done` | Onboarding Flow | [T-015](tasks/T-015-onboarding-flow.md) | T-009 |
 | T-030 | `ready` | Migrate to Jetpack Compose | [T-030](tasks/T-030-migrate-to-jetpack-compose.md) | — |
 | T-031 | `done` | Overhaul BLE State Machine | [T-031](tasks/T-031-overhaul-ble-state-machine.md) | — |
 | T-032 | `ready` | Consolidate Multi-Device Analytics | [T-032](tasks/T-032-consolidate-multi-device-analytics.md) | — |
@@ -83,12 +83,12 @@ main  ← stable, merges only from dev
 
 | ID | Status | Title | Task File | Blocked by |
 |---|---|---|---|---|
-| T-016 | `blocked` | Remove fallbackToDestructiveMigration | [T-016](tasks/T-016-remove-fallback-migration.md) | T-011 |
+| T-016 | `done` | Remove fallbackToDestructiveMigration | [T-016](tasks/T-016-remove-fallback-migration.md) | T-011 |
 | T-017 | `ready` | Release Build Pipeline | [T-017](tasks/T-017-release-build-pipeline.md) | T-001 |
 | T-018 | `ready` | Crash Reporting | [T-018](tasks/T-018-crash-reporting.md) | T-001 |
-| T-019 | `blocked` | Notification Action Buttons | [T-019](tasks/T-019-notification-actions.md) | T-008 |
-| T-020 | `blocked` | Quick Settings Tile | [T-020](tasks/T-020-quick-settings-tile.md) | T-008 |
-| T-021 | `blocked` | Localization Groundwork | [T-021](tasks/T-021-localization-groundwork.md) | T-008 |
+| T-019 | `ready` | Notification Action Buttons | [T-019](tasks/T-019-notification-actions.md) | T-008 |
+| T-020 | `ready` | Quick Settings Tile | [T-020](tasks/T-020-quick-settings-tile.md) | T-008 |
+| T-021 | `ready` | Localization Groundwork | [T-021](tasks/T-021-localization-groundwork.md) | T-008 |
 
 ## Phase 3 — F-027 Session Programs/Presets
 
@@ -101,8 +101,8 @@ main  ← stable, merges only from dev
 | T-046 | `done` | Apply Program on Heater Start (chip row, startSessionWithProgram, setBoost job) | [T-046](tasks/T-046-apply-program-on-start.md) | T-045 |
 | T-056 | `done` | Record Program Attribution to session_metadata on Session Complete | [T-056](tasks/T-056-record-program-attribution.md) | T-046 |
 | T-057 | `done` | Display Program Name in Session History + Session Report | [T-057](tasks/T-057-display-program-in-history.md) | T-056 |
-| T-083 | `ready` | DB Migration v4→5: stayOnAtEnd field on SessionProgram | [T-083](tasks/T-083-session-program-stay-on-migration.md) | — |
-| T-084 | `ready` | Program Drain Estimation: AnalyticsRepository + HistoryViewModel + SessionViewModel helpers | [T-084](tasks/T-084-program-drain-estimation.md) | T-043 |
+| T-083 | `done` | DB Migration v4→5: stayOnAtEnd field on SessionProgram | [T-083](tasks/T-083-session-program-stay-on-migration.md) | — |
+| T-084 | `done` | Program Drain Estimation: AnalyticsRepository + HistoryViewModel + SessionViewModel helpers | [T-084](tasks/T-084-program-drain-estimation.md) | T-043 |
 | T-085 | `done` | SessionFragment: Program Hero Window + Drain Estimate Preview | [T-085](tasks/T-085-program-hero-window-and-drain-preview.md) | T-046, T-084 |
 | T-087 | `done` | Live countdown to next program stage | [T-087](tasks/T-087-program-stage-timer.md) | T-085 |
 | T-088 | `done` | Phone haptics (vibrations) on ignite/stage change | [T-088](tasks/T-088-program-haptics.md) | T-087 |
@@ -116,16 +116,16 @@ main  ← stable, merges only from dev
 | ID | Status | Title | Task File | Blocked by |
 |---|---|---|---|---|
 | T-047 | `done` | Landing: Suppress Idle 0°C + Charge State Badge | [T-047](tasks/T-047-landing-idle-temp-charge-state.md) | — |
-| T-048 | `ready` | Landing: Active Session Banner | [T-048](tasks/T-048-landing-session-banner.md) | T-047 |
+| T-048 | `done` | Landing: Active Session Banner | [T-048](tasks/T-048-landing-session-banner.md) | T-047 |
 
 ## Phase 3 — F-056 History/Analytics Page Organization
 
 | ID | Status | Title | Task File | Blocked by |
 |---|---|---|---|---|
 | T-049 | `done` | SessionsTabFragment: Sessions List Sub-Page | [T-049](tasks/T-049-sessions-tab-fragment.md) | — |
-| T-050 | `ready` | AnalyticsTabFragment: Analytics Dashboard Sub-Page | [T-050](tasks/T-050-analytics-tab-fragment.md) | — |
-| T-051 | `ready` | HealthTabFragment: Health & Intake Sub-Page | [T-051](tasks/T-051-health-tab-fragment.md) | — |
-| T-052 | `blocked` | Wire History Tabs: TabLayout + ViewPager2 | [T-052](tasks/T-052-history-tabs-wire.md) | T-049, T-050, T-051 |
+| T-050 | `done` | AnalyticsTabFragment: Analytics Dashboard Sub-Page | [T-050](tasks/T-050-analytics-tab-fragment.md) | — |
+| T-051 | `done` | HealthTabFragment: Health & Intake Sub-Page | [T-051](tasks/T-051-health-tab-fragment.md) | — |
+| T-052 | `done` | Wire History Tabs: TabLayout + ViewPager2 | [T-052](tasks/T-052-history-tabs-wire.md) | T-049, T-050, T-051 |
 
 ## Phase 3 — F-026 Data Backup/Restore
 
@@ -143,8 +143,8 @@ main  ← stable, merges only from dev
 | ID | Status | Title | Task File | Blocked by |
 |---|---|---|---|---|
 | T-064 | `done` | History Clear: Data Layer Fix (SessionMetadataDao + HistoryViewModel) | [T-064](tasks/T-064-history-clear-data-layer.md) | — |
-| T-065 | `ready` | History Clear: Settings UI Entry Point | [T-065](tasks/T-065-history-clear-settings-ui.md) | T-064 |
-| T-066 | `ready` | History Clear: Integration Verification | [T-066](tasks/T-066-history-clear-verification.md) | T-064, T-065 |
+| T-065 | `done` | History Clear: Settings UI Entry Point | [T-065](tasks/T-065-history-clear-settings-ui.md) | T-064 |
+| T-066 | `done` | History Clear: Integration Verification | [T-066](tasks/T-066-history-clear-verification.md) | T-064, T-065 |
 
 ## Phase 3 — F-053 Session Battery Starting Level
 
@@ -179,8 +179,8 @@ main  ← stable, merges only from dev
 |---|---|---|---|---|
 | T-069 | `done` | Notification Channel Consolidation | [T-069](tasks/T-069-notification-channels.md) | — |
 | T-070 | `done` | Persistent Status Notification Content | [T-070](tasks/T-070-persistent-status-notification.md) | T-069 |
-| T-071 | `blocked` | Notification Drawer Quick Controls | [T-071](tasks/T-071-notification-quick-controls.md) | T-070, T-008 |
-| T-072 | `ready` | Configurable Alert Settings UI | [T-072](tasks/T-072-alert-settings-ui.md) | — |
+| T-071 | `done` | Notification Drawer Quick Controls | [T-071](tasks/T-071-notification-quick-controls.md) | T-070, T-008 |
+| T-072 | `done` | Configurable Alert Settings UI | [T-072](tasks/T-072-alert-settings-ui.md) | — |
 | T-073 | `blocked` | Alert Delivery Logic (Temp Ready, Charge 80%, Session End) | [T-073](tasks/T-073-alert-delivery-logic.md) | T-069, T-072 |
 | T-074 | `blocked` | Alert Notification Action Buttons (T-019 implementation) | [T-074](tasks/T-074-t019-alert-action-buttons.md) | T-073, T-008 |
-| T-075 | `ready` | POST_NOTIFICATIONS Permission Handling (Android 13+) | [T-075](tasks/T-075-notification-permission-handling.md) | — |
+| T-075 | `done` | POST_NOTIFICATIONS Permission Handling (Android 13+) | [T-075](tasks/T-075-notification-permission-handling.md) | — |

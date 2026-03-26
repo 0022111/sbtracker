@@ -214,6 +214,258 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
+        <!-- ALERTS -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="ALERTS"
+            android:textColor="#80A88F"
+            android:textSize="11sp"
+            android:letterSpacing="0.1"
+            android:textStyle="bold" />
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            app:cardBackgroundColor="#0B110D"
+            app:cardCornerRadius="20dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="8dp">
+
+                <!-- Alert: Temp Ready -->
+                <LinearLayout
+                    android:id="@+id/row_alert_temp_ready"
+                    android:layout_width="match_parent"
+                    android:layout_height="64dp"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="16dp"
+                    android:background="?android:attr/selectableItemBackground">
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Temperature Ready"
+                            android:textColor="#FFFFFF"
+                            android:textSize="16sp" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Notify when device reaches target temp"
+                            android:textColor="#80A88F"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/switch_alert_temp_ready"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:clickable="false" />
+                </LinearLayout>
+
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginHorizontal="16dp" android:background="#141E17" />
+
+                <!-- Alert: Charge 80% -->
+                <LinearLayout
+                    android:id="@+id/row_alert_charge_80"
+                    android:layout_width="match_parent"
+                    android:layout_height="64dp"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="16dp"
+                    android:background="?android:attr/selectableItemBackground">
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Charge 80%"
+                            android:textColor="#FFFFFF"
+                            android:textSize="16sp" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Notify when battery reaches 80% while charging"
+                            android:textColor="#80A88F"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/switch_alert_charge_80"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:clickable="false" />
+                </LinearLayout>
+
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginHorizontal="16dp" android:background="#141E17" />
+
+                <!-- Alert: Session End -->
+                <LinearLayout
+                    android:id="@+id/row_alert_session_end"
+                    android:layout_width="match_parent"
+                    android:layout_height="64dp"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="16dp"
+                    android:background="?android:attr/selectableItemBackground">
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Session End"
+                            android:textColor="#FFFFFF"
+                            android:textSize="16sp" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Notify when heater turns off after a session"
+                            android:textColor="#80A88F"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/switch_alert_session_end"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:clickable="false" />
+                </LinearLayout>
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- TOLERANCE BREAK -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="TOLERANCE BREAK"
+            android:textColor="#80A88F"
+            android:textSize="11sp"
+            android:letterSpacing="0.1"
+            android:textStyle="bold" />
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            app:cardBackgroundColor="#0B110D"
+            app:cardCornerRadius="20dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="8dp">
+
+                <!-- Break Goal row -->
+                <LinearLayout
+                    android:id="@+id/row_break_goal"
+                    android:layout_width="match_parent"
+                    android:layout_height="64dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="16dp">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Break Goal"
+                            android:textColor="#FFFFFF"
+                            android:textSize="15sp" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Target days without a session"
+                            android:textColor="#80A88F"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tv_break_goal_days"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="7 days"
+                        android:textColor="#30D158"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- TEMPERATURE PRESETS -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="TEMPERATURE PRESETS"
+            android:textColor="#80A88F"
+            android:textSize="11sp"
+            android:letterSpacing="0.1"
+            android:textStyle="bold" />
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            app:cardBackgroundColor="#0B110D"
+            app:cardCornerRadius="20dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="8dp">
+
+                <LinearLayout
+                    android:id="@+id/ll_preset_list"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+
+                <LinearLayout
+                    android:id="@+id/row_add_preset"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="16dp"
+                    android:background="?android:attr/selectableItemBackground">
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Add Preset"
+                        android:textColor="#30D158"
+                        android:textSize="15sp" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="+"
+                        android:textColor="#30D158"
+                        android:textSize="22sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
         <!-- DEVICE CONTROLS -->
         <TextView
             android:layout_width="wrap_content"
@@ -605,34 +857,64 @@
             app:cornerRadius="16dp" />
 
         <Button
-            android:id="@+id/btn_dev_rebuild_history"
+            android:id="@+id/btn_clear_device_history"
             android:layout_width="match_parent"
             android:layout_height="56dp"
             android:layout_marginTop="12dp"
             android:backgroundTint="#141E17"
-            android:text="DEV: REBUILD HISTORY FROM LOGS"
-            android:textColor="#30D158"
-            app:cornerRadius="16dp" />
-
-        <Button
-            android:id="@+id/btn_dev_inject_test_device"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:layout_marginTop="12dp"
-            android:backgroundTint="#0B110D"
-            android:text="DEV: INJECT TEST DEVICE"
-            android:textColor="#0A84FF"
-            app:cornerRadius="16dp" />
-
-        <Button
-            android:id="@+id/btn_dev_remove_test_device"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:layout_marginTop="12dp"
-            android:backgroundTint="#0B110D"
-            android:text="DEV: REMOVE TEST DEVICE"
+            android:text="CLEAR DEVICE HISTORY"
             android:textColor="#FF453A"
             app:cornerRadius="16dp" />
+
+        <!-- ── DEVELOPER TOOLS (hidden — tap firmware version 7× to unlock) ── -->
+        <LinearLayout
+            android:id="@+id/layout_dev_tools"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="DEVELOPER"
+                android:textColor="#80A88F"
+                android:textSize="11sp"
+                android:letterSpacing="0.1"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/btn_dev_rebuild_history"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="12dp"
+                android:backgroundTint="#141E17"
+                android:text="DEV: REBUILD HISTORY FROM LOGS"
+                android:textColor="#30D158"
+                app:cornerRadius="16dp" />
+
+            <Button
+                android:id="@+id/btn_dev_inject_test_device"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="12dp"
+                android:backgroundTint="#0B110D"
+                android:text="DEV: INJECT TEST DEVICE"
+                android:textColor="#0A84FF"
+                app:cornerRadius="16dp" />
+
+            <Button
+                android:id="@+id/btn_dev_remove_test_device"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="12dp"
+                android:backgroundTint="#0B110D"
+                android:text="DEV: REMOVE TEST DEVICE"
+                android:textColor="#FF453A"
+                app:cornerRadius="16dp" />
+
+        </LinearLayout>
 
 
         <!-- HEALTH & DOSAGE -->

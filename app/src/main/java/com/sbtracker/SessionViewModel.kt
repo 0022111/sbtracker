@@ -208,4 +208,27 @@ class SessionViewModel @Inject constructor(
 
     fun setBoostTimeout(seconds: Int) =
         bleManager.sendWrite(BlePacket.buildSetBoostTimeout(seconds.coerceIn(0, 255)))
+
+    /**
+     * Estimates total program duration in minutes by summing step durations from
+     * boostStepsJson. The last step's duration is assumed to be 60 seconds.
+     * Returns 0.0 if the JSON is malformed or the program has no steps.
+     */
+    fun estimateProgramDurationMinutes(program: SessionProgram): Double {
+        return try {
+            val arr = JSONArray(program.boostStepsJson)
+            if (arr.length() == 0) return 0.0
+            val lastOffset = arr.getJSONObject(arr.length() - 1).getInt("offsetSec")
+            (lastOffset + 60) / 60.0
+        } catch (e: Exception) { 0.0 }
+    }
+
+    /**
+     * Estimates battery drain for a program given the current avg drain rate.
+     * Returns 0 when rate or duration is unknown.
+     */
+    fun estimateProgramDrain(program: SessionProgram, avgDrainPerMinute: Double): Int {
+        if (avgDrainPerMinute <= 0.0) return 0
+        return (estimateProgramDurationMinutes(program) * avgDrainPerMinute).toInt()
+    }
 }

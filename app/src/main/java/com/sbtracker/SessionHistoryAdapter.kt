@@ -47,6 +47,7 @@ class SessionHistoryAdapter(
         private val tvDate: TextView = view.findViewById(R.id.tv_session_date)
         private val tvSummary: TextView = view.findViewById(R.id.tv_session_summary)
         private val tvDrain: TextView = view.findViewById(R.id.tv_session_drain_badge)
+        private val tvRating: TextView = view.findViewById(R.id.tv_session_rating)
         private val vIndicator: View = view.findViewById(R.id.v_session_indicator)
 
         private val sdf = SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault())
@@ -75,6 +76,14 @@ class SessionHistoryAdapter(
             tvDrain.text = "-${summary.batteryConsumed}%"
             tvDrain.setTextColor(Color.parseColor("#FF453A"))
             tvDrain.setBackgroundResource(R.drawable.bg_badge_red)
+
+            val rating = summary.rating
+            if (rating != null && rating > 0) {
+                tvRating.visibility = View.VISIBLE
+                tvRating.text = "★".repeat(rating) + "☆".repeat(5 - rating)
+            } else {
+                tvRating.visibility = View.GONE
+            }
 
             val indicatorColor = when {
                 summary.hitCount >= 10 -> "#FF3B30"

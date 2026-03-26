@@ -5,7 +5,9 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.TextView
+import androidx.core.widget.doAfterTextChanged
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -28,8 +30,8 @@ class SessionsTabFragment : Fragment() {
         inflater.inflate(R.layout.fragment_sessions_tab, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val activity = requireActivity() as MainActivity
 
+        val etSearch       = view.findViewById<EditText>(R.id.et_search_sessions)
         val rv             = view.findViewById<RecyclerView>(R.id.rv_history)
         val tvCount        = view.findViewById<TextView>(R.id.tv_history_count)
         val llDeviceFilter = view.findViewById<android.widget.LinearLayout>(R.id.ll_device_filter)
@@ -43,10 +45,20 @@ class SessionsTabFragment : Fragment() {
 
         val adapter = SessionHistoryAdapter(
             onSessionClick = { openSessionReport(it) },
-            onDeleteClick = { activity.confirmDelete(it) }
+            onDeleteClick = { summary ->
+                AlertDialog.Builder(requireContext(), android.R.style.Theme_DeviceDefault_Dialog)
+                    .setTitle("Delete Session")
+                    .setMessage("Remove this session?")
+                    .setPositiveButton("Delete") { _, _ -> historyVm.deleteSession(summary.session) }
+                    .setNegativeButton("Cancel", null)
+                    .show()
+            }
         )
         rv.layoutManager = LinearLayoutManager(context)
         rv.adapter = adapter
+
+        // ── Search ────────────────────────────────────────────────────────────
+        etSearch.doAfterTextChanged { historyVm.setSearchQuery(it?.toString() ?: "") }
 
         // ── Sort bar ──────────────────────────────────────────────────────────
 
@@ -86,7 +98,7 @@ class SessionsTabFragment : Fragment() {
 
         // ── Session History List ──────────────────────────────────────────────
         viewLifecycleOwner.lifecycleScope.launch {
-            combine(historyVm.sessionHistory, historyVm.sessionFilter, bleVm.activeDevice) { items, filter, device ->
+            combine(historyVm.filteredSessionHistory, historyVm.sessionFilter, bleVm.activeDevice) { items, filter, device ->
                 Triple(items, filter, device)
             }.collect { (items, filter, device) ->
                 adapter.submitList(items)

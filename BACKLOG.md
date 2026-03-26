@@ -16,6 +16,22 @@ The codebase is currently in the "Final Hardening" phase. To reach a technical A
 
 ---
 
+## 🚨 UX Debt (Oracle Audit 2026-03-26)
+
+*Items identified in the Oracle UX evaluation. These are not cosmetic — they are structural gaps between "data logger with controls" and "companion app." Ordered by urgency.*
+
+| ID | Status | Feature | Description | Acceptance Criteria |
+|---|---|---|---|---|
+| B-016 | `planned` | Developer Tools Segregation | Hide `btnDevInjectTestDevice` / `btnDevRemoveTestDevice` behind a 7-tap hidden toggle in Settings (Android developer-options pattern). **Pre-Alpha blocker.** | Regular users cannot reach dev tools; no phantom devices in tester data |
+| F-057 | `planned` | Session Annotation | Add `notes: String` to `session_metadata` (Migration 5→6); surface as an editable field in `SessionReportActivity` and as a truncated line in `SessionHistoryAdapter` | User can write a note on any session; note visible in history list |
+| F-058 | `planned` | Time Range Filter | 7d / 30d / 90d / All filter chips on History and Battery screens; `HistoryViewModel` gains a `selectedRange: StateFlow<DateRange>`; analytics queries respect the range | Charts and stats update to selected range; default is 30d |
+| F-059 | `planned` | Onboarding & Empty States | One-time 3–4 step onboarding flow on first launch; per-screen empty state layouts for LandingFragment (offline / no history), HistoryFragment (no sessions), BatteryFragment (no charge data) | New user is guided; every empty screen teaches rather than blank-stares |
+| F-060 | `planned` | Device Care Signals | Surface `lifetimeHeaterOnSec` from `ExtendedData` as a cleaning reminder; user-entered `lastCleanedAtMs` per device (SharedPreferences); LandingFragment banner or BatteryFragment card when threshold is approaching | User sees "X hours since last clean" with appropriate urgency; notification fires near threshold |
+| F-061 | `planned` | Session Search & Filter | Filter sessions in HistoryFragment by date range, program used, content type, hit count range; optional week/month grouping in the list | History list is navigable with 200+ sessions; search bar above RecyclerView |
+| F-062 | `planned` | Session Flow Arc | Unified home → heat → session → inline summary experience; Pre-Ignite card expands to full-screen heating modal from LandingFragment; session end transitions to inline summary rather than launching `SessionReportActivity` as a separate Activity | No screen jump during a single session lifecycle; the arc feels continuous |
+
+---
+
 ## Core Systems (P0 — Foundation)
 
 | ID | Status | Feature | Description | Acceptance Criteria |
@@ -49,7 +65,7 @@ The codebase is currently in the "Final Hardening" phase. To reach a technical A
 ### 📂 Epic: Data Mobility & Recovery
 | ID | Status | Feature | Description | Acceptance Criteria |
 |---|---|---|---|---|
-| F-025 | `in-progress` | History Clear | Per-device clear of all tables | All 6 tables wiped for target device |
+| F-025 | `done` | History Clear | Per-device clear of all tables | All 7 tables wiped for target device (incl. session_metadata) |
 | F-026 | `in-progress` | Data Backup / Restore | Export/import full database | User can backup and restore DB file |
 | F-027 | `in-progress` | Session Programs | User-defined or preset session profiles with automatic boost scheduling (T-046/T-085 done) | Presets trigger immediate session start |
 | F-050 | `in-progress` | Notifications Redesign | Modernize notification system; persistent status | Rich status tray + quick controls |
@@ -61,10 +77,14 @@ The codebase is currently in the "Final Hardening" phase. To reach a technical A
 | F-054 | `in-progress` | Session Report Redesign | Extraction log labels + context | Human-readable logs, not just numbers |
 | F-055 | `in-progress` | Home Redesign | Suppress idle 0°; accessible during session | Seamless heating/session flow |
 | F-056 | `in-progress` | History Tab Splitting | Tabs for Sessions vs. Analytics vs. Health | No single-page clutter |
-| B-007 | `planned` | Global Modernization | "Cyber Green" UI pass; dynamic elements | Modernized styling throughout |
+| B-007 | `planned` | Global Modernization | "Cyber Green" UI pass; dynamic elements; design language document defining palette, type scale, component library | Modernized styling throughout; no per-agent style invention |
 | F-052 | `parked` | Hit Analytics | Classification of hits by duration/temp | On hold until B-010 is resolved |
 | B-005 | `planned` | History Graph Condensing | Collapse dead space in charts | Condensed timeline visualization |
 | B-006 | `planned` | Zoomable Graphs | Enable zoom/pinch interaction | Interactive visual scope |
+| B-016 | `planned` | Developer Tools Segregation | *(see UX Debt section above)* | Pre-Alpha blocker |
+| F-057 | `planned` | Session Annotation / Notes | *(see UX Debt section above)* | Pairs with F-054 |
+| F-058 | `planned` | Time Range Filter | *(see UX Debt section above)* | Pairs with F-056 |
+| F-059 | `planned` | Onboarding & Empty States | *(see UX Debt section above)* | New user experience |
 
 ### 🛡️ Epic: Data Trust & Protocol Reliability (Critical)
 | ID | Status | Feature | Description | Acceptance Criteria |
@@ -81,6 +101,9 @@ The codebase is currently in the "Final Hardening" phase. To reach a technical A
 |---|---|---|---|
 | F-047 | `planned` | Compose Migration | Migrate UI fragments to Jetpack Compose |
 | F-049 | `planned` | Multi-Device Sync | Cross-device aggregate tracking |
+| F-060 | `planned` | Device Care Signals | *(see UX Debt section above)* — heater runtime → cleaning reminders |
+| F-061 | `planned` | Session Search & Filter | *(see UX Debt section above)* — filterable/searchable history list |
+| F-062 | `planned` | Session Flow Arc | *(see UX Debt section above)* — unified home→heat→session→summary arc; design-first, depends on F-047 Compose migration for clean implementation |
 
 ## 🪵 Legacy Foundation (All 'Done' P1/P2 Archive)
 | ID | Feature | Summary |
@@ -115,6 +138,7 @@ The codebase is currently in the "Final Hardening" phase. To reach a technical A
 | 2026-03-24 | Introduce Hilt Dependency Injection (T-006) | Standardized dependency management; unblocked ViewModel decomposition and testing. |
 | 2026-03-25 | Oracle full-codebase audit | Comprehensive review of implementation vs. claims across all layers. Verdict: architecture sound, core bug B-010 (temp accuracy) is the primary release blocker. Added B-012–B-015 from audit findings. See CHANGELOG for full report. |
 | 2026-03-25 | Park F-052 Hit Analytics (Oracle verdict) | The threshold problem: no real hit-duration distribution data exists yet. Hardcoded thresholds (e.g. 3s "large hit") are arbitrary and will need ripping out after Alpha. Re-entry conditions: B-010 resolved, F-054 done, F-056 done, Alpha shipped. T-076 reverted; T-077/T-080/T-081 demoted to `planned`. |
+| 2026-03-26 | Oracle UX Audit — app is a data logger, not yet a companion | Full UX evaluation against the live codebase (all 5 screens). Core finding: the architecture is excellent but the human layer is missing. The session narrative is broken across 4 screens; there is no onboarding, no annotation, no time-range filter, and developer tools are exposed to users. Added B-016, F-057–F-062 to address. UX Principles added to PROJECT.md as a standing agent directive. |
 
 ---
 

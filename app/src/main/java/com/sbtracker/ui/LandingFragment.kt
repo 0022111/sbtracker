@@ -13,6 +13,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.sbtracker.*
+import com.sbtracker.NavigationViewModel
 import com.sbtracker.databinding.FragmentLandingBinding
 import dagger.hilt.android.AndroidEntryPoint
 import com.sbtracker.util.formatDurationShort
@@ -25,6 +26,7 @@ class LandingFragment : Fragment() {
     private val bleVm: BleViewModel by activityViewModels()
     private val sessionVm: SessionViewModel by activityViewModels()
     private val historyVm: HistoryViewModel by activityViewModels()
+    private val navVm: NavigationViewModel by activityViewModels()
     private var _binding: FragmentLandingBinding? = null
     private val binding get() = _binding!!
 
@@ -40,7 +42,6 @@ class LandingFragment : Fragment() {
 
     @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val activity = requireActivity() as MainActivity
 
         // Header
         val tvDeviceInfo = binding.tvCmdDeviceInfo
@@ -79,17 +80,23 @@ class LandingFragment : Fragment() {
         val tvLastDate = binding.tvCmdLastDate
         val tvLastSummary = binding.tvCmdLastSummary
 
+        // Session Banner
+        val cardSessionBanner = binding.cardSessionBanner
+        val tvSessionBannerTimer = binding.tvSessionBannerTimer
+
+        cardSessionBanner.setOnClickListener { navVm.navigateTo(1) }
+
         // ── Navigation ──
-        tileSession.setOnClickListener { activity.navigateTo(1) }
-        tileBattery.setOnClickListener { activity.navigateTo(3) }
-        tileAnalytics.setOnClickListener { activity.navigateTo(2) }
-        tileSettings.setOnClickListener { activity.navigateTo(4) }
-        cardLastSession.setOnClickListener { activity.navigateTo(2) }
+        tileSession.setOnClickListener { navVm.navigateTo(1) }
+        tileBattery.setOnClickListener { navVm.navigateTo(3) }
+        tileAnalytics.setOnClickListener { navVm.navigateTo(2) }
+        tileSettings.setOnClickListener { navVm.navigateTo(4) }
+        cardLastSession.setOnClickListener { navVm.navigateTo(2) }
 
         // ── Connect / Disconnect / Power actions ──
         val scanToggle = {
             if (bleVm.connectionState.value is BleManager.ConnectionState.Disconnected) {
-                activity.checkPermissionsAndScan()
+                navVm.requestScan()
             } else {
                 bleVm.disconnect()
             }
@@ -233,9 +240,12 @@ class LandingFragment : Fragment() {
                     val sec = ss.durationSeconds
                     tvTileSessionVal.text = "%02d:%02d".format(sec / 60, sec % 60)
                     tvTileSessionVal.setTextColor(ContextCompat.getColor(requireContext(), R.color.color_orange))
+                    cardSessionBanner.visibility = View.VISIBLE
+                    tvSessionBannerTimer.text = "%02d:%02d".format(sec / 60, sec % 60)
                 } else {
                     tvTileSessionVal.text = "Ready"
                     tvTileSessionVal.setTextColor(Color.WHITE)
+                    cardSessionBanner.visibility = View.GONE
                 }
             }
         }
@@ -244,6 +254,40 @@ class LandingFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             historyVm.todaySummaries.collect { today ->
                 tvTileAnalyticsVal.text = "${today.size} Today"
+            }
+        }
+
+        // Streak & Break card
+        val tvStreakCurrent = binding.tvStreakCurrent
+        val tvStreakLongest = binding.tvStreakLongest
+        val tvDaysSince = binding.tvDaysSince
+        val tvBreakGoalLabel = binding.tvBreakGoalLabel
+        val progressBreak = binding.progressBreak
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            combine(historyVm.currentStreak, historyVm.longestStreak) { s, l -> s to l }
+                .collect { (streak, longest) ->
+                    tvStreakCurrent.text = if (streak > 0) "$streak ${if (streak == 1) "day" else "days"}" else "—"
+                    tvStreakLongest.text = if (longest > 0) "$longest ${if (longest == 1) "day" else "days"}" else "—"
+                }
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            combine(historyVm.daysSinceLastSession, historyVm.breakGoalDays, historyVm.breakProgress) { daysSince, goal, progress ->
+                Triple(daysSince, goal, progress)
+            }.collect { (daysSince, goal, progress) ->
+                tvDaysSince.text = when {
+                    daysSince < 0 -> "—"
+                    daysSince == 0 -> "Today"
+                    daysSince == 1 -> "1 day"
+                    else -> "$daysSince days"
+                }
+                tvBreakGoalLabel.text = "/ $goal day goal"
+                progressBreak.progress = (progress * 100).toInt()
+                progressBreak.progressTintList = android.content.res.ColorStateList.valueOf(
+                    if (progress >= 1f) ContextCompat.getColor(requireContext(), R.color.color_green)
+                    else ContextCompat.getColor(requireContext(), R.color.color_blue)
+                )
             }
         }
 

@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.SharedPreferencesMigration
 import androidx.datastore.preferences.core.*
+import com.sbtracker.data.TempPreset
+import com.sbtracker.data.TempPresetSerializer
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -39,6 +41,12 @@ class UserPreferencesRepository @Inject constructor(
         val CAPSULE_WEIGHT_GRAMS = floatPreferencesKey("capsule_weight_grams")
         val DEFAULT_IS_CAPSULE = booleanPreferencesKey("default_is_capsule")
         val TARGET_TEMP = intPreferencesKey("target_temp")
+        val ALERT_TEMP_READY = booleanPreferencesKey("alert_temp_ready")
+        val ALERT_CHARGE_80 = booleanPreferencesKey("alert_charge_80")
+        val ALERT_SESSION_END = booleanPreferencesKey("alert_session_end")
+        val TEMP_PRESETS = stringPreferencesKey("temp_presets")
+        val BREAK_GOAL_DAYS = intPreferencesKey("break_goal_days")
+        val ONBOARDING_COMPLETE = booleanPreferencesKey("onboarding_complete")
     }
 
     val userPreferencesFlow: Flow<UserPreferences> = dataStore.data
@@ -58,7 +66,12 @@ class UserPreferencesRepository @Inject constructor(
                 retentionDays = preferences[PreferencesKeys.RETENTION_DAYS] ?: 90,
                 capsuleWeightGrams = preferences[PreferencesKeys.CAPSULE_WEIGHT_GRAMS] ?: 0.10f,
                 defaultIsCapsule = preferences[PreferencesKeys.DEFAULT_IS_CAPSULE] ?: false,
-                targetTemp = preferences[PreferencesKeys.TARGET_TEMP] ?: 180
+                targetTemp = preferences[PreferencesKeys.TARGET_TEMP] ?: 180,
+                alertTempReady = preferences[PreferencesKeys.ALERT_TEMP_READY] ?: true,
+                alertCharge80 = preferences[PreferencesKeys.ALERT_CHARGE_80] ?: true,
+                alertSessionEnd = preferences[PreferencesKeys.ALERT_SESSION_END] ?: false,
+                breakGoalDays = preferences[PreferencesKeys.BREAK_GOAL_DAYS] ?: 7,
+                onboardingComplete = preferences[PreferencesKeys.ONBOARDING_COMPLETE] ?: false
             )
         }
 
@@ -115,6 +128,51 @@ class UserPreferencesRepository @Inject constructor(
             preferences[PreferencesKeys.TARGET_TEMP] = temp
         }
     }
+
+    suspend fun updateAlertTempReady(enabled: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.ALERT_TEMP_READY] = enabled
+        }
+    }
+
+    suspend fun updateAlertCharge80(enabled: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.ALERT_CHARGE_80] = enabled
+        }
+    }
+
+    suspend fun updateAlertSessionEnd(enabled: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.ALERT_SESSION_END] = enabled
+        }
+    }
+
+    val tempPresetsFlow: kotlinx.coroutines.flow.Flow<List<TempPreset>> = dataStore.data
+        .catch { exception ->
+            if (exception is java.io.IOException) emit(emptyPreferences()) else throw exception
+        }.map { preferences ->
+            TempPresetSerializer.fromJson(
+                preferences[PreferencesKeys.TEMP_PRESETS] ?: TempPresetSerializer.defaultJson()
+            )
+        }
+
+    suspend fun updateTempPresets(presets: List<TempPreset>) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.TEMP_PRESETS] = TempPresetSerializer.toJson(presets)
+        }
+    }
+
+    suspend fun updateBreakGoalDays(days: Int) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.BREAK_GOAL_DAYS] = days
+        }
+    }
+
+    suspend fun setOnboardingComplete() {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.ONBOARDING_COMPLETE] = true
+        }
+    }
 }
 
 data class UserPreferences(
@@ -126,5 +184,10 @@ data class UserPreferences(
     val retentionDays: Int,
     val capsuleWeightGrams: Float,
     val defaultIsCapsule: Boolean,
-    val targetTemp: Int
+    val targetTemp: Int,
+    val alertTempReady: Boolean,
+    val alertCharge80: Boolean,
+    val alertSessionEnd: Boolean,
+    val breakGoalDays: Int,
+    val onboardingComplete: Boolean
 )

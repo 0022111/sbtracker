@@ -11,6 +11,7 @@ import com.sbtracker.analytics.HistoryStats
 import com.sbtracker.analytics.IntakeStats
 import com.sbtracker.analytics.ProfileStats
 import com.sbtracker.analytics.UsageInsights
+import com.sbtracker.util.StreakUtils
 import com.sbtracker.data.AppDatabase
 import com.sbtracker.data.UserPreferencesRepository
 import com.sbtracker.data.ChargeCycle
@@ -63,8 +64,12 @@ class HistoryViewModel @Inject constructor(
     private val _sessionFilter = MutableStateFlow<String?>(null)
     val sessionFilter: StateFlow<String?> = _sessionFilter.asStateFlow()
 
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+
     fun setSessionSort(sort: SessionSort) { _sessionSort.value = sort }
     fun setSessionFilter(filter: String?) { _sessionFilter.value = filter }
+    fun setSearchQuery(query: String) { _searchQuery.value = query }
 
     // Active device — loaded from SharedPrefs so we don't depend on BleViewModel
     private val devicePrefs by lazy {
@@ -222,6 +227,27 @@ class HistoryViewModel @Inject constructor(
             }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    val filteredSessionHistory: StateFlow<List<HistoryItem>> =
+        combine(sessionHistory, _searchQuery) { items, query ->
+            if (query.isBlank()) items
+            else {
+                val q = query.trim().lowercase()
+                items.filter { item ->
+                    when (item) {
+                        is HistoryItem.SessionItem -> {
+                            val s = item.summary
+                            val sdf = java.text.SimpleDateFormat("MMM dd HH:mm", java.util.Locale.getDefault())
+                            val dateStr = sdf.format(java.util.Date(s.startTimeMs)).lowercase()
+                            dateStr.contains(q) ||
+                            (s.serialNumber?.lowercase()?.contains(q) == true) ||
+                            (s.notes?.lowercase()?.contains(q) == true)
+                        }
+                        is HistoryItem.ChargeItem -> true
+                    }
+                }
+            }
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     // ── Today summaries ──
 
     val todaySummaries: StateFlow<List<SessionSummary>> =
@@ -235,6 +261,29 @@ class HistoryViewModel @Inject constructor(
             val dayStartMs = c.timeInMillis
             summaries.filter { it.startTimeMs >= dayStartMs }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // ── Streak & Break ──
+
+    val currentStreak: StateFlow<Int> = allSessionSummaries
+        .map { StreakUtils.currentStreak(it) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
+    val longestStreak: StateFlow<Int> = allSessionSummaries
+        .map { StreakUtils.longestStreak(it) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
+    val daysSinceLastSession: StateFlow<Int> = allSessionSummaries
+        .map { StreakUtils.daysSinceLastSession(it) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), -1)
+
+    val breakGoalDays: StateFlow<Int> = prefsRepo.userPreferencesFlow
+        .map { it.breakGoalDays }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 7)
+
+    val breakProgress: StateFlow<Float> =
+        combine(allSessionSummaries, breakGoalDays) { summaries, goal ->
+            StreakUtils.breakProgress(summaries, goal)
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0f)
 
     // ── Analytics ──
 
@@ -374,6 +423,7 @@ class HistoryViewModel @Inject constructor(
             val addr = device.deviceAddress
             val serial = device.serialNumber
             db.hitDao().clearAll(addr)
+            db.sessionMetadataDao().clearAllForDevice(addr)   // must precede sessions delete
             db.sessionDao().clearHistory(serial, addr)
             db.chargeCycleDao().clearAll(addr)
             db.deviceStatusDao().clearAll(addr)
@@ -393,7 +443,7 @@ class HistoryViewModel @Inject constructor(
                 analyticsRepo.getSessionSummaries(db.sessionDao().getAllSessionsSync())
             }
             val csv = buildString {
-                append("ID,Device,Date,Duration(ms),Hits,TotalHitMs,StartBat,EndBat,BatConsumed,AvgTempC,PeakTempC,HeatUpMs,HeaterWearMin\n")
+                append("ID,Device,Date,Duration(ms),Hits,TotalHitMs,StartBat,EndBat,BatConsumed,AvgTempC,PeakTempC,HeatUpMs,HeaterWearMin,Rating,Notes\n")
                 val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
                 summaries.forEach { s ->
                     append("${s.id},")
@@ -408,7 +458,10 @@ class HistoryViewModel @Inject constructor(
                     append("${s.avgTempC},")
                     append("${s.peakTempC},")
                     append("${s.heatUpTimeMs},")
-                    append("${s.heaterWearMinutes}\n")
+                    append("${s.heaterWearMinutes},")
+                    append("${s.rating ?: ""},")
+                    val notesEscaped = s.notes?.replace("\"", "\"\"") ?: ""
+                    append("\"$notesEscaped\"\n")
                 }
             }
             withContext(Dispatchers.IO) {

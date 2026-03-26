@@ -14,9 +14,8 @@ import androidx.room.RoomDatabase
  *  3. Add the migration to the builder via .addMigrations(...).
  *  4. Export the new schema JSON.
  *
- * fallbackToDestructiveMigration() is kept as a last-resort safety net
- * during development.  Remove it before the first public release and
- * rely solely on explicit migrations from that point forward.
+ * fallbackToDestructiveMigration() has been intentionally omitted.
+ * All schema versions 1–6 have explicit Migration objects in AppModule.
  */
 @Database(
     entities = [
@@ -29,7 +28,7 @@ import androidx.room.RoomDatabase
         SessionMetadata::class,
         SessionProgram::class
     ],
-    version      = 5,
+    version      = 6,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {

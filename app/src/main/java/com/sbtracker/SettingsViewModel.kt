@@ -8,6 +8,7 @@ import com.sbtracker.analytics.AnalyticsRepository
 import com.sbtracker.data.AppDatabase
 import com.sbtracker.data.ProgramRepository
 import com.sbtracker.data.SessionProgram
+import com.sbtracker.data.TempPreset
 import com.sbtracker.data.UserPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -50,6 +51,18 @@ class SettingsViewModel @Inject constructor(
     val programs: StateFlow<List<SessionProgram>> = programRepository.programs
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    val alertTempReady: StateFlow<Boolean> = prefsRepo.userPreferencesFlow
+        .map { it.alertTempReady }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    val alertCharge80: StateFlow<Boolean> = prefsRepo.userPreferencesFlow
+        .map { it.alertCharge80 }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    val alertSessionEnd: StateFlow<Boolean> = prefsRepo.userPreferencesFlow
+        .map { it.alertSessionEnd }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
     init {
         viewModelScope.launch {
             prefsRepo.userPreferencesFlow.collect { prefs ->
@@ -86,5 +99,42 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             programRepository.deleteProgram(id)
         }
+    }
+
+    fun setAlertTempReady(enabled: Boolean) {
+        viewModelScope.launch { prefsRepo.updateAlertTempReady(enabled) }
+    }
+
+    fun setAlertCharge80(enabled: Boolean) {
+        viewModelScope.launch { prefsRepo.updateAlertCharge80(enabled) }
+    }
+
+    fun setAlertSessionEnd(enabled: Boolean) {
+        viewModelScope.launch { prefsRepo.updateAlertSessionEnd(enabled) }
+    }
+
+    val breakGoalDays: StateFlow<Int> = prefsRepo.userPreferencesFlow
+        .map { it.breakGoalDays }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 7)
+
+    fun setBreakGoalDays(days: Int) {
+        viewModelScope.launch { prefsRepo.updateBreakGoalDays(days.coerceIn(1, 365)) }
+    }
+
+    val tempPresets: StateFlow<List<TempPreset>> = prefsRepo.tempPresetsFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun saveTempPresets(presets: List<TempPreset>) {
+        viewModelScope.launch { prefsRepo.updateTempPresets(presets) }
+    }
+
+    fun addTempPreset(name: String, tempC: Int) {
+        val updated = tempPresets.value + TempPreset(name, tempC)
+        saveTempPresets(updated)
+    }
+
+    fun deleteTempPreset(index: Int) {
+        val updated = tempPresets.value.toMutableList().also { it.removeAt(index) }
+        saveTempPresets(updated)
     }
 }

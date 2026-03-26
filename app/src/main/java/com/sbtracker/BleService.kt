@@ -67,7 +67,8 @@ class BleService : Service() {
 
     private fun createNotification(
         statusText: String = "Monitoring device...",
-        contentText: String = "Background tracking active"
+        contentText: String = "Background tracking active",
+        actions: List<NotificationCompat.Action> = emptyList()
     ): Notification {
         val notificationIntent = Intent(this, MainActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(
@@ -82,7 +83,26 @@ class BleService : Service() {
             .setContentIntent(pendingIntent)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
+            .apply { actions.forEach { addAction(it) } }
             .build()
+    }
+
+    private fun buildActionIntent(action: String, targetTemp: Int = 0, heaterMode: Int = 0): PendingIntent {
+        val reqCode = when (action) {
+            NotificationActionReceiver.ACTION_TEMP_UP   -> NotificationActionReceiver.REQ_TEMP_UP
+            NotificationActionReceiver.ACTION_TEMP_DOWN -> NotificationActionReceiver.REQ_TEMP_DOWN
+            NotificationActionReceiver.ACTION_HEATER_ON -> NotificationActionReceiver.REQ_HEATER_ON
+            else                                        -> NotificationActionReceiver.REQ_HEATER_OFF
+        }
+        val intent = Intent(this, NotificationActionReceiver::class.java).apply {
+            this.action = action
+            putExtra(NotificationActionReceiver.EXTRA_TARGET_TEMP, targetTemp)
+            putExtra(NotificationActionReceiver.EXTRA_HEATER_MODE, heaterMode)
+        }
+        return PendingIntent.getBroadcast(
+            this, reqCode, intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
     }
 
     private fun updateNotification(
@@ -92,9 +112,20 @@ class BleService : Service() {
     ) {
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
+        var notifActions: List<NotificationCompat.Action> = emptyList()
+
         val (title, content) = when {
             state is BleManager.ConnectionState.Connected && status != null -> {
                 if (status.heaterMode > 0) {
+                    // Session active: add ▲ Temp / ▼ Temp / Stop Heater actions
+                    notifActions = listOf(
+                        NotificationCompat.Action(0, "\u25b2 Temp",
+                            buildActionIntent(NotificationActionReceiver.ACTION_TEMP_UP, status.targetTempC, status.heaterMode)),
+                        NotificationCompat.Action(0, "\u25bc Temp",
+                            buildActionIntent(NotificationActionReceiver.ACTION_TEMP_DOWN, status.targetTempC, status.heaterMode)),
+                        NotificationCompat.Action(0, "Stop Heater",
+                            buildActionIntent(NotificationActionReceiver.ACTION_HEATER_OFF))
+                    )
                     // Session active: "Session Active — 185°C → 195°C"
                     val titleStr = "Session Active \u2014 ${status.currentTempC}\u00b0C \u2192 ${status.targetTempC}\u00b0C"
                     // Content: "Battery: 72% • Hit #4 • 3m 12s"
@@ -108,11 +139,15 @@ class BleService : Service() {
                     parts.add(elapsedStr)
                     titleStr to parts.joinToString(" \u2022 ")
                 } else if (status.isCharging) {
-                    // Charging: "Charging" / "Battery: 45% • ETA ~22m"
+                    // Charging: no action buttons (heater-off is implied by device charging)
                     val eta = stats.chargeEtaMinutes?.let { " \u2022 ETA ~${it}m" } ?: ""
                     "Charging" to "Battery: ${status.batteryLevel}%$eta"
                 } else {
-                    // Idle: "Device Online" / "Battery: 88% • Idle"
+                    // Idle: add Start Heater action
+                    notifActions = listOf(
+                        NotificationCompat.Action(0, "Start Heater",
+                            buildActionIntent(NotificationActionReceiver.ACTION_HEATER_ON, status.targetTempC))
+                    )
                     "Device Online" to "Battery: ${status.batteryLevel}% \u2022 Idle"
                 }
             }
@@ -132,7 +167,7 @@ class BleService : Service() {
             }
         }
 
-        manager.notify(NOTIFICATION_ID, createNotification(title, content))
+        manager.notify(NOTIFICATION_ID, createNotification(title, content, notifActions))
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
