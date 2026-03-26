@@ -296,6 +296,69 @@ class SettingsFragment : Fragment() {
                 .show()
         }
 
+        // ── Temperature Presets ───────────────────────────────────────────────
+        val llPresetList = binding.llPresetList
+        binding.rowAddPreset.setOnClickListener {
+            val nameInput = android.widget.EditText(requireContext()).apply {
+                hint = "Preset name"
+                inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_FLAG_CAP_WORDS
+            }
+            val tempInput = android.widget.EditText(requireContext()).apply {
+                hint = "Temperature (°C)"
+                inputType = android.text.InputType.TYPE_CLASS_NUMBER
+            }
+            val container = android.widget.LinearLayout(requireContext()).apply {
+                orientation = android.widget.LinearLayout.VERTICAL
+                setPadding(48, 16, 48, 0)
+                addView(nameInput)
+                addView(tempInput)
+            }
+            android.app.AlertDialog.Builder(requireContext())
+                .setTitle("Add Temperature Preset")
+                .setView(container)
+                .setPositiveButton("Add") { _, _ ->
+                    val name = nameInput.text.toString().trim()
+                    val tempC = tempInput.text.toString().toIntOrNull()
+                    if (name.isNotEmpty() && tempC != null) {
+                        settingsVm.addTempPreset(name, tempC)
+                    }
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            settingsVm.tempPresets.collect { presets ->
+                llPresetList.removeAllViews()
+                presets.forEachIndexed { index, preset ->
+                    val row = android.widget.LinearLayout(requireContext()).apply {
+                        orientation = android.widget.LinearLayout.HORIZONTAL
+                        gravity = android.view.Gravity.CENTER_VERTICAL
+                        setPadding(48, 0, 48, 0)
+                        minimumHeight = 56.dpToPx()
+                        setBackgroundResource(android.R.attr.selectableItemBackground)
+                    }
+                    val tvName = android.widget.TextView(requireContext()).apply {
+                        text = "${preset.name}  —  ${preset.tempC}°C"
+                        setTextColor(android.graphics.Color.WHITE)
+                        textSize = 15f
+                        layoutParams = android.widget.LinearLayout.LayoutParams(0, android.widget.LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                    }
+                    row.addView(tvName)
+                    row.setOnLongClickListener {
+                        android.app.AlertDialog.Builder(requireContext())
+                            .setTitle("Delete Preset")
+                            .setMessage("Remove \"${preset.name}\"?")
+                            .setPositiveButton("Delete") { _, _ -> settingsVm.deleteTempPreset(index) }
+                            .setNegativeButton("Cancel", null)
+                            .show()
+                        true
+                    }
+                    llPresetList.addView(row)
+                }
+            }
+        }
+
         // (Removed vestigial programs collection - now managed in SessionFragment)
     }
 

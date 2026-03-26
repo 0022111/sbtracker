@@ -18,6 +18,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.sbtracker.*
+import com.sbtracker.SettingsViewModel
 import com.sbtracker.databinding.FragmentSessionBinding
 import com.sbtracker.databinding.DialogProgramEditorBinding
 import com.sbtracker.databinding.ItemProgramStepBinding
@@ -34,6 +35,7 @@ class SessionFragment : Fragment() {
     private val bleVm: BleViewModel by activityViewModels()
     private val sessionVm: SessionViewModel by activityViewModels()
     private val historyVm: HistoryViewModel by activityViewModels()
+    private val settingsVm: SettingsViewModel by activityViewModels()
     private var _binding: FragmentSessionBinding? = null
     private val binding get() = _binding!!
 
@@ -261,6 +263,33 @@ class SessionFragment : Fragment() {
 
         // Setup Session Programs Grid (2x3)
         setupProgramsGrid()
+
+        // ── Temperature Preset Chips ──────────────────────────────────────────
+        val chipContainer = binding.llTempPresetChips
+        viewLifecycleOwner.lifecycleScope.launch {
+            combine(settingsVm.tempPresets, bleVm.isCelsius) { presets, celsius -> presets to celsius }
+                .collect { (presets, celsius) ->
+                    chipContainer.removeAllViews()
+                    presets.forEach { preset ->
+                        val displayTemp = preset.tempC.toDisplayTemp(celsius)
+                        val chip = TextView(requireContext()).apply {
+                            text = "${preset.name} ${displayTemp}°"
+                            setTextColor(android.graphics.Color.WHITE)
+                            textSize = 13f
+                            setTypeface(null, android.graphics.Typeface.BOLD)
+                            background = ContextCompat.getDrawable(requireContext(), R.drawable.bg_badge_blue)
+                            setPadding(28, 14, 28, 14)
+                            val lp = LinearLayout.LayoutParams(
+                                LinearLayout.LayoutParams.WRAP_CONTENT,
+                                LinearLayout.LayoutParams.WRAP_CONTENT
+                            ).also { it.marginEnd = 10 }
+                            layoutParams = lp
+                            setOnClickListener { bleVm.setTargetTemp(preset.tempC) }
+                        }
+                        chipContainer.addView(chip)
+                    }
+                }
+        }
     }
 
     private fun setupProgramsGrid() {

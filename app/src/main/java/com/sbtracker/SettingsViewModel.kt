@@ -8,6 +8,7 @@ import com.sbtracker.analytics.AnalyticsRepository
 import com.sbtracker.data.AppDatabase
 import com.sbtracker.data.ProgramRepository
 import com.sbtracker.data.SessionProgram
+import com.sbtracker.data.TempPreset
 import com.sbtracker.data.UserPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -110,5 +111,22 @@ class SettingsViewModel @Inject constructor(
 
     fun setAlertSessionEnd(enabled: Boolean) {
         viewModelScope.launch { prefsRepo.updateAlertSessionEnd(enabled) }
+    }
+
+    val tempPresets: StateFlow<List<TempPreset>> = prefsRepo.tempPresetsFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun saveTempPresets(presets: List<TempPreset>) {
+        viewModelScope.launch { prefsRepo.updateTempPresets(presets) }
+    }
+
+    fun addTempPreset(name: String, tempC: Int) {
+        val updated = tempPresets.value + TempPreset(name, tempC)
+        saveTempPresets(updated)
+    }
+
+    fun deleteTempPreset(index: Int) {
+        val updated = tempPresets.value.toMutableList().also { it.removeAt(index) }
+        saveTempPresets(updated)
     }
 }

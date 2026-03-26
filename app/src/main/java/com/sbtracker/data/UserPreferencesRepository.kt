@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.SharedPreferencesMigration
 import androidx.datastore.preferences.core.*
+import com.sbtracker.data.TempPreset
+import com.sbtracker.data.TempPresetSerializer
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -42,6 +44,7 @@ class UserPreferencesRepository @Inject constructor(
         val ALERT_TEMP_READY = booleanPreferencesKey("alert_temp_ready")
         val ALERT_CHARGE_80 = booleanPreferencesKey("alert_charge_80")
         val ALERT_SESSION_END = booleanPreferencesKey("alert_session_end")
+        val TEMP_PRESETS = stringPreferencesKey("temp_presets")
     }
 
     val userPreferencesFlow: Flow<UserPreferences> = dataStore.data
@@ -137,6 +140,21 @@ class UserPreferencesRepository @Inject constructor(
     suspend fun updateAlertSessionEnd(enabled: Boolean) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.ALERT_SESSION_END] = enabled
+        }
+    }
+
+    val tempPresetsFlow: kotlinx.coroutines.flow.Flow<List<TempPreset>> = dataStore.data
+        .catch { exception ->
+            if (exception is java.io.IOException) emit(emptyPreferences()) else throw exception
+        }.map { preferences ->
+            TempPresetSerializer.fromJson(
+                preferences[PreferencesKeys.TEMP_PRESETS] ?: TempPresetSerializer.defaultJson()
+            )
+        }
+
+    suspend fun updateTempPresets(presets: List<TempPreset>) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.TEMP_PRESETS] = TempPresetSerializer.toJson(presets)
         }
     }
 }
