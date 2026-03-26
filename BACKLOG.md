@@ -142,6 +142,7 @@ The codebase is currently in the "Final Hardening" phase. To reach a technical A
 | 2026-03-26 | Portability strategy documented | React Native viable for future Android port. Priority: logic/data/analytics first, UI last. iOS App Store likely blocked (guideline 1.4.3). PWA not viable (background BLE). See `PROJECT.md` — Future Platforms section. |
 | 2026-03-26 | F-018b: capsule weight is a global setting, not a per-session variable | Users do not meaningfully vary pack weight session to session. The binary isCapsule flag is the meaningful annotation. Per-session weight override UI will not be built; `SessionMetadata.capsuleWeightGrams` field exists in schema but its UI path remains closed. Weight is always resolved from global preferences at query time. |
 | 2026-03-26 | F-018b: Health tab requires day-level intake granularity, not period averages | 7-day and 30-day trailing averages are too coarse — they hide the patterns that matter (which days are heavy, whether trend is up or down). `DailyStats` must gain `totalGramsConsumed` for charting. Default chart view must show ≥14 days. `gramsPerDay7d`/`gramsPerDay30d` can remain as summary figures only. |
+| 2026-03-26 | Agent rule consolidation — eliminate merge conflicts | Workers may ONLY edit code files and `changelogs/T-XXX.md` fragments. TASKS.md, BACKLOG.md, CHANGELOG.md and PROJECT.md are Orchestrator/Planner owned. Rules unified across `CLAUDE.md`, `.cursorrules`, `AGENT_INFO.md`, `feature-work.md`, `WORKFLOW_ENFORCEMENT.md`, and `PROJECT.md`. |
 
 ---
 
