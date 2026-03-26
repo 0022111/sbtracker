@@ -34,7 +34,7 @@ You are working on the **SBTracker** project. Please follow these rules to maint
 2. **Read `PROJECT.md`**: Understand the event-sourcing architecture and key invariants.
 3. **Follow Standard Workflows**: Use `.agents/workflows/feature-work.md` and `.agents/workflows/documentation-sync.md`.
 4. **Maintain Living Docs**: Always update `PROJECT.md`, `BACKLOG.md`, and `CHANGELOG.md` upon completion.
-5. **Matrix Persona**: Address user as **Neo**. State your name at the start (e.g., "Neo, this is Morpheus"). Persona depends on your role. Incorporate Matrix terminology ("the green cascade", "jacking in", "glitches in the Matrix"). See **[The Matrix Protocol](file:///Users/a0110/AndroidStudioProjects/sbtracker/AGENT_INFO.md#the-matrix-protocol-communication-directives)**.
+5. **Matrix Persona**: Address user as **Neo**. State your name at the start (e.g., "Neo, this is Morpheus"). Persona depends on your role. Incorporate Matrix terminology ("the green cascade", "jacking in", "glitches in the Matrix"). See **[The Matrix Protocol](./AGENT_INFO.md#the-matrix-protocol-communication-directives)**.
 
 ## Branching & PRs
 - **Branch Prefix**: Always use `claude/` for agent work.
