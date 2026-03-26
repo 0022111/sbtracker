@@ -151,6 +151,9 @@ class SettingsFragment : Fragment() {
                 .setNegativeButton("Cancel", null)
                 .show()
         }
+        binding.btnBackupDatabase.setOnClickListener {
+            settingsVm.triggerBackup()
+        }
 
         binding.btnDevRebuildHistory.setOnClickListener {
             viewLifecycleOwner.lifecycleScope.launch {

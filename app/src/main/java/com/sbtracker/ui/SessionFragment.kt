@@ -55,6 +55,7 @@ class SessionFragment : Fragment() {
         val tvStatus = binding.sessionTvStatus
         val tvHits = binding.sessionTvHits
         val tvDrain = binding.sessionTvDrain
+        val tvStartingBattery = binding.sessionTvStartingBattery
         val tvTime = binding.sessionTvTime
         val tvBattery = binding.sessionTvBattery
         val tvHeatUp = binding.sessionTvHeatUp
@@ -242,6 +243,12 @@ class SessionFragment : Fragment() {
             bleVm.sessionStats.collect { ss ->
                 tvHits.text = ss.hitCount.toString()
                 tvDrain.text = "${maxOf(0, ss.batteryDrain)}%"
+                if (ss.startingBattery > 0) {
+                    tvStartingBattery.visibility = View.VISIBLE
+                    tvStartingBattery.text = "START: ${ss.startingBattery}%"
+                } else {
+                    tvStartingBattery.visibility = View.GONE
+                }
 
                 fun format(sec: Long) = "%02d:%02d".format(sec / 60, sec % 60)
 

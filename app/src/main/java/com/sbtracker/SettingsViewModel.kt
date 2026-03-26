@@ -6,6 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.sbtracker.analytics.AnalyticsRepository
 import com.sbtracker.data.AppDatabase
+import com.sbtracker.data.BackupRepository
 import com.sbtracker.data.ProgramRepository
 import com.sbtracker.data.SessionProgram
 import com.sbtracker.data.TempPreset
@@ -29,8 +30,11 @@ class SettingsViewModel @Inject constructor(
     private val analyticsRepo: AnalyticsRepository,
     private val prefsRepo: UserPreferencesRepository,
     private val programRepository: ProgramRepository,
+    private val backupRepo: BackupRepository,
     application: Application
 ) : AndroidViewModel(application) {
+
+    val backupUri = backupRepo.backupUri
 
     val dayStartHour: StateFlow<Int> = prefsRepo.userPreferencesFlow
         .map { it.dayStartHour }
@@ -111,6 +115,10 @@ class SettingsViewModel @Inject constructor(
 
     fun setAlertSessionEnd(enabled: Boolean) {
         viewModelScope.launch { prefsRepo.updateAlertSessionEnd(enabled) }
+    }
+
+    fun triggerBackup() {
+        viewModelScope.launch { backupRepo.createBackup() }
     }
 
     val breakGoalDays: StateFlow<Int> = prefsRepo.userPreferencesFlow
