@@ -22,7 +22,8 @@ data class SessionMetadata(
     val isCapsule: Boolean = false,
     val capsuleWeightGrams: Float = 0.0f,
     val notes: String? = null,
-    val appliedProgramId: Long? = null
+    val appliedProgramId: Long? = null,
+    val rating: Int? = null
 )
 
 @Dao

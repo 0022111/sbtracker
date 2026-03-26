@@ -465,6 +465,73 @@
 
             </LinearLayout>
 
+            <!-- RATING & NOTES -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="RATING"
+                    android:textColor="#80A88F"
+                    android:textSize="11sp"
+                    android:letterSpacing="0.1"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="8dp" />
+
+                <RatingBar
+                    android:id="@+id/report_rating_bar"
+                    style="?android:attr/ratingBarStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:numStars="5"
+                    android:stepSize="1"
+                    android:rating="0"
+                    android:progressTint="#FFD60A"
+                    android:secondaryProgressTint="#80A88F" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="NOTES"
+                    android:textColor="#80A88F"
+                    android:textSize="11sp"
+                    android:letterSpacing="0.1"
+                    android:textStyle="bold"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="8dp" />
+
+                <EditText
+                    android:id="@+id/report_et_notes"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minLines="2"
+                    android:maxLines="5"
+                    android:hint="Add session notes..."
+                    android:textColor="#FFFFFF"
+                    android:textColorHint="#80A88F"
+                    android:background="@android:color/transparent"
+                    android:inputType="textMultiLine|textCapSentences"
+                    android:padding="8dp" />
+
+                <Button
+                    android:id="@+id/report_btn_save_notes"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="8dp"
+                    android:backgroundTint="#1A2B1E"
+                    android:text="SAVE NOTES &amp; RATING"
+                    android:textColor="#30D158"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    app:cornerRadius="12dp" />
+
+            </LinearLayout>
+
             <!-- FOOTER -->
             <LinearLayout
                 android:layout_width="match_parent"

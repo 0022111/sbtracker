@@ -393,7 +393,7 @@ class HistoryViewModel @Inject constructor(
                 analyticsRepo.getSessionSummaries(db.sessionDao().getAllSessionsSync())
             }
             val csv = buildString {
-                append("ID,Device,Date,Duration(ms),Hits,TotalHitMs,StartBat,EndBat,BatConsumed,AvgTempC,PeakTempC,HeatUpMs,HeaterWearMin\n")
+                append("ID,Device,Date,Duration(ms),Hits,TotalHitMs,StartBat,EndBat,BatConsumed,AvgTempC,PeakTempC,HeatUpMs,HeaterWearMin,Rating,Notes\n")
                 val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
                 summaries.forEach { s ->
                     append("${s.id},")
@@ -408,7 +408,10 @@ class HistoryViewModel @Inject constructor(
                     append("${s.avgTempC},")
                     append("${s.peakTempC},")
                     append("${s.heatUpTimeMs},")
-                    append("${s.heaterWearMinutes}\n")
+                    append("${s.heaterWearMinutes},")
+                    append("${s.rating ?: ""},")
+                    val notesEscaped = s.notes?.replace("\"", "\"\"") ?: ""
+                    append("\"$notesEscaped\"\n")
                 }
             }
             withContext(Dispatchers.IO) {

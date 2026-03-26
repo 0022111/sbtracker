@@ -29,7 +29,7 @@ import androidx.room.RoomDatabase
         SessionMetadata::class,
         SessionProgram::class
     ],
-    version      = 5,
+    version      = 6,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {

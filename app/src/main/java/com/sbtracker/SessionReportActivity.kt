@@ -5,6 +5,8 @@ import javax.inject.Inject
 
 import android.os.Bundle
 import android.widget.Button
+import android.widget.EditText
+import android.widget.RatingBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -30,6 +32,7 @@ class SessionReportActivity : AppCompatActivity() {
 
     @Inject lateinit var db: AppDatabase
     @Inject lateinit var prefsRepo: UserPreferencesRepository
+    @Inject lateinit var analyticsRepo: com.sbtracker.analytics.AnalyticsRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,10 +42,13 @@ class SessionReportActivity : AppCompatActivity() {
         // We observe the flow but since we only need it once for the report, 
         // we can just use the first value or collect in lifecycleScope.
         
-        val hitLogView  = findViewById<TextView>(R.id.report_tv_hit_log)
-        val graph       = findViewById<SessionGraphView>(R.id.report_graph)
-        val btnCapsule  = findViewById<Button>(R.id.report_btn_capsule)
-        val btnFreePack = findViewById<Button>(R.id.report_btn_free_pack)
+        val hitLogView    = findViewById<TextView>(R.id.report_tv_hit_log)
+        val graph         = findViewById<SessionGraphView>(R.id.report_graph)
+        val btnCapsule    = findViewById<Button>(R.id.report_btn_capsule)
+        val btnFreePack   = findViewById<Button>(R.id.report_btn_free_pack)
+        val ratingBar     = findViewById<RatingBar>(R.id.report_rating_bar)
+        val etNotes       = findViewById<EditText>(R.id.report_et_notes)
+        val btnSaveNotes  = findViewById<Button>(R.id.report_btn_save_notes)
 
         lifecycleScope.launch {
             val prefs = prefsRepo.userPreferencesFlow.first()
@@ -125,6 +131,25 @@ class SessionReportActivity : AppCompatActivity() {
                 btnFreePack.isEnabled = isCapsule
                 btnCapsule.alpha  = if (isCapsule) 1.0f else 0.5f
                 btnFreePack.alpha = if (!isCapsule) 1.0f else 0.5f
+
+                // Notes & rating — only pre-fill if EditText hasn't been touched
+                if (!etNotes.isFocused) {
+                    etNotes.setText(meta?.notes ?: "")
+                }
+                ratingBar.rating = (meta?.rating ?: 0).toFloat()
+            }
+        }
+
+        btnSaveNotes.setOnClickListener {
+            lifecycleScope.launch(Dispatchers.IO) {
+                val existing = db.sessionMetadataDao().getMetadataForSession(sessionId)
+                db.sessionMetadataDao().insertOrUpdate(
+                    (existing ?: com.sbtracker.data.SessionMetadata(sessionId = sessionId)).copy(
+                        notes = etNotes.text.toString().trim().ifEmpty { null },
+                        rating = ratingBar.rating.toInt().takeIf { it > 0 }
+                    )
+                )
+                analyticsRepo.invalidateSession(sessionId)
             }
         }
 

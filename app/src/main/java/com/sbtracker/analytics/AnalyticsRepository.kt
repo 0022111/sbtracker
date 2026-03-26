@@ -102,6 +102,7 @@ class AnalyticsRepository(private val db: AppDatabase) {
                 // for older sessions without that data the delta will be 0.
                 val startRuntimeD   = async { db.extendedDataDao().getHeaterRuntime(session.deviceAddress) ?: 0 }
                 val endRuntimeD     = async { db.extendedDataDao().getHeaterRuntime(session.deviceAddress) ?: 0 }
+                val metadataD       = async { db.sessionMetadataDao().getMetadataForSession(session.id) }
 
                 val hitStats       = hitStatsD.await()
                 val startBattery   = startBatD.await()
@@ -112,6 +113,7 @@ class AnalyticsRepository(private val db: AppDatabase) {
                 val heatUpTimeMs   = if (firstSetpointMs != null) firstSetpointMs - session.startTimeMs else 0L
                 val startRuntime   = startRuntimeD.await()
                 val endRuntime     = endRuntimeD.await()
+                val metadata       = metadataD.await()
 
                 SessionSummary(
                     session           = session,
@@ -122,7 +124,9 @@ class AnalyticsRepository(private val db: AppDatabase) {
                     avgTempC          = avgTempC,
                     peakTempC         = peakTempC,
                     heatUpTimeMs      = heatUpTimeMs,
-                    heaterWearMinutes = (endRuntime - startRuntime).coerceAtLeast(0)
+                    heaterWearMinutes = (endRuntime - startRuntime).coerceAtLeast(0),
+                    rating            = metadata?.rating,
+                    notes             = metadata?.notes
                 ).also { cache[session.id] = it }
             }
         }
