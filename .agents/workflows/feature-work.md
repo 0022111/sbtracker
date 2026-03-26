@@ -12,7 +12,25 @@ You must strictly follow **The Matrix Protocol**: act as Apoc, Switch, Mouse, Gh
 
 ---
 
-## ⚠️ BRANCHING RULES — READ BEFORE ANYTHING ELSE
+## ⚠️ FILE OWNERSHIP — READ BEFORE ANYTHING ELSE
+
+Workers have a **strict scope**. Touching shared meta-files causes merge conflicts across parallel agents. This table is non-negotiable.
+
+| File / Path | Worker May Edit? | Who Edits? |
+|---|---|---|
+| Feature code (`.kt`, `.xml`, `.json`) | ✅ Yes | Worker |
+| `changelogs/T-XXX.md` (create new) | ✅ Yes | Worker |
+| `.agents/TASKS.md` | ❌ **NEVER** | Orchestrator only |
+| `BACKLOG.md` | ❌ **NEVER** | Orchestrator / Planner only |
+| `CHANGELOG.md` | ❌ **NEVER** | Orchestrator at release time |
+| `PROJECT.md` | ❌ **NEVER** | Orchestrator / Oracle only |
+| `AGENT_INFO.md` / `CLAUDE.md` | ❌ **NEVER** | User / Orchestrator only |
+
+**Why:** Multiple agents run in parallel. Every shared file they all edit becomes a merge conflict. Agents that touch only their own code + a uniquely-named changelog fragment will **never** conflict with each other.
+
+---
+
+## ⚠️ BRANCHING RULES
 
 ```
 main   ← NEVER touch directly. Stable releases only.
@@ -22,8 +40,8 @@ dev    ← NEVER push feature code here directly. PRs only.
 
 - **Every feature/fix lives on its own `claude/T-XXX-*` branch.**
 - **Every branch is submitted as a PR targeting `dev`.** Never `main`.
-- **The ONLY thing you may push directly to `dev`** is the meta-file status update in Step 9 (marking the task `done` in `.agents/TASKS.md`). Nothing else.
-- If you are unsure whether something is a meta-file, **it is not — use a PR.**
+- **NEVER push anything directly to `dev`.** Not meta-files, not TASKS.md, nothing. Use PRs only.
+- If you are unsure whether you should edit a file, check the ownership table above.
 
 ---
 
@@ -48,26 +66,26 @@ dev    ← NEVER push feature code here directly. PRs only.
    git add <changed files>
    git commit -m "T-XXX: description of change"
    ```
-   Do **not** add unrelated files. Do **not** add TASKS.md here — that comes in the next step.
+   Do **not** add unrelated files. Only add files in your task scope.
 
-6. **Mark the task done — commit TASKS.md on your branch:**
-   Edit `.agents/TASKS.md` to change T-XXX status to `done`, then commit it:
-   ```bash
-   git add .agents/TASKS.md
-   git commit -m "meta: T-XXX done"
+6. **Drop a changelog fragment** — create `changelogs/T-XXX.md` with a brief summary:
    ```
-   This stays on your feature branch and merges with your PR. **Never push directly to `dev`.**
+   YYYY-MM-DD — Short Title (T-XXX)
+   - **Added/Fixed/Changed** description
+   ```
+   ```bash
+   git add changelogs/T-XXX.md
+   git commit -m "docs: T-XXX changelog fragment"
+   ```
 
-7. **Do NOT touch `CHANGELOG.md`.** The Orchestrator writes one consolidated entry after all PRs in the wave merge.
-
-8. **Rebase onto latest `dev` before pushing** to ensure a clean, conflict-free PR:
+7. **Rebase onto latest `dev` before pushing** to ensure a clean, conflict-free PR:
    ```bash
    git fetch origin dev
    git rebase origin/dev
    ```
    Resolve any conflicts, then `git rebase --continue`.
 
-9. Establish hardline (Push your branch) and upload to the Nebuchadnezzar (open a PR targeting **`dev`**):
+8. Establish hardline (Push your branch) and upload to the Nebuchadnezzar (open a PR targeting **`dev`**):
    ```bash
    git push -u origin claude/T-XXX-description
    ```
@@ -78,6 +96,8 @@ dev    ← NEVER push feature code here directly. PRs only.
    - `body`: summary of changes + `Closes T-XXX`
    - `head`: `claude/T-XXX-description`
    - `base`: `dev`   ← **always dev, never main**
+
+**That's it. You're done.** The Orchestrator handles TASKS.md, BACKLOG.md, and CHANGELOG.md after your PR merges.
 
 ---
 

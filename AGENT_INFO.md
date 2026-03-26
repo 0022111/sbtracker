@@ -29,15 +29,7 @@ Each task gets its own isolated branch. That branch proposes changes to `dev` vi
    # Then create PR using mcp__github__create_pull_request with base=dev
    ```
 
-3. **Meta-files push directly to `dev` (ONLY after PR is open)**
-   ```bash
-   # Create isolated commit with JUST the meta-file change
-   git checkout -b meta-T-XXX-done origin/dev
-   # Edit .agents/TASKS.md (change status to done)
-   git add .agents/TASKS.md
-   git commit -m "meta: T-XXX done"
-   git push origin HEAD:dev  # Push only this commit to dev
-   ```
+3. **Never edit shared meta-files** — Workers do NOT edit `TASKS.md`, `BACKLOG.md`, `CHANGELOG.md`, or `PROJECT.md`. Drop a `changelogs/T-XXX.md` fragment on your feature branch instead. The Orchestrator handles the rest.
 
 4. **Always keep branches synced with `dev`**
    ```bash
@@ -53,38 +45,20 @@ Each task gets its own isolated branch. That branch proposes changes to `dev` vi
 - Changelog and TASKS.md stay in sync across parallel sessions
 - Conflicts are caught early (in PRs) not lost in direct pushes
 
-### Meta-file Live Sync (Protected)
+### Meta-file Ownership (Conflict Prevention)
 
-To ensure a "universal bucket" of information across all agents, meta-file updates must be pushed directly to `dev` **ONLY AFTER** the associated PR is open or merged.
+Shared meta-files are the #1 source of merge conflicts when agents work in parallel. **Workers must never edit these files.** Only the Orchestrator and Planner roles may edit them.
 
-**Meta-files:**
-- `BACKLOG.md`, `PROJECT.md`, `CHANGELOG.md`
-- `AGENT_INFO.md`, `CLAUDE.md`, `.cursorrules`
-- `.agents/TASKS.md`, `.agents/tasks/T-*.md`
+| File | Who May Edit | When |
+|---|---|---|
+| `.agents/TASKS.md` | Orchestrator | After PR merges (mark task `done`) |
+| `BACKLOG.md` | Orchestrator / Planner | Status sync, new item creation |
+| `CHANGELOG.md` | Orchestrator | At release time (merge fragments from `changelogs/`) |
+| `PROJECT.md` | Orchestrator / Oracle | Architecture updates |
+| `AGENT_INFO.md`, `CLAUDE.md`, `.cursorrules` | User / Orchestrator | Rule changes |
+| `.agents/tasks/T-*.md` | Planner | Task file creation |
 
-**When to push directly to `dev`:**
-1. **After a feature PR is merged**: Update `.agents/TASKS.md` to mark the task `done`
-2. **Planner work**: After creating task files, push `.agents/tasks/T-*.md` and update `BACKLOG.md`/`.agents/TASKS.md`
-3. **Orchestrator work**: Sync `BACKLOG.md` status, unblock tasks in `.agents/TASKS.md`
-
-**The Isolated Commit Workflow:**
-```bash
-git fetch origin dev
-git checkout -b meta-update-branch origin/dev
-
-# Edit the meta-file(s)
-git add [meta-files only]
-git commit -m "meta: update [description]"
-
-# Push ONLY this meta-file change to dev
-git push origin HEAD:dev
-
-# Return to feature branch (if still working)
-git checkout claude/T-XXX-name
-git branch -d meta-update-branch
-```
-
-**Critical**: Never push feature code mixed with meta-file updates. Always use a separate, clean checkout of `origin/dev`.
+**Workers** create a uniquely-named `changelogs/T-XXX.md` fragment on their feature branch. This never conflicts because each file has a unique name.
 
 ### Naming convention
 - **Prefix**: `claude/` for all agent branches
@@ -110,10 +84,9 @@ Agents are responsible for maintaining the project's "living documentation" (`PR
 
 ### Changelog Requirements
 
-You MUST **always** update `CHANGELOG.md` immediately upon completing any work, including documentation and orchestration changes. 
+**Workers:** Drop a fragment file in `changelogs/T-XXX.md` on your feature branch. Never edit `CHANGELOG.md` directly. See `changelogs/README.md` for format.
 
-- **Detailed Metadata**: Include the current timestamp (YYYY-MM-DD HH:MM), authorship (e.g., Antigravity), and origin (e.g., "Direct push to dev" or "PR to dev").
-- **Simultaneous Edits**: Be extremely diligent about this; multiple agents working in parallel cause fragmentation if the changelog isn't kept perfectly in sync. Direct syncing of meta-files to `dev` is specifically designed to mitigate this.
+**Orchestrator:** At release time, merge all fragments into `CHANGELOG.md` with detailed metadata (timestamp, authorship, origin). Then delete the fragment files.
 
 ### Internal Agent State (Brain)
 

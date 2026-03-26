@@ -50,21 +50,21 @@ git add <changed files>
 git commit -m "T-XXX: description"
 ```
 
-**4. Update CHANGELOG.md** (on your branch)
+**6. Drop a changelog fragment**
 ```bash
-# Edit CHANGELOG.md: add one line under [Unreleased]
-git add CHANGELOG.md
-git commit -m "docs: T-XXX changelog"
+# Create changelogs/T-XXX.md with a brief description
+git add changelogs/T-XXX.md
+git commit -m "docs: T-XXX changelog fragment"
 ```
 
-**5. Rebase & push**
+**7. Rebase & push**
 ```bash
 git fetch origin dev
 git rebase origin/dev           # Ensure clean history
 git push -u origin claude/T-XXX-description
 ```
 
-**6. Create PR** (target `dev`, never `main`)
+**8. Create PR** (target `dev`, never `main`)
 ```bash
 # Use mcp__github__create_pull_request:
 # - owner: 0022111
@@ -74,36 +74,25 @@ git push -u origin claude/T-XXX-description
 # - title: T-XXX — Task Title
 ```
 
-**7. Mark task done** (isolated meta push)
-```bash
-git fetch origin dev
-git checkout -b meta-T-XXX-done origin/dev
-
-# Edit .agents/TASKS.md: change status to `done`
-git add .agents/TASKS.md
-git commit -m "meta: T-XXX done"
-git push origin HEAD:dev        # Push only TASKS.md to dev
-
-git checkout claude/T-XXX-description
-git branch -d meta-T-XXX-done
-```
+**Done.** The Orchestrator handles TASKS.md, BACKLOG.md, and CHANGELOG.md.
 
 ---
 
-## Meta-files (Allowed for Direct Push to `dev`)
+## Meta-files (Restricted — Orchestrator/Planner Only)
 
-These files can be pushed directly to `dev` *after* their associated PR is open:
+These files are the #1 source of merge conflicts. **Workers must never edit them.**
 
-- `.agents/TASKS.md` (mark tasks `done` after PR merges)
-- `CHANGELOG.md` (append entry on feature branch, then pushed via PR; only direct push if orchestrator syncing)
-- `BACKLOG.md` (planner updates before decomposing into tasks; sync to dev directly)
-- `.agents/tasks/T-*.md` (new task files; direct push after creation)
-- `AGENT_INFO.md`, `CLAUDE.md` (agent instruction updates; direct push)
+| File | Who May Edit | When |
+|---|---|---|
+| `.agents/TASKS.md` | Orchestrator | After PR merges |
+| `CHANGELOG.md` | Orchestrator | At release time (merge `changelogs/` fragments) |
+| `BACKLOG.md` | Orchestrator / Planner | Status sync, new items |
+| `.agents/tasks/T-*.md` | Planner | Task creation |
+| `AGENT_INFO.md`, `CLAUDE.md` | User / Orchestrator | Rule changes |
 
-**Rule**: Push meta-files directly to `dev` *only* if:
-1. They don't contain feature code
-2. You've isolated the commit (it only modifies that meta-file)
-3. You use `git push origin HEAD:dev` from a clean checkout of `origin/dev`
+**Workers** create `changelogs/T-XXX.md` on their feature branch. Unique filename = zero conflicts.
+
+**Orchestrator/Planner** may push meta-file edits via their own PR or a direct push to `dev` — but only meta-files, never feature code.
 
 ---
 

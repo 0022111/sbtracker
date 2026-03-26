@@ -205,13 +205,12 @@ The architecture is intentionally split to maximise portability:
 3. **Never store derived data** in the DB — compute from `device_status`.
 4. **Never skip schema versions** — always increment by 1.
 5. **Keep `fallbackToDestructiveMigration()`** during development (removed in T-016).
-6. **Update `BACKLOG.md`** when starting and completing work.
-7. **Drop a fragment in `changelogs/`** — one `.md` file per PR, named after your task or branch slug. Never edit `CHANGELOG.md` directly. See `changelogs/README.md`.
-8. **Mark tasks done in `.agents/TASKS.md`** when complete.
-9. **Use agent branches** — `claude/T-XXX-description` for task work.
-10. **Follow PR-based workflow** — create a branch, implement, verify, submit PR. Never commit directly to `main`.
-11. **Verify build** — `./gradlew assembleDebug` must pass before pushing.
-12. **Reference app** in `!gitignore.referenceonly-reactive-volcano-app-main/` is for protocol reference only — do not modify.
+6. **Drop a changelog fragment** — create `changelogs/T-XXX.md` on your feature branch. Never edit `CHANGELOG.md` directly.
+7. **Do NOT edit `TASKS.md`, `BACKLOG.md`, or `CHANGELOG.md`** — that's the Orchestrator's job after your PR merges.
+8. **Use agent branches** — `claude/T-XXX-description` for task work.
+9. **Follow PR-based workflow** — create a branch, implement, verify, submit PR. Never commit directly to `main`.
+10. **Verify build** — `./gradlew assembleDebug` must pass before pushing.
+11. **Reference app** in `!gitignore.referenceonly-reactive-volcano-app-main/` is for protocol reference only — do not modify.
 
 ---
 
