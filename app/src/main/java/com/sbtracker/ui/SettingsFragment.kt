@@ -123,6 +123,19 @@ class SettingsFragment : Fragment() {
                 .setNegativeButton("Cancel", null)
                 .show()
         }
+        binding.btnClearDeviceHistory.setOnClickListener {
+            val device = bleVm.activeDevice.value ?: return@setOnClickListener
+            android.app.AlertDialog.Builder(requireContext())
+                .setTitle("Clear Device History")
+                .setMessage("This will permanently delete all sessions, charges, and raw logs for ${device.serialNumber}. This cannot be undone.")
+                .setPositiveButton("Clear") { _, _ ->
+                    historyVm.clearSessionHistory(device)
+                    android.widget.Toast.makeText(requireContext(), "History cleared", android.widget.Toast.LENGTH_SHORT).show()
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+        }
+
         binding.btnDevRebuildHistory.setOnClickListener {
             viewLifecycleOwner.lifecycleScope.launch {
                 historyVm.rebuildSessionHistoryFromLogs()

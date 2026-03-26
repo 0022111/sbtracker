@@ -605,6 +605,16 @@
             app:cornerRadius="16dp" />
 
         <Button
+            android:id="@+id/btn_clear_device_history"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginTop="12dp"
+            android:backgroundTint="#141E17"
+            android:text="CLEAR DEVICE HISTORY"
+            android:textColor="#FF453A"
+            app:cornerRadius="16dp" />
+
+        <Button
             android:id="@+id/btn_dev_rebuild_history"
             android:layout_width="match_parent"
             android:layout_height="56dp"
