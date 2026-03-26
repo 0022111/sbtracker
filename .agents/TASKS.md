@@ -123,9 +123,9 @@ main  ← stable, merges only from dev
 | ID | Status | Title | Task File | Blocked by |
 |---|---|---|---|---|
 | T-049 | `done` | SessionsTabFragment: Sessions List Sub-Page | [T-049](tasks/T-049-sessions-tab-fragment.md) | — |
-| T-050 | `ready` | AnalyticsTabFragment: Analytics Dashboard Sub-Page | [T-050](tasks/T-050-analytics-tab-fragment.md) | — |
-| T-051 | `ready` | HealthTabFragment: Health & Intake Sub-Page | [T-051](tasks/T-051-health-tab-fragment.md) | — |
-| T-052 | `blocked` | Wire History Tabs: TabLayout + ViewPager2 | [T-052](tasks/T-052-history-tabs-wire.md) | T-049, T-050, T-051 |
+| T-050 | `done` | AnalyticsTabFragment: Analytics Dashboard Sub-Page | [T-050](tasks/T-050-analytics-tab-fragment.md) | — |
+| T-051 | `done` | HealthTabFragment: Health & Intake Sub-Page | [T-051](tasks/T-051-health-tab-fragment.md) | — |
+| T-052 | `done` | Wire History Tabs: TabLayout + ViewPager2 | [T-052](tasks/T-052-history-tabs-wire.md) | T-049, T-050, T-051 |
 
 ## Phase 3 — F-026 Data Backup/Restore
 
