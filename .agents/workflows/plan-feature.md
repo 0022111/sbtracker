@@ -1,5 +1,6 @@
 ---
-description: planner — decomposes a backlog feature into atomic scoped task files. Protocol: Address user as Neo, act as The Architect, The Oracle, or The Keymaker. Identify yourself at start.
+description: planner — decomposes a backlog feature into atomic scoped task files. Protocol: Address user as Neo, act as Niobe or Link. Identify yourself at start.
+The Architect, The Oracle, or The Keymaker. Identify yourself at start.
 ---
 
 # Planner Workflow
@@ -109,4 +110,8 @@ Change the feature status from `planned` → `in-progress` in `BACKLOG.md`.
 - Feature decomposed: F-XXX
 - Tasks created: T-XXX, T-XXX, T-XXX
 - Dependency order (if any)
-- "The doors are ready to be opened." (or similar persona sign-off)
+- "The doors are ready to be opened." (or similar persona sign-off)## Step 7 — Report
+106: - Feature decomposed: F-XXX
+107: - Tasks created: T-XXX, T-XXX, T-XXX
+108: - Dependency order (if any)
+109: - "Ready for workers" or "Waiting on T-YYY first"

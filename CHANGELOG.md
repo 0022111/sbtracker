@@ -4,6 +4,28 @@
 
 ---
 
+### 2026-03-26 — F-027: Session Programs Execution & Estimations (Antigravity/Worker)
+
+- **Rationale**: Completes the core value loop for Session Programs by enabling users to not only define programs but also execute them with real-time feedback. Surfaces data-driven battery drain predictions to help users plan long-range sessions.
+- **Technical Changes**:
+  - **T-083 (Database)**: Updated `SessionProgram` to include `stayOnAtEnd: Boolean` and implemented Migration v4→v5.
+  - **T-084 (Analytics)**: Implemented `AnalyticsRepository.computeAvgDrainPerMinute()` using weighted historical session data; exposed via `HistoryViewModel.avgDrainPerMinute`.
+  - **T-046 (Engine)**: 
+    - Created `ActiveProgramHolder` singleton to bridge program selection to the heater control loop.
+    - Implemented `SessionViewModel.startSessionWithProgram()` which schedules temperature boosts using a coroutine-based delay loop.
+    - Added `SessionViewModel.calculateProgramDuration()` helper.
+    - Enhanced `SessionFragment` grid: click to select/deselect, long-press to edit, visual highlight for active selection.
+  - **T-056 (Persistence)**: Updated `BleViewModel` to consume `ActiveProgramHolder` and save `appliedProgramId` to `session_metadata` when a session completes.
+  - **T-085 (UI)**: 
+    - Updated `SessionFragment` hero window to show "MM:SS (est.)" and "−X% (Ym est.)" labels when a program is selected and the device is idle.
+    - Added `session_tv_drain_preview` to `fragment_session.xml`.
+    - Integrated `R.color.color_surface_highlight` for selection states.
+- **Technical Debt**:
+  - `T-057` (History UI badges) remains planned; program names are saved to DB but not yet displayed in the session history list.
+  - `stayOnAtEnd` logic in the execution loop is "barebones" (currently defaults to heater off at end of last step unless implemented further in T-083 phase 2).
+
+---
+
 ### 2026-03-25 — F-027: Document Aspirational Scope + Close PR #66 (Claude)
 
 - **Added** task files T-083 (DB migration v4→5 / stayOnAtEnd), T-084 (drain estimation data layer), T-085 (hero window + drain preview UI) to capture the unimplemented bonus features from PR #66

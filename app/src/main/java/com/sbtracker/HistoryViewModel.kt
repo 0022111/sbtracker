@@ -148,6 +148,10 @@ class HistoryViewModel @Inject constructor(
                 db.sessionDao().observeAllSessions()
             sessionsFlow.map { sessions -> analyticsRepo.getSessionSummaries(sessions) }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    
+    val avgDrainPerMinute: StateFlow<Float> = deviceSessionSummaries
+        .map { summaries -> analyticsRepo.computeAvgDrainPerMinute(summaries) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0f)
 
     val estimatedHeatUpTimeSecs: StateFlow<Long?> =
         combine(deviceSessionSummaries, MutableStateFlow(180)) { summaries, target ->

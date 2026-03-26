@@ -54,6 +54,7 @@ class SessionFragment : Fragment() {
         val tvHeatUp = binding.sessionTvHeatUp
         val tvReadyTime = binding.sessionTvReadyTime
         val tvHeatUpEstimate = binding.sessionTvHeatUpEstimate
+        val tvDrainPreview = binding.sessionTvDrainPreview
 
         val rowRunningStats = binding.sessionRunningStatsRow
         val gridStats = binding.statsGrid
@@ -75,7 +76,14 @@ class SessionFragment : Fragment() {
         val btnBoost = binding.btnModeBoost
         val btnSuper = binding.btnModeSuperboost
 
-        btnStartNormal.setOnClickListener { sessionVm.startSession(bleVm.targetTemp.value) }
+        btnStartNormal.setOnClickListener { 
+            val selected = sessionVm.selectedProgram.value
+            if (selected != null) {
+                sessionVm.startSessionWithProgram(selected)
+            } else {
+                sessionVm.startSession(bleVm.targetTemp.value) 
+            }
+        }
         btnEnd.setOnClickListener { sessionVm.setHeater(false) }
 
         binding.btnTempPlus.setOnClickListener {
@@ -149,15 +157,45 @@ class SessionFragment : Fragment() {
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
-            combine(bleVm.latestStatus, historyVm.estimatedHeatUpTimeSecsWithContext(bleVm.targetTemp, bleVm)) { s, est -> s to est }.collect { (s, est) ->
+            combine(
+                bleVm.latestStatus,
+                historyVm.estimatedHeatUpTimeSecsWithContext(bleVm.targetTemp, bleVm),
+                sessionVm.selectedProgram,
+                historyVm.avgDrainPerMinute
+            ) { s, heatUpEst, selected, avgDrain ->
                 val isIdleOrOffline = s == null || s.heaterMode == 0
-                if (isIdleOrOffline && est != null) {
+                if (!isIdleOrOffline) {
+                    tvHeatUpEstimate.visibility = View.GONE
+                    tvDrainPreview.visibility = View.GONE
+                    return@combine
+                }
+
+                // 1. Heat-up Est (from T-017 / T-084)
+                if (heatUpEst != null) {
                     tvHeatUpEstimate.visibility = View.VISIBLE
-                    tvHeatUpEstimate.text = "Est. heat-up: ${est}s"
+                    tvHeatUpEstimate.text = "Est. heat-up: ${heatUpEst}s"
                 } else {
                     tvHeatUpEstimate.visibility = View.GONE
                 }
-            }
+
+                // 2. Program Details (T-085)
+                if (selected != null) {
+                    val durationSec = sessionVm.calculateProgramDuration(selected)
+                    val durationMin = durationSec / 60
+                    val durationRem = durationSec % 60
+                    
+                    val drainPct = (avgDrain * (durationSec / 60f)).roundToInt()
+                    
+                    tvDrainPreview.visibility = View.VISIBLE
+                    tvDrainPreview.text = "Program: ${selected.name}\n${"%02d:%02d".format(durationMin, durationRem)} (est.)  −${drainPct}% (Ym est.)"
+                    
+                    // Update Ignite button text
+                    btnStartNormal.text = "IGNITE PROGRAM"
+                } else {
+                    tvDrainPreview.visibility = View.GONE
+                    btnStartNormal.text = "IGNITE"
+                }
+            }.collect {}
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
@@ -218,17 +256,17 @@ class SessionFragment : Fragment() {
                 defaults to customs
             }.collect { (defaults, customs) ->
                 gridLayout.removeAllViews()
-
                 val allPrograms = (defaults + customs).take(6)
+                val selectedId = sessionVm.selectedProgram.value?.id
 
                 allPrograms.forEachIndexed { idx, program ->
-                    val isDefaultProgram = program.isDefault
+                    val isSelected = program.id == selectedId
                     val btnProgram = Button(requireContext()).apply {
                         text = "${program.name}\n${program.targetTempC}°C"
                         textSize = 12f
-                        setTextColor(0xFFFFFFFF.toInt())
+                        setTextColor(if (isSelected) 0xFF00FF41.toInt() else 0xFFFFFFFF.toInt())
                         setBackgroundTintList(android.content.res.ColorStateList.valueOf(
-                            ContextCompat.getColor(requireContext(), R.color.color_surface)
+                            ContextCompat.getColor(requireContext(), if (isSelected) R.color.color_surface_highlight else R.color.color_surface)
                         ))
                         layoutParams = GridLayout.LayoutParams().apply {
                             width = 0
@@ -240,7 +278,15 @@ class SessionFragment : Fragment() {
                         setPadding(16, 24, 16, 24)
 
                         setOnClickListener {
+                            if (isSelected) {
+                                sessionVm.selectProgram(null)
+                            } else {
+                                sessionVm.selectProgram(program)
+                            }
+                        }
+                        setOnLongClickListener {
                             showProgramEditor(program)
+                            true
                         }
                     }
                     gridLayout.addView(btnProgram)

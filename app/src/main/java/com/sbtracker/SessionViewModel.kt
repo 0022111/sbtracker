@@ -11,6 +11,10 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import com.sbtracker.data.ProgramRepository
 import com.sbtracker.data.SessionProgram
+import com.sbtracker.data.ActiveProgramHolder
+import org.json.JSONArray
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 
 /**
  * Owns device write commands: heater control, temperature, boost, brightness,
@@ -19,11 +23,17 @@ import com.sbtracker.data.SessionProgram
 @HiltViewModel
 class SessionViewModel @Inject constructor(
     private val bleManager: BleManager,
-    private val programRepository: ProgramRepository
+    private val programRepository: ProgramRepository,
+    private val activeProgramHolder: ActiveProgramHolder
 ) : ViewModel() {
+
+    private var programJob: Job? = null
 
     val programs: StateFlow<List<SessionProgram>> = programRepository.programs
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val selectedProgram: StateFlow<SessionProgram?> = activeProgramHolder.activeProgram
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     val defaultPrograms: StateFlow<List<SessionProgram>> = programs
         .map { it.filter { p -> p.isDefault } }
@@ -47,6 +57,53 @@ class SessionViewModel @Inject constructor(
             BleConstants.WRITE_TEMPERATURE or BleConstants.WRITE_HEATER_STATE,
             tempC = clamped, mode = 1
         ))
+    }
+
+    fun selectProgram(program: SessionProgram?) {
+        activeProgramHolder.set(program)
+    }
+
+    fun startSessionWithProgram(program: SessionProgram) {
+        programJob?.cancel()
+        programJob = viewModelScope.launch {
+            // 1. Initial Start
+            val mask = BleConstants.WRITE_TEMPERATURE or BleConstants.WRITE_HEATER_STATE
+            bleManager.sendWrite(BlePacket.buildStatusWrite(mask, tempC = program.targetTempC, mode = 1))
+            
+            // 2. Parse and schedule boosts
+            runCatching {
+                val steps = JSONArray(program.boostStepsJson)
+                val startTime = System.currentTimeMillis()
+                
+                for (i in 0 until steps.length()) {
+                    val step = steps.getJSONObject(i)
+                    val offsetSec = step.optInt("offsetSec", 0)
+                    val boostC = step.optInt("boostC", 0)
+                    
+                    val now = System.currentTimeMillis()
+                    val targetTime = startTime + (offsetSec * 1000L)
+                    val delayMs = targetTime - now
+                    
+                    if (delayMs > 0) delay(delayMs)
+                    setBoost(boostC)
+                }
+            }
+        }
+    }
+
+    fun calculateProgramDuration(program: SessionProgram?): Int {
+        if (program == null) return 0
+        return runCatching {
+            val steps = JSONArray(program.boostStepsJson)
+            if (steps.length() == 0) return 0
+            var maxOffset = 0
+            for (i in 0 until steps.length()) {
+                val offset = steps.getJSONObject(i).optInt("offsetSec", 0)
+                if (offset > maxOffset) maxOffset = offset
+            }
+            // Standard session duration logic: last boost offset + 30s grace, min 180s
+            maxOffset + 30
+        }.getOrDefault(180).coerceAtLeast(180)
     }
 
     fun setHeater(on: Boolean) = bleManager.sendWrite(BlePacket.buildSetHeater(on))

@@ -13,6 +13,7 @@
     <color name="color_gray_mid">#636366</color>
     <color name="color_gray_dim">#8E8E93</color>
     <color name="color_surface">#2C2C2E</color>
+    <color name="color_surface_highlight">#3A3A3C</color>
     <color name="color_background">#111113</color>
 
     <!-- Custom usage colors -->

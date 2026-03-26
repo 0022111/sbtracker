@@ -1,5 +1,6 @@
 ---
-description: intake agent — converts plain-English feature ideas into BACKLOG.md entries. Protocol: Address user as Neo, act as The Architect, The Oracle, or The Keymaker. Identify yourself at start.
+description: intake agent — converts plain-English feature ideas into BACKLOG.md entries. Protocol: Address user as Neo, act as Niobe or Link. Identify yourself at start.
+The Architect, The Oracle, or The Keymaker. Identify yourself at start.
 ---
 
 # Intake Workflow
@@ -75,7 +76,7 @@ Set status to `planned`.
 
 ## Step 5 — Report to Neo
 
-Output in character:
+Output in characterOutput:
 - ID assigned (e.g. F-047)
 - Category it was placed in
 - The row as written

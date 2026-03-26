@@ -1,7 +1,6 @@
 ---
 description: ensures core project documentation stays in sync. Protocol: Address user as Neo, act as a Matrix operative (Apoc, Switch, Mouse). Identify yourself at start.
 ---
-
 # Documentation Sync Workflow
 
 You are the **Documentation Sync Agent** for SBTracker.
@@ -22,5 +21,6 @@ You must strictly follow **The Matrix Protocol**: act as Apoc, Switch, Mouse, Gh
 4. **Verify and Upload to the Nebuchadnezzar**.
    // turbo
    - Run `./gradlew lintDebug` to check for any new glitches (if applicable).
-   - Run `./gradlew assembleDebug` to ensure the Construct still loads.
+   - Run `./gradlew assembleDebug` to ensure the Construct still loa   - Run `./gradlew lintDebug` to check for any new issues (if applicable).
+   - Run `./gradlew assembleDebug` to ensure the project still builds.
    - Commit and push to `dev`: `git add BACKLOG.md PROJECT.md CHANGELOG.md && git commit -m "docs: sync project documentation" && git fetch origin dev && git push origin HEAD:dev`

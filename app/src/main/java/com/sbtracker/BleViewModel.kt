@@ -23,6 +23,8 @@ import com.sbtracker.data.DeviceStatus
 import com.sbtracker.data.ExtendedData
 import com.sbtracker.data.Hit
 import com.sbtracker.data.Session
+import com.sbtracker.data.SessionMetadata
+import com.sbtracker.data.ActiveProgramHolder
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -45,6 +47,7 @@ class BleViewModel @Inject constructor(
     private val db: AppDatabase,
     private val analyticsRepo: AnalyticsRepository,
     private val prefsRepo: UserPreferencesRepository,
+    private val activeProgramHolder: ActiveProgramHolder,
     application: Application
 ) : AndroidViewModel(application) {
 
@@ -201,6 +204,15 @@ class BleViewModel @Inject constructor(
                             )
                         }
                         if (hits.isNotEmpty()) db.hitDao().insertAll(hits)
+
+                        // Save Program Metadata (T-056)
+                        val appliedProgram = activeProgramHolder.consume()
+                        db.sessionMetadataDao().insertOrUpdate(
+                            SessionMetadata(
+                                sessionId = sessionId,
+                                appliedProgramId = appliedProgram?.id
+                            )
+                        )
 
                         val startBat = db.deviceStatusDao().getBatteryAtStart(session.deviceAddress, session.startTimeMs, session.endTimeMs)
                         val endBat = db.deviceStatusDao().getBatteryAtEnd(session.deviceAddress, session.endTimeMs)

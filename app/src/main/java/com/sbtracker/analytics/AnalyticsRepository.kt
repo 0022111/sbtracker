@@ -206,6 +206,19 @@ class AnalyticsRepository(private val db: AppDatabase) {
         )
     }
 
+    /**
+     * Compute the average battery drain percentage per minute of heater-on time across [summaries].
+     * Excludes sessions with no battery data or zero duration to prevent noise.
+     */
+    fun computeAvgDrainPerMinute(summaries: List<SessionSummary>): Float {
+        val sessionsWithDrain = summaries.filter { it.batteryConsumed > 0 && it.durationMs > 0 }
+        if (sessionsWithDrain.isEmpty()) return 0f
+
+        val totalDrain = sessionsWithDrain.sumOf { it.batteryConsumed }
+        val totalMinutes = sessionsWithDrain.sumOf { it.durationMs } / 60_000.0
+        return if (totalMinutes > 0) (totalDrain / totalMinutes).toFloat() else 0f
+    }
+
     // ── Pre-session estimates ─────────────────────────────────────────────────
 
     /**
