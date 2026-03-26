@@ -614,35 +614,55 @@
             android:textColor="#FF453A"
             app:cornerRadius="16dp" />
 
-        <Button
-            android:id="@+id/btn_dev_rebuild_history"
+        <!-- ── DEVELOPER TOOLS (hidden — tap firmware version 7× to unlock) ── -->
+        <LinearLayout
+            android:id="@+id/layout_dev_tools"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:layout_marginTop="12dp"
-            android:backgroundTint="#141E17"
-            android:text="DEV: REBUILD HISTORY FROM LOGS"
-            android:textColor="#30D158"
-            app:cornerRadius="16dp" />
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
 
-        <Button
-            android:id="@+id/btn_dev_inject_test_device"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:layout_marginTop="12dp"
-            android:backgroundTint="#0B110D"
-            android:text="DEV: INJECT TEST DEVICE"
-            android:textColor="#0A84FF"
-            app:cornerRadius="16dp" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="DEVELOPER"
+                android:textColor="#80A88F"
+                android:textSize="11sp"
+                android:letterSpacing="0.1"
+                android:textStyle="bold" />
 
-        <Button
-            android:id="@+id/btn_dev_remove_test_device"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:layout_marginTop="12dp"
-            android:backgroundTint="#0B110D"
-            android:text="DEV: REMOVE TEST DEVICE"
-            android:textColor="#FF453A"
-            app:cornerRadius="16dp" />
+            <Button
+                android:id="@+id/btn_dev_rebuild_history"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="12dp"
+                android:backgroundTint="#141E17"
+                android:text="DEV: REBUILD HISTORY FROM LOGS"
+                android:textColor="#30D158"
+                app:cornerRadius="16dp" />
+
+            <Button
+                android:id="@+id/btn_dev_inject_test_device"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="12dp"
+                android:backgroundTint="#0B110D"
+                android:text="DEV: INJECT TEST DEVICE"
+                android:textColor="#0A84FF"
+                app:cornerRadius="16dp" />
+
+            <Button
+                android:id="@+id/btn_dev_remove_test_device"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="12dp"
+                android:backgroundTint="#0B110D"
+                android:text="DEV: REMOVE TEST DEVICE"
+                android:textColor="#FF453A"
+                app:cornerRadius="16dp" />
+
+        </LinearLayout>
 
 
         <!-- HEALTH & DOSAGE -->

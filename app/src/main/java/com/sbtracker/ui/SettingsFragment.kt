@@ -63,6 +63,22 @@ class SettingsFragment : Fragment() {
         val tvDayStartSubtitle = binding.tvDayStartSubtitle
         val tvRetentionValue = binding.tvRetentionValue
 
+        // ── Developer mode: tap firmware version 7× to unlock ──
+        var devTapCount = 0
+        tvFw.setOnClickListener {
+            devTapCount++
+            val remaining = 7 - devTapCount
+            when {
+                devTapCount < 7 -> android.widget.Toast.makeText(
+                    requireContext(), "$remaining steps away from developer options", android.widget.Toast.LENGTH_SHORT
+                ).show()
+                devTapCount == 7 -> {
+                    binding.layoutDevTools.visibility = View.VISIBLE
+                    android.widget.Toast.makeText(requireContext(), "Developer mode enabled", android.widget.Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
         binding.rowPhoneAlerts.setOnClickListener { bleVm.togglePhoneAlerts() }
 
         // Show notification permission disabled indicator if needed (Android 13+)
