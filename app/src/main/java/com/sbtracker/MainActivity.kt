@@ -26,6 +26,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
+import com.sbtracker.data.RestoreResult
 import com.sbtracker.data.SessionSummary
 import com.sbtracker.databinding.ActivityMainPagedBinding
 import com.sbtracker.ui.LandingFragment
@@ -197,6 +198,32 @@ class MainActivity : AppCompatActivity() {
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
                 startActivity(Intent.createChooser(intent, "Export History"))
+            }
+        }
+
+        // Handle DB backup share
+        lifecycleScope.launch {
+            settingsVm.backupUri.collect { uri ->
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    type = "application/octet-stream"
+                    putExtra(Intent.EXTRA_STREAM, uri)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                startActivity(Intent.createChooser(intent, "Save Database Backup"))
+            }
+        }
+
+        // Handle DB restore completion
+        lifecycleScope.launch {
+            settingsVm.restoreResult.collect { result ->
+                if (result is RestoreResult.Success) {
+                    // Hard-restart so Room reopens the freshly restored database.
+                    val restart = Intent(this@MainActivity, MainActivity::class.java)
+                    restart.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                    startActivity(restart)
+                    android.os.Process.killProcess(android.os.Process.myPid())
+                }
+                // Failure Toasts are already shown in SettingsFragment (T-061).
             }
         }
     }
