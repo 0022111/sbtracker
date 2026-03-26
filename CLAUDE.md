@@ -18,11 +18,15 @@ Requires JDK 21. The CI workflow mirrors these commands.
 
 **⚠️ AGENTS: Debug build FAILS in this environment** (Gradle plugin resolution blocked by proxy). **IGNORE BUILD FAILURES.** Skip `./gradlew assembleDebug` entirely. Code syntax validation is sufficient. CI will handle real builds.
 
-`CHANGELOG.md` exists at the repo root. It is maintained exclusively by the **Orchestrator** after all PRs in a wave are merged to `dev`.
+Drop a fragment in `changelogs/` — one file per PR, named after your task ID or branch slug.
 
-- **Format**: `### YYYY-MM-DD HH:MM — Short Title (Author)`
-- **Metadata**: Include origin (e.g., `Wave N — Tasks T-XXX, T-YYY`) and detailed changes.
-- **Rule**: Workers must **never** touch `CHANGELOG.md`. The Orchestrator writes one consolidated entry directly to `dev` after the wave completes.
+**Format** (`changelogs/T-XXX.md` or `changelogs/YYYY-MM-DD_slug.md`):
+```
+YYYY-MM-DD — Short Title (T-XXX)
+- **Added/Fixed/Changed/Improved** description
+```
+
+**Never edit `CHANGELOG.md` directly.** It is the historical release record. The Orchestrator merges fragments into it at release time. See `changelogs/README.md`.
 
 
 # Agent Rules & Guidelines
@@ -40,7 +44,7 @@ You are working on the **SBTracker** project. Please follow these rules to maint
 - **Branch Prefix**: Always use `claude/` for agent work.
 - **Workflow**: Create a branch -> Implement -> Verify -> Submit Pull Request.
 - **Meta-files**: Meta status updates (e.g., `.agents/TASKS.md` marking task `done`) go IN the PR branch as a final commit, NOT as a separate direct push to `dev`.
-- **CHANGELOG.md**: Workers must NOT touch `CHANGELOG.md`. Orchestrator writes one consolidated entry to `dev` after all PRs in a wave merge.
+- **Changelog**: Drop a fragment in `changelogs/` per PR. Never edit `CHANGELOG.md` directly.
 - **Git Isolation**: Always spawn worker agents with `isolation: "worktree"` to prevent branch hijacking and commit cross-contamination.
 - **CI Verification**: GitHub Actions build will verify syntax. Do not attempt local builds.
 

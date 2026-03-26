@@ -206,7 +206,7 @@ The architecture is intentionally split to maximise portability:
 4. **Never skip schema versions** — always increment by 1.
 5. **Keep `fallbackToDestructiveMigration()`** during development (removed in T-016).
 6. **Update `BACKLOG.md`** when starting and completing work.
-7. **Append to `CHANGELOG.md`** after completing changes.
+7. **Drop a fragment in `changelogs/`** — one `.md` file per PR, named after your task or branch slug. Never edit `CHANGELOG.md` directly. See `changelogs/README.md`.
 8. **Mark tasks done in `.agents/TASKS.md`** when complete.
 9. **Use agent branches** — `claude/T-XXX-description` for task work.
 10. **Follow PR-based workflow** — create a branch, implement, verify, submit PR. Never commit directly to `main`.
