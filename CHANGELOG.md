@@ -4,6 +4,44 @@
 
 ---
 
+### 2026-03-26 — Wave 1 Polish & Feature Completion (Orchestrator)
+
+- **Origin**: Orchestrated session — Oracle audit → 11 PRs across 4 dependency waves (#75–#87)
+- **Rationale**: Oracle identified 7 partially-built features with completed blockers and no wiring. This wave closes those loops: four complete features shipped, two more polished, zero new scope invented.
+
+**F-026 — Data Backup / Restore** (PRs #75, #80, #84, #86, #87)
+- `RestoreRepository`: validates SQLite magic header, closes Room, overwrites `sbtracker.db`, cleans WAL/SHM sidecars, emits `RestoreResult` sealed type (`Success` / `Failure`)
+- `SettingsViewModel`: `triggerBackup()` and `triggerRestore(uri)` delegating to repositories; `backupUri` and `restoreResult` SharedFlows exposed
+- `SettingsFragment`: "Backup Database" and "Restore Database" buttons; restore file-picker via `ActivityResultContracts.OpenDocument()`; Toast on success/failure
+- `MainActivity`: observes `backupUri` → `ACTION_SEND` share chooser; observes restore success → `startActivity` + `killProcess` for clean Room reopen
+- F-026 marked `done` in BACKLOG.md
+
+**F-050 — Notifications Overhaul complete** (PR #85)
+- Per-event alert prefs wired (`alertTempReady`, `alertCharge80`, `alertSessionEnd`) — toggles in Settings now actually gate notifications
+- Removed foreground-only guard — alerts fire whether app is in foreground or background
+- Session-end alert: fires after heater sessions ≥60s when `alertSessionEnd` enabled
+- Action buttons on alert notifications: "Start Timer" + "Dismiss" on Temp Ready; "Disconnect" + "Dismiss" on Charge 80%; "Dismiss" on Session End
+- `NotificationActionReceiver`: `ACTION_START_TIMER` posts 30s countdown notification; `ACTION_DISCONNECT_CHARGE` sends BLE stop-heater command; `ACTION_DISMISS_ALERT` cancels by ID
+
+**F-054 — Session Report Redesign complete** (PRs #77, #83)
+- Human-readable extraction timeline replaces raw `"HIT N: Xs @ T°C (Xm Ys)"` format
+- Each hit: size label (Micro / Sip / Full pull / Big rip), duration, temp, offset as `M:SS in`, gap from previous hit when ≥3s
+- Session classification label: Quick Session / Standard / Extended based on duration + hit count
+- Starting battery level displayed in session report
+
+**F-053 — Session Start Battery** (PR #76)
+- `"START: XX%"` label shown in drain area during active sessions; hidden when no session active
+
+**F-052 — Analytics Display** (PRs #81, #82)
+- Analytics tab reordered: Frequency → Dose & Session → Cycle Insights → Session Averages → Usage Insights
+- Section-header TextViews added between groups
+- Dose & Session card surfaces `avgGramsPerSession` from `IntakeStats`
+- Capsule session cards in Sessions tab show gram weight (e.g. `"0.10g"`); free-pack sessions show nothing
+
+- **Deferred**: Device smoke test for backup/restore deferred to manual QA post-merge. B-016 (dev tools segregation), F-057 (session notes), F-018b (Health tab daily chart) scoped for next session.
+
+---
+
 ### 2026-03-26 14:00 — Oracle UX Audit: Full App Experience Evaluation (The Oracle)
 
 - **Origin**: Direct evaluation via `/oracle` — branch `claude/evaluate-app-ux-FriDu`
