@@ -167,6 +167,7 @@ The codebase is currently in the "Final Hardening" phase. To reach a technical A
 | **T-056** | `done` | `MainViewModel` writes `appliedProgramId` to `session_metadata` on session complete via `ActiveProgramHolder.consume()` |
 | **T-057** `blocked by T-056` | `planned` | `appliedProgramName` in `SessionSummary`, history badge `▶ ProgramName`, `SessionReportActivity` program line |
 | **T-085** | `done` | SessionFragment hero window `MM:SS (est.)` + drain preview `−X% (Ym est.)` when program is selected and idle |
+| **T-087** | `done` | Live countdown to next program stage in Hero window when program is executing |
 
 #### Architecture notes
 - `boostStepsJson` format: `[{offsetSec: Int, boostC: Int}, …]` — cumulative offsets from session start; `boostC` is the delta above `targetTempC`

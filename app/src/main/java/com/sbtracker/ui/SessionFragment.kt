@@ -55,6 +55,7 @@ class SessionFragment : Fragment() {
         val tvReadyTime = binding.sessionTvReadyTime
         val tvHeatUpEstimate = binding.sessionTvHeatUpEstimate
         val tvDrainPreview = binding.sessionTvDrainPreview
+        val tvNextStage = binding.sessionTvNextStage
 
         val rowRunningStats = binding.sessionRunningStatsRow
         val gridStats = binding.statsGrid
@@ -161,23 +162,44 @@ class SessionFragment : Fragment() {
                 bleVm.latestStatus,
                 historyVm.estimatedHeatUpTimeSecsWithContext(bleVm.targetTemp, bleVm),
                 sessionVm.selectedProgram,
-                historyVm.avgDrainPerMinute
-            ) { s, heatUpEst, selected, avgDrain ->
+                historyVm.avgDrainPerMinute,
+                sessionVm.nextStageTimeMs,
+                sessionVm.nextStageTempC,
+                bleVm.isCelsius
+            ) { s, heatUpEst, selected, avgDrain, nextStageAt, nextStageTemp, isCelsius ->
                 val isIdleOrOffline = s == null || s.heaterMode == 0
                 if (!isIdleOrOffline) {
                     tvHeatUpEstimate.visibility = View.GONE
                     tvDrainPreview.visibility = View.GONE
+                    
+                    // Show next stage countdown if we have one (T-085/87+)
+                    if (nextStageAt != null) {
+                        val remainingSec = ((nextStageAt - System.currentTimeMillis()) / 1000L).coerceAtLeast(0)
+                        val min = remainingSec / 60
+                        val sec = remainingSec % 60
+                        
+                        tvNextStage.visibility = View.VISIBLE
+                        if (nextStageTemp != null) {
+                            tvNextStage.text = "Next: ${nextStageTemp.toDisplayTemp(isCelsius)}° in %02d:%02d".format(min, sec)
+                        } else {
+                            tvNextStage.text = "Next stage in: %02d:%02d".format(min, sec)
+                        }
+                    } else {
+                        tvNextStage.visibility = View.GONE
+                    }
                     return@combine
                 }
-
+                
+                tvNextStage.visibility = View.GONE
+                
                 // 1. Heat-up Est (from T-017 / T-084)
                 if (heatUpEst != null) {
                     tvHeatUpEstimate.visibility = View.VISIBLE
-                    tvHeatUpEstimate.text = "Est. heat-up: ${heatUpEst}s"
+                    tvHeatUpEstimate.text = "Est. ready in ${heatUpEst}s"
                 } else {
                     tvHeatUpEstimate.visibility = View.GONE
                 }
-
+                
                 // 2. Program Details (T-085)
                 if (selected != null) {
                     val durationSec = sessionVm.calculateProgramDuration(selected)

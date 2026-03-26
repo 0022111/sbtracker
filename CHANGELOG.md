@@ -18,7 +18,8 @@
   - **T-056 (Persistence)**: Updated `BleViewModel` to consume `ActiveProgramHolder` and save `appliedProgramId` to `session_metadata` when a session completes.
   - **T-085 (UI)**: 
     - Updated `SessionFragment` hero window to show "MM:SS (est.)" and "−X% (Ym est.)" labels when a program is selected and the device is idle.
-    - Added `session_tv_drain_preview` to `fragment_session.xml`.
+    - Added `session_tv_drain_preview` and `session_tv_next_stage` to `fragment_session.xml`.
+    - **T-087 (UX)**: Implemented live "Next: XXX° in MM:SS" countdown timer in the hero window during program execution; driven by `SessionViewModel.nextStageTimeMs` and `nextStageTempC`.
     - Integrated `R.color.color_surface_highlight` for selection states.
 - **Technical Debt**:
   - `T-057` (History UI badges) remains planned; program names are saved to DB but not yet displayed in the session history list.
