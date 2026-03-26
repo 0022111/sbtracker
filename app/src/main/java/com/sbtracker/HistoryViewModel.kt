@@ -63,8 +63,12 @@ class HistoryViewModel @Inject constructor(
     private val _sessionFilter = MutableStateFlow<String?>(null)
     val sessionFilter: StateFlow<String?> = _sessionFilter.asStateFlow()
 
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+
     fun setSessionSort(sort: SessionSort) { _sessionSort.value = sort }
     fun setSessionFilter(filter: String?) { _sessionFilter.value = filter }
+    fun setSearchQuery(query: String) { _searchQuery.value = query }
 
     // Active device — loaded from SharedPrefs so we don't depend on BleViewModel
     private val devicePrefs by lazy {
@@ -218,6 +222,27 @@ class HistoryViewModel @Inject constructor(
                 }
                 SessionSort.TEMP -> items.sortedByDescending {
                     if (it is HistoryItem.SessionItem) it.summary.peakTempC else -1
+                }
+            }
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val filteredSessionHistory: StateFlow<List<HistoryItem>> =
+        combine(sessionHistory, _searchQuery) { items, query ->
+            if (query.isBlank()) items
+            else {
+                val q = query.trim().lowercase()
+                items.filter { item ->
+                    when (item) {
+                        is HistoryItem.SessionItem -> {
+                            val s = item.summary
+                            val sdf = java.text.SimpleDateFormat("MMM dd HH:mm", java.util.Locale.getDefault())
+                            val dateStr = sdf.format(java.util.Date(s.startTimeMs)).lowercase()
+                            dateStr.contains(q) ||
+                            (s.serialNumber?.lowercase()?.contains(q) == true) ||
+                            (s.notes?.lowercase()?.contains(q) == true)
+                        }
+                        is HistoryItem.ChargeItem -> true
+                    }
                 }
             }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
