@@ -33,12 +33,17 @@ import com.sbtracker.ui.SessionFragment
 import com.sbtracker.ui.HistoryFragment
 import com.sbtracker.ui.BatteryFragment
 import com.sbtracker.ui.SettingsFragment
+import com.sbtracker.data.UserPreferencesRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
+
+    @javax.inject.Inject lateinit var prefsRepo: UserPreferencesRepository
 
     lateinit var bleVm: BleViewModel
     lateinit var historyVm: HistoryViewModel
@@ -84,6 +89,15 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+
+        // First-run onboarding check (reads DataStore; fast on subsequent runs)
+        val onboardingDone = runBlocking { prefsRepo.userPreferencesFlow.first().onboardingComplete }
+        if (!onboardingDone) {
+            startActivity(Intent(this, OnboardingActivity::class.java))
+            finish()
+            return
+        }
+
         binding = ActivityMainPagedBinding.inflate(layoutInflater)
         setContentView(binding.root)
 

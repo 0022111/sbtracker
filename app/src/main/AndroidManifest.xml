@@ -37,6 +37,13 @@
         </activity>
 
         <activity
+            android:name=".OnboardingActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.SBTracker.NoActionBar"
+            tools:ignore="LockedOrientationActivity" />
+
+        <activity
             android:name=".SessionReportActivity"
             android:exported="false"
             android:screenOrientation="portrait"

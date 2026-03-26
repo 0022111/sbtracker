@@ -46,6 +46,7 @@ class UserPreferencesRepository @Inject constructor(
         val ALERT_SESSION_END = booleanPreferencesKey("alert_session_end")
         val TEMP_PRESETS = stringPreferencesKey("temp_presets")
         val BREAK_GOAL_DAYS = intPreferencesKey("break_goal_days")
+        val ONBOARDING_COMPLETE = booleanPreferencesKey("onboarding_complete")
     }
 
     val userPreferencesFlow: Flow<UserPreferences> = dataStore.data
@@ -69,7 +70,8 @@ class UserPreferencesRepository @Inject constructor(
                 alertTempReady = preferences[PreferencesKeys.ALERT_TEMP_READY] ?: true,
                 alertCharge80 = preferences[PreferencesKeys.ALERT_CHARGE_80] ?: true,
                 alertSessionEnd = preferences[PreferencesKeys.ALERT_SESSION_END] ?: false,
-                breakGoalDays = preferences[PreferencesKeys.BREAK_GOAL_DAYS] ?: 7
+                breakGoalDays = preferences[PreferencesKeys.BREAK_GOAL_DAYS] ?: 7,
+                onboardingComplete = preferences[PreferencesKeys.ONBOARDING_COMPLETE] ?: false
             )
         }
 
@@ -165,6 +167,12 @@ class UserPreferencesRepository @Inject constructor(
             preferences[PreferencesKeys.BREAK_GOAL_DAYS] = days
         }
     }
+
+    suspend fun setOnboardingComplete() {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.ONBOARDING_COMPLETE] = true
+        }
+    }
 }
 
 data class UserPreferences(
@@ -180,5 +188,6 @@ data class UserPreferences(
     val alertTempReady: Boolean,
     val alertCharge80: Boolean,
     val alertSessionEnd: Boolean,
-    val breakGoalDays: Int
+    val breakGoalDays: Int,
+    val onboardingComplete: Boolean
 )

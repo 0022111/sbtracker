@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center_vertical"
+    android:paddingHorizontal="32dp"
+    android:paddingBottom="16dp">
+
+    <TextView
+        android:id="@+id/tv_onboarding_emoji"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="🌿"
+        android:textSize="72sp"
+        android:layout_marginBottom="32dp" />
+
+    <TextView
+        android:id="@+id/tv_onboarding_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="Welcome"
+        android:textColor="#FFFFFF"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp" />
+
+    <TextView
+        android:id="@+id/tv_onboarding_body"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Body text"
+        android:textColor="#80A88F"
+        android:textSize="16sp"
+        android:lineSpacingMultiplier="1.4"
+        android:gravity="center" />
+
+    <!-- Permission button (only shown on permission pages) -->
+    <FrameLayout
+        android:id="@+id/btn_grant_permission"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:layout_marginTop="32dp"
+        android:background="@drawable/bg_badge_blue"
+        android:visibility="gone">
+        <TextView
+            android:id="@+id/tv_grant_permission_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="Grant Permission"
+            android:textColor="#FFFFFF"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+    </FrameLayout>
+
+</LinearLayout>
