@@ -11,6 +11,7 @@ import com.sbtracker.analytics.HistoryStats
 import com.sbtracker.analytics.IntakeStats
 import com.sbtracker.analytics.ProfileStats
 import com.sbtracker.analytics.UsageInsights
+import com.sbtracker.util.StreakUtils
 import com.sbtracker.data.AppDatabase
 import com.sbtracker.data.UserPreferencesRepository
 import com.sbtracker.data.ChargeCycle
@@ -260,6 +261,29 @@ class HistoryViewModel @Inject constructor(
             val dayStartMs = c.timeInMillis
             summaries.filter { it.startTimeMs >= dayStartMs }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // ── Streak & Break ──
+
+    val currentStreak: StateFlow<Int> = allSessionSummaries
+        .map { StreakUtils.currentStreak(it) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
+    val longestStreak: StateFlow<Int> = allSessionSummaries
+        .map { StreakUtils.longestStreak(it) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
+    val daysSinceLastSession: StateFlow<Int> = allSessionSummaries
+        .map { StreakUtils.daysSinceLastSession(it) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), -1)
+
+    val breakGoalDays: StateFlow<Int> = prefsRepo.userPreferencesFlow
+        .map { it.breakGoalDays }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 7)
+
+    val breakProgress: StateFlow<Float> =
+        combine(allSessionSummaries, breakGoalDays) { summaries, goal ->
+            StreakUtils.breakProgress(summaries, goal)
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0f)
 
     // ── Analytics ──
 

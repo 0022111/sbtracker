@@ -45,6 +45,7 @@ class UserPreferencesRepository @Inject constructor(
         val ALERT_CHARGE_80 = booleanPreferencesKey("alert_charge_80")
         val ALERT_SESSION_END = booleanPreferencesKey("alert_session_end")
         val TEMP_PRESETS = stringPreferencesKey("temp_presets")
+        val BREAK_GOAL_DAYS = intPreferencesKey("break_goal_days")
     }
 
     val userPreferencesFlow: Flow<UserPreferences> = dataStore.data
@@ -67,7 +68,8 @@ class UserPreferencesRepository @Inject constructor(
                 targetTemp = preferences[PreferencesKeys.TARGET_TEMP] ?: 180,
                 alertTempReady = preferences[PreferencesKeys.ALERT_TEMP_READY] ?: true,
                 alertCharge80 = preferences[PreferencesKeys.ALERT_CHARGE_80] ?: true,
-                alertSessionEnd = preferences[PreferencesKeys.ALERT_SESSION_END] ?: false
+                alertSessionEnd = preferences[PreferencesKeys.ALERT_SESSION_END] ?: false,
+                breakGoalDays = preferences[PreferencesKeys.BREAK_GOAL_DAYS] ?: 7
             )
         }
 
@@ -157,6 +159,12 @@ class UserPreferencesRepository @Inject constructor(
             preferences[PreferencesKeys.TEMP_PRESETS] = TempPresetSerializer.toJson(presets)
         }
     }
+
+    suspend fun updateBreakGoalDays(days: Int) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.BREAK_GOAL_DAYS] = days
+        }
+    }
 }
 
 data class UserPreferences(
@@ -171,5 +179,6 @@ data class UserPreferences(
     val targetTemp: Int,
     val alertTempReady: Boolean,
     val alertCharge80: Boolean,
-    val alertSessionEnd: Boolean
+    val alertSessionEnd: Boolean,
+    val breakGoalDays: Int
 )

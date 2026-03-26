@@ -296,6 +296,30 @@ class SettingsFragment : Fragment() {
                 .show()
         }
 
+        // ── Tolerance Break Goal ─────────────────────────────────────────────
+        viewLifecycleOwner.lifecycleScope.launch {
+            settingsVm.breakGoalDays.collect { days ->
+                binding.tvBreakGoalDays.text = "$days ${if (days == 1) "day" else "days"}"
+            }
+        }
+        binding.rowBreakGoal.setOnClickListener {
+            val input = android.widget.EditText(requireContext()).apply {
+                inputType = android.text.InputType.TYPE_CLASS_NUMBER
+                setText(settingsVm.breakGoalDays.value.toString())
+                selectAll()
+            }
+            android.app.AlertDialog.Builder(requireContext())
+                .setTitle("Break Goal")
+                .setMessage("Target days without a session (1–365)")
+                .setView(input)
+                .setPositiveButton("Save") { _, _ ->
+                    val days = input.text.toString().toIntOrNull()
+                    if (days != null) settingsVm.setBreakGoalDays(days)
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+        }
+
         // ── Temperature Presets ───────────────────────────────────────────────
         val llPresetList = binding.llPresetList
         binding.rowAddPreset.setOnClickListener {

@@ -113,6 +113,14 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch { prefsRepo.updateAlertSessionEnd(enabled) }
     }
 
+    val breakGoalDays: StateFlow<Int> = prefsRepo.userPreferencesFlow
+        .map { it.breakGoalDays }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 7)
+
+    fun setBreakGoalDays(days: Int) {
+        viewModelScope.launch { prefsRepo.updateBreakGoalDays(days.coerceIn(1, 365)) }
+    }
+
     val tempPresets: StateFlow<List<TempPreset>> = prefsRepo.tempPresetsFlow
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 

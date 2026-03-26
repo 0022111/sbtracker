@@ -257,6 +257,40 @@ class LandingFragment : Fragment() {
             }
         }
 
+        // Streak & Break card
+        val tvStreakCurrent = binding.tvStreakCurrent
+        val tvStreakLongest = binding.tvStreakLongest
+        val tvDaysSince = binding.tvDaysSince
+        val tvBreakGoalLabel = binding.tvBreakGoalLabel
+        val progressBreak = binding.progressBreak
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            combine(historyVm.currentStreak, historyVm.longestStreak) { s, l -> s to l }
+                .collect { (streak, longest) ->
+                    tvStreakCurrent.text = if (streak > 0) "$streak ${if (streak == 1) "day" else "days"}" else "—"
+                    tvStreakLongest.text = if (longest > 0) "$longest ${if (longest == 1) "day" else "days"}" else "—"
+                }
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            combine(historyVm.daysSinceLastSession, historyVm.breakGoalDays, historyVm.breakProgress) { daysSince, goal, progress ->
+                Triple(daysSince, goal, progress)
+            }.collect { (daysSince, goal, progress) ->
+                tvDaysSince.text = when {
+                    daysSince < 0 -> "—"
+                    daysSince == 0 -> "Today"
+                    daysSince == 1 -> "1 day"
+                    else -> "$daysSince days"
+                }
+                tvBreakGoalLabel.text = "/ $goal day goal"
+                progressBreak.progress = (progress * 100).toInt()
+                progressBreak.progressTintList = android.content.res.ColorStateList.valueOf(
+                    if (progress >= 1f) ContextCompat.getColor(requireContext(), R.color.color_green)
+                    else ContextCompat.getColor(requireContext(), R.color.color_blue)
+                )
+            }
+        }
+
         // Last session (chronological across ALL devices)
         viewLifecycleOwner.lifecycleScope.launch {
             combine(historyVm.lastSession, bleVm.knownDeviceBatteries) { last, snapshots -> last to snapshots }.collect { (lastSession, snapshots) ->
