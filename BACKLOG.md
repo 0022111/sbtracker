@@ -66,7 +66,7 @@ The codebase is currently in the "Final Hardening" phase. To reach a technical A
 | ID | Status | Feature | Description | Acceptance Criteria |
 |---|---|---|---|---|
 | F-025 | `done` | History Clear | Per-device clear of all tables | All 7 tables wiped for target device (incl. session_metadata) |
-| F-026 | `in-progress` | Data Backup / Restore | Export/import full database | User can backup and restore DB file |
+| F-026 | `done` | Data Backup / Restore | Export/import full database | User can backup and restore DB file |
 | F-027 | `in-progress` | Session Programs | User-defined or preset session profiles with automatic boost scheduling (T-046/T-085 done) | Presets trigger immediate session start |
 | F-050 | `in-progress` | Notifications Redesign | Modernize notification system; persistent status | Rich status tray + quick controls |
 
