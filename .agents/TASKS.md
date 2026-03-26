@@ -101,7 +101,7 @@ main  ← stable, merges only from dev
 | T-046 | `done` | Apply Program on Heater Start (chip row, startSessionWithProgram, setBoost job) | [T-046](tasks/T-046-apply-program-on-start.md) | T-045 |
 | T-056 | `done` | Record Program Attribution to session_metadata on Session Complete | [T-056](tasks/T-056-record-program-attribution.md) | T-046 |
 | T-057 | `done` | Display Program Name in Session History + Session Report | [T-057](tasks/T-057-display-program-in-history.md) | T-056 |
-| T-083 | `ready` | DB Migration v4→5: stayOnAtEnd field on SessionProgram | [T-083](tasks/T-083-session-program-stay-on-migration.md) | — |
+| T-083 | `done` | DB Migration v4→5: stayOnAtEnd field on SessionProgram | [T-083](tasks/T-083-session-program-stay-on-migration.md) | — |
 | T-084 | `ready` | Program Drain Estimation: AnalyticsRepository + HistoryViewModel + SessionViewModel helpers | [T-084](tasks/T-084-program-drain-estimation.md) | T-043 |
 | T-085 | `done` | SessionFragment: Program Hero Window + Drain Estimate Preview | [T-085](tasks/T-085-program-hero-window-and-drain-preview.md) | T-046, T-084 |
 | T-087 | `done` | Live countdown to next program stage | [T-087](tasks/T-087-program-stage-timer.md) | T-085 |
