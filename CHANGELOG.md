@@ -4,6 +4,31 @@
 
 ---
 
+### 2026-03-26 14:00 — Oracle UX Audit: Full App Experience Evaluation (The Oracle)
+
+- **Origin**: Direct evaluation via `/oracle` — branch `claude/evaluate-app-ux-FriDu`
+- **Rationale**: Comprehensive UX audit of all five main screens against the live codebase. The core finding: SBTracker has excellent architecture and real data richness, but is missing the human layer. It is a data logger with controls — not yet a companion app. The session narrative is broken across disconnected screens; there is no onboarding, no session annotation, no time range filter beyond Day/Week, and developer tools are exposed to production users.
+- **Documentation Changes**:
+  - **BACKLOG.md**: New `🚨 UX Debt` section with 7 new items:
+    - `B-016` — Developer Tools Segregation (pre-Alpha blocker — `btnDevInjectTestDevice`/`btnDevRemoveTestDevice` exposed to users)
+    - `F-057` — Session Annotation / Notes Field (`notes: String` in `session_metadata`, Migration 5→6)
+    - `F-058` — Time Range Filter (7d/30d/90d/All on History and Battery screens)
+    - `F-059` — Onboarding & Empty States (first-launch flow + per-screen empty state designs)
+    - `F-060` — Device Care Signals (`lifetimeHeaterOnSec` → cleaning reminders, `lastCleanedAtMs`)
+    - `F-061` — Session Search & Filter (filterable history list by range, program, type, hit count)
+    - `F-062` — Session Flow Arc (unified home→heat→session→inline summary; depends on F-047 Compose for clean implementation)
+  - Cross-referenced new items in UX Refresh epic and Future Architecture sections.
+  - `B-007` description expanded to include design language document deliverable.
+  - Decisions Log entry added summarising audit verdict and new items.
+  - **PROJECT.md**: New `UX Principles` section added — canonical agent directive covering: The Three User Moments framework, screen-to-moment map, empty state rules, data presentation rules, session flow invariant, design language directive. All agents writing UI code must internalize this section.
+- **Key Risks Documented**:
+  - Developer tools exposure is a data integrity risk before Alpha (phantom test devices in tester data).
+  - The god log retention setting (`Delete after 30 days`) has no UI safeguard — users can silently destroy history.
+  - Hit detection has no user-facing correction mechanism — a missed or phantom hit erodes trust in all analytics.
+- **What Was Deferred**: Hit correction UI, health app export (Apple Health/Google Fit), home screen widget, session comparison, accessibility audit — all noted in the Oracle report but not yet filed as backlog items. These are v1.0+ concerns.
+
+---
+
 ### 2026-03-25 — UX Audit & Hardening Phase Complete: Session Programs (The Oracle)
 
 - **Rationale**: The Session Programs feature has reached full Alpha-readiness following the completion of the hardening plan. Manual overrides are now safely handled, and the UI has been decluttered to focus on live metrics during active sessions.
