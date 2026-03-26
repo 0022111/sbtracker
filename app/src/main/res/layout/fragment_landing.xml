@@ -196,6 +196,44 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
+        <!-- ── SESSION IN PROGRESS BANNER ────────────────────────────── -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_session_banner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:visibility="gone"
+            app:cardBackgroundColor="@color/color_tint_orange"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="14dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Session in Progress — tap to view"
+                    android:textColor="@color/color_orange"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tv_session_banner_timer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="00:00"
+                    android:textColor="@color/color_orange"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
         <!-- ── QUICK LAUNCH NAVIGATION GRID ────────────────────────────── -->
         <TextView
             android:layout_width="wrap_content"

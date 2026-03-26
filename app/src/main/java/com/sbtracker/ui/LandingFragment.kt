@@ -79,6 +79,12 @@ class LandingFragment : Fragment() {
         val tvLastDate = binding.tvCmdLastDate
         val tvLastSummary = binding.tvCmdLastSummary
 
+        // Session Banner
+        val cardSessionBanner = binding.cardSessionBanner
+        val tvSessionBannerTimer = binding.tvSessionBannerTimer
+
+        cardSessionBanner.setOnClickListener { activity.navigateTo(1) }
+
         // ── Navigation ──
         tileSession.setOnClickListener { activity.navigateTo(1) }
         tileBattery.setOnClickListener { activity.navigateTo(3) }
@@ -233,9 +239,12 @@ class LandingFragment : Fragment() {
                     val sec = ss.durationSeconds
                     tvTileSessionVal.text = "%02d:%02d".format(sec / 60, sec % 60)
                     tvTileSessionVal.setTextColor(ContextCompat.getColor(requireContext(), R.color.color_orange))
+                    cardSessionBanner.visibility = View.VISIBLE
+                    tvSessionBannerTimer.text = "%02d:%02d".format(sec / 60, sec % 60)
                 } else {
                     tvTileSessionVal.text = "Ready"
                     tvTileSessionVal.setTextColor(Color.WHITE)
+                    cardSessionBanner.visibility = View.GONE
                 }
             }
         }
