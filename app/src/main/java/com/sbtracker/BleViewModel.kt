@@ -121,8 +121,22 @@ class BleViewModel @Inject constructor(
         .map { it.phoneAlertsEnabled }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
+    val alertTempReady: StateFlow<Boolean> = prefsRepo.userPreferencesFlow
+        .map { it.alertTempReady }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    val alertCharge80: StateFlow<Boolean> = prefsRepo.userPreferencesFlow
+        .map { it.alertCharge80 }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    val alertSessionEnd: StateFlow<Boolean> = prefsRepo.userPreferencesFlow
+        .map { it.alertSessionEnd }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
     private var lastSetpointReached = false
     private var lastCharge80Reached = false
+    private var lastHeaterOn = false
+    private var heaterSessionStartMs = 0L
     private var isAppInForeground = false
     private var statusTick = 0
     private var hasSyncedInitialTemp = false
@@ -329,6 +343,8 @@ class BleViewModel @Inject constructor(
                     _firmwareVersion.value = null
                     lastSetpointReached = false
                     lastCharge80Reached = false
+                    lastHeaterOn = false
+                    heaterSessionStartMs = 0L
                 }
             }
         }
@@ -386,17 +402,28 @@ class BleViewModel @Inject constructor(
 
     private fun checkAlerts(s: DeviceStatus) {
         if (!phoneAlertsEnabled.value) return
-        if (s.heaterMode > 0) {
-            if (s.setpointReached && !lastSetpointReached) {
+        val heaterOn = s.heaterMode > 0
+        if (heaterOn) {
+            if (!lastHeaterOn) {
+                heaterSessionStartMs = System.currentTimeMillis()
+            }
+            if (s.setpointReached && !lastSetpointReached && alertTempReady.value) {
                 triggerAlert("Device Ready", "Target temperature reached!")
             }
             lastSetpointReached = s.setpointReached
         } else {
+            if (lastHeaterOn) {
+                val sessionDurationMs = System.currentTimeMillis() - heaterSessionStartMs
+                if (sessionDurationMs >= 60_000L && alertSessionEnd.value) {
+                    triggerAlert("Session Complete", "Your session has ended.")
+                }
+            }
             lastSetpointReached = false
         }
+        lastHeaterOn = heaterOn
         if (s.isCharging) {
             val reached80 = s.batteryLevel >= 80
-            if (reached80 && !lastCharge80Reached) {
+            if (reached80 && !lastCharge80Reached && alertCharge80.value) {
                 triggerAlert("Charging Progress", "Battery has reached 80%.")
             }
             lastCharge80Reached = reached80
@@ -407,9 +434,7 @@ class BleViewModel @Inject constructor(
 
     private fun triggerAlert(title: String, message: String) {
         vibratePhone()
-        if (!isAppInForeground) {
-            showNotification(title, message)
-        }
+        showNotification(title, message)
     }
 
     private fun vibratePhone() {
