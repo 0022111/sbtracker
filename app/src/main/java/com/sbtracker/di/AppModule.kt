@@ -129,4 +129,11 @@ object AppModule {
         @ApplicationContext context: Context,
         db: AppDatabase
     ): BackupRepository = BackupRepository(context, db)
+
+    @Provides
+    @Singleton
+    fun provideRestoreRepository(
+        @ApplicationContext context: Context,
+        db: AppDatabase
+    ): RestoreRepository = RestoreRepository(context, db)
 }
