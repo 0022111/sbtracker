@@ -107,15 +107,36 @@ class SessionReportActivity : AppCompatActivity() {
 
             // ── Hit log ──────────────────────────────────────────────────────────
             hitLogView.text = if (hits.isEmpty()) {
-                "No individual hit data"
+                "No extraction data recorded"
             } else {
                 hits.mapIndexed { i, h ->
                     val durSec    = h.durationMs / 1000
                     val offsetSec = (h.startTimeMs - session.startTimeMs) / 1000
                     val tempStr   = if (h.peakTempC > 0) " @ ${h.peakTempC.toDisplayTemp(isCelsius)}${isCelsius.unitSuffix()}" else ""
-                    "HIT ${i + 1}: ${durSec}s${tempStr}  (${formatDuration(offsetSec)})"
-                }.joinToString("\n")
+
+                    // Size label
+                    val sizeLabel = when {
+                        durSec >= 8 -> "Big rip"
+                        durSec >= 4 -> "Full pull"
+                        durSec >= 2 -> "Sip"
+                        else        -> "Micro"
+                    }
+
+                    // Human-readable offset: "0:15 in"
+                    val offsetLabel = "%d:%02d in".format(offsetSec / 60, offsetSec % 60)
+
+                    // Gap from previous hit
+                    val gapStr = if (i > 0) {
+                        val gapSec = (h.startTimeMs - hits[i - 1].startTimeMs - hits[i - 1].durationMs) / 1000
+                        if (gapSec >= 3) "  (+${gapSec}s gap)" else ""
+                    } else ""
+
+                    "● $sizeLabel  ${durSec}s${tempStr}  —  $offsetLabel$gapStr"
+                }.joinToString("\n\n")
             }
+
+            // ── Starting battery ─────────────────────────────────────────────────
+            findViewById<TextView>(R.id.report_tv_start_battery)?.text = "Started at ${startBat}%"
 
             // ── Graph ────────────────────────────────────────────────────────────
             val hitMarkers = hits.map { h ->
