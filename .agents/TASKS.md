@@ -48,7 +48,7 @@ main  ← stable, merges only from dev
 |---|---|---|---|---|
 | T-006 | `done` | Introduce Hilt DI | [T-006](tasks/T-006-introduce-hilt-di.md) | — |
 | T-007 | `done` | Decompose MainViewModel | [T-007](tasks/T-007-decompose-mainviewmodel.md) | — |
-| T-008 | `ready` | Remove Fragment–Activity Casts | [T-008](tasks/T-008-remove-activity-casts.md) | T-007 |
+| T-008 | `done` | Remove Fragment–Activity Casts | [T-008](tasks/T-008-remove-activity-casts.md) | T-007 |
 | T-009 | `done` | Preferences → DataStore | [T-009](tasks/T-009-preferences-datastore.md) | — |
 | T-010 | `done` | Unit Tests | [T-010](tasks/T-010-unit-tests.md) | — |
 | T-026 | `done` | Enable ViewBinding | [T-026](tasks/T-026-enable-viewbinding.md) | — |
@@ -86,9 +86,9 @@ main  ← stable, merges only from dev
 | T-016 | `blocked` | Remove fallbackToDestructiveMigration | [T-016](tasks/T-016-remove-fallback-migration.md) | T-011 |
 | T-017 | `ready` | Release Build Pipeline | [T-017](tasks/T-017-release-build-pipeline.md) | T-001 |
 | T-018 | `ready` | Crash Reporting | [T-018](tasks/T-018-crash-reporting.md) | T-001 |
-| T-019 | `blocked` | Notification Action Buttons | [T-019](tasks/T-019-notification-actions.md) | T-008 |
-| T-020 | `blocked` | Quick Settings Tile | [T-020](tasks/T-020-quick-settings-tile.md) | T-008 |
-| T-021 | `blocked` | Localization Groundwork | [T-021](tasks/T-021-localization-groundwork.md) | T-008 |
+| T-019 | `ready` | Notification Action Buttons | [T-019](tasks/T-019-notification-actions.md) | T-008 |
+| T-020 | `ready` | Quick Settings Tile | [T-020](tasks/T-020-quick-settings-tile.md) | T-008 |
+| T-021 | `ready` | Localization Groundwork | [T-021](tasks/T-021-localization-groundwork.md) | T-008 |
 
 ## Phase 3 — F-027 Session Programs/Presets
 
@@ -179,7 +179,7 @@ main  ← stable, merges only from dev
 |---|---|---|---|---|
 | T-069 | `done` | Notification Channel Consolidation | [T-069](tasks/T-069-notification-channels.md) | — |
 | T-070 | `done` | Persistent Status Notification Content | [T-070](tasks/T-070-persistent-status-notification.md) | T-069 |
-| T-071 | `blocked` | Notification Drawer Quick Controls | [T-071](tasks/T-071-notification-quick-controls.md) | T-070, T-008 |
+| T-071 | `ready` | Notification Drawer Quick Controls | [T-071](tasks/T-071-notification-quick-controls.md) | T-070, T-008 |
 | T-072 | `done` | Configurable Alert Settings UI | [T-072](tasks/T-072-alert-settings-ui.md) | — |
 | T-073 | `blocked` | Alert Delivery Logic (Temp Ready, Charge 80%, Session End) | [T-073](tasks/T-073-alert-delivery-logic.md) | T-069, T-072 |
 | T-074 | `blocked` | Alert Notification Action Buttons (T-019 implementation) | [T-074](tasks/T-074-t019-alert-action-buttons.md) | T-073, T-008 |
