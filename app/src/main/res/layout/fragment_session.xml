@@ -77,27 +77,6 @@
                     </LinearLayout>
                     
                     <TextView
-                        android:id="@+id/session_tv_heat_up_estimate"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="Est. ready in --s"
-                        android:textColor="#80A88F"
-                        android:textSize="12sp"
-                        android:visibility="gone" />
-
-                    <TextView
-                        android:id="@+id/session_tv_drain_preview"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="Est. drain: --%"
-                        android:textColor="#FF453A"
-                        android:textSize="11sp"
-                        android:textStyle="bold"
-                        android:visibility="gone" />
-
-                    <TextView
                         android:id="@+id/session_tv_next_stage"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -197,6 +176,53 @@
                                 android:letterSpacing="0.05" />
                         </LinearLayout>
                     </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- PRE-IGNITE PREVIEW (F-027 Polish) -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/card_program_preview"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:visibility="gone"
+                app:cardBackgroundColor="#091F0D"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="PRE-FLIGHT PREVIEW"
+                        android:textColor="#80A88F"
+                        android:textSize="10sp"
+                        android:letterSpacing="0.1"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/session_tv_heat_up_estimate"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Est. ready in --s"
+                        android:textColor="#FFFFFF"
+                        android:textSize="16sp"
+                        android:fontFamily="sans-serif-medium" />
+
+                    <TextView
+                        android:id="@+id/session_tv_drain_preview"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Est. drain: --%"
+                        android:textColor="#80A88F"
+                        android:textSize="13sp" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 

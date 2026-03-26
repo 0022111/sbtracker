@@ -149,15 +149,15 @@ The codebase is currently in the "Final Hardening" phase. To reach a technical A
 
 ### F-027: Session Programs — Implementation Status & Remaining Work
 
-*Status: **Core Logic Complete** — Transitioning to UX Hardening & Polish phase.*
+*Status: **Hardening Complete** — Feature is now Alpha-ready.*
 
 #### UX Hardening & Polish (Next Steps)
 | Task | Priority | Description | Acceptance Criteria |
 |---|---|---|---|
-| **T-089** | 🔴 High | **Manual Override Protection** | Cancel `programJob` immediately if user adjusts temp +/- or tops "Power Off". Prevents "ghost-boosts". |
-| **T-090** | 🟡 Med | **Hero Card De-clutter** | Move "Drain Preview" and "Program Name" to a temporary "Pre-Ignite" card. Hero card only shows progress. |
-| **T-091** | 🟡 Med | **Grid Interaction Locking** | Disable program grid buttons while a session is active to prevent state mismatch. |
-| **T-092** | 🔵 Low | **Visual Step Editor** | Migrate dialog to BottomSheet; add a CSS-drawn or Canvas line chart showing the temp curve. |
+| **T-089** | 🟢 Done | **Manual Override Protection** | Cancel `programJob` immediately if user adjusts temp +/- or tops "Power Off". Prevents "ghost-boosts". |
+| **T-090** | 🟢 Done | **Hero Card De-clutter** | Move "Drain Preview" and "Program Name" to a temporary "Pre-Ignite" card. Hero card only shows progress. |
+| **T-091** | 🟢 Done | **Grid Interaction Locking** | Disable program grid buttons while a session is active to prevent state mismatch. |
+| **T-092** | 🟢 Done | **Visual Step Editor** | Migrate dialog to BottomSheet; add a CSS-drawn or Canvas line chart showing the temp curve. |
 
 #### What's done (in `dev`)
 | Task | What shipped |
@@ -177,10 +177,10 @@ The codebase is currently in the "Final Hardening" phase. To reach a technical A
 | **T-085** | `done` | SessionFragment hero window `MM:SS (est.)` + drain preview `−X% (Ym est.)` when program is selected and idle |
 | **T-087** | `done` | Live countdown to next program stage in Hero window when program is executing |
 | **T-088** | `done` | Phone haptic feedback (vibrations) on program ignite, stage changes, and auto-shutoff. |
-| **T-089** | `planned` | Manual Override Protection (Cancel job on manual temp +/- or Power Off) |
-| **T-090** | `planned` | Hero Card De-clutter (Split pre-ignite preview from live stats) |
-| **T-091** | `planned` | Grid Interaction Locking (Prevent mid-session program switching) |
-| **T-092** | `planned` | Visual Step Editor (BottomSheet + Curve Graph) |
+| **T-089** | `done` | Manual Override Protection (Cancel job on manual temp +/- or Power Off) |
+| **T-090** | `done` | Hero Card De-clutter (Split pre-ignite preview from live stats) |
+| **T-091** | `done` | Grid Interaction Locking (Prevent mid-session program switching) |
+| **T-092** | `done` | Visual Step Editor (BottomSheet + Curve Graph) |
 
 #### Architecture notes
 - `boostStepsJson` format: `[{offsetSec: Int, boostC: Int}, …]` — cumulative offsets from session start; `boostC` is the delta above `targetTempC`

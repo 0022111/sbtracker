@@ -106,10 +106,10 @@ main  ← stable, merges only from dev
 | T-085 | `done` | SessionFragment: Program Hero Window + Drain Estimate Preview | [T-085](tasks/T-085-program-hero-window-and-drain-preview.md) | T-046, T-084 |
 | T-087 | `done` | Live countdown to next program stage | [T-087](tasks/T-087-program-stage-timer.md) | T-085 |
 | T-088 | `done` | Phone haptics (vibrations) on ignite/stage change | [T-088](tasks/T-088-program-haptics.md) | T-087 |
-| T-089 | `ready` | UX: Manual Override Protection (Cancel job on manual temp) | — | T-046 |
-| T-090 | `ready` | UX: Hero Card De-clutter (Split preview from live) | — | T-085 |
-| T-091 | `ready` | UX: Grid Interaction Locking | — | T-088 |
-| T-092 | `ready` | UX: Visual Step Editor (BottomSheet + Curve Graph) | — | T-045 |
+| T-089 | `done` | UX: Manual Override Protection (Cancel job on manual temp) | — | T-046 |
+| T-090 | `done` | UX: Hero Card De-clutter (Split preview from live) | — | T-085 |
+| T-091 | `done` | UX: Grid Interaction Locking | — | T-088 |
+| T-092 | `done` | UX: Visual Step Editor (BottomSheet + Curve Graph) | — | T-045 |
 
 ## Phase 3 — F-055 Homepage Redesign
 

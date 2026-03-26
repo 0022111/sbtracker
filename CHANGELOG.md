@@ -4,18 +4,17 @@
 
 ---
 
-### 2026-03-25 — UX Audit & Hardening Plan: Session Programs (The Oracle)
+### 2026-03-25 — UX Audit & Hardening Phase Complete: Session Programs (The Oracle)
 
-- **Rationale**: The Session Programs feature has reached core logic completion, but requires a hardening phase to ensure stability and clean UI/UX before the Alpha release. Specifically, conflicts between automated program execution and manual user overrides must be resolved to prevent "ghost-heating" scenarios.
+- **Rationale**: The Session Programs feature has reached full Alpha-readiness following the completion of the hardening plan. Manual overrides are now safely handled, and the UI has been decluttered to focus on live metrics during active sessions.
 - **Technical Changes**:
-  - **Audit**: Conducted a full UX review of `SessionFragment`, `SessionViewModel`, and `ProgramRepository`.
-  - **Hardening Plan**: Identified and documented four critical polish tasks:
-    - **T-089 (Safety)**: Cancellation of `programJob` on manual temperature adjustment or power-off.
-    - **T-090 (UI)**: Relocation of drain/program previews to a pre-ignition card to reduce Hero window clutter.
-    - **T-091 (State)**: Disabling of program grid interactions during active sessions to prevent state mismatch.
-    - **T-092 (UX)**: Future migration to a BottomSheet-based visual step editor with a temperature curve graph.
+  - **T-089 (Safety)**: Cancellation of `programJob` on manual temperature adjustment or power-off.
+  - **T-090 (UI)**: Relocated pre-ignition previews to a dedicated card to reduce Hero window clutter.
+  - **T-091 (State)**: Disabled program grid interactions during active sessions to prevent state mismatch.
+  - **T-092 (UX)**: Implemented a BottomSheet-based visual step editor with a temperature curve graph.
 - **Technical Debt**:
-  - T-089 is a high-priority stability item; manual overrides currently do not stop the background program timer.
+  - T-089 ensures no ghost-heating occurs; manual overrides are prioritised in the `SessionViewModel`.
+- **Status**: F-027 Hardening Phase **DONE**.
 
 ---
 

@@ -96,7 +96,7 @@ class SessionViewModel @Inject constructor(
                         _nextStageTempC.value = program.targetTempC + boostC
                         delay(delayMs)
                     }
-                    setBoost(boostC)
+                    setBoostInternal(boostC)
                     bleManager.vibratePhone(150) // Stage change buzz
                     
                     // After setting boost, if there's a next step, update nextStageTimeMs
@@ -122,6 +122,9 @@ class SessionViewModel @Inject constructor(
         }
     }
 
+    private fun setBoostInternal(offsetC: Int) =
+        bleManager.sendWrite(BlePacket.buildStatusWrite(BleConstants.WRITE_BOOST, boostC = offsetC.coerceAtLeast(0)))
+
     fun calculateProgramDuration(program: SessionProgram?): Int {
         if (program == null) return 0
         return runCatching {
@@ -137,9 +140,13 @@ class SessionViewModel @Inject constructor(
         }.getOrDefault(180).coerceAtLeast(180)
     }
 
-    fun setHeater(on: Boolean) = bleManager.sendWrite(BlePacket.buildSetHeater(on))
+    fun setHeater(on: Boolean) {
+        if (!on) programJob?.cancel()
+        bleManager.sendWrite(BlePacket.buildSetHeater(on))
+    }
 
     fun setHeaterMode(mode: Int, currentTarget: Int) {
+        programJob?.cancel()
         bleManager.sendWrite(BlePacket.buildStatusWrite(
             BleConstants.WRITE_HEATER_STATE or BleConstants.WRITE_TEMPERATURE,
             tempC = currentTarget, mode = mode
@@ -147,16 +154,21 @@ class SessionViewModel @Inject constructor(
     }
 
     fun setTemp(tempC: Int, currentMode: Int) {
+        programJob?.cancel()
         val clamped = tempC.coerceIn(40, 230)
         val mask = BleConstants.WRITE_TEMPERATURE or BleConstants.WRITE_HEATER_STATE
         bleManager.sendWrite(BlePacket.buildStatusWrite(mask, tempC = clamped, mode = currentMode))
     }
 
-    fun setBoost(offsetC: Int) =
+    fun setBoost(offsetC: Int) {
+        programJob?.cancel()
         bleManager.sendWrite(BlePacket.buildStatusWrite(BleConstants.WRITE_BOOST, boostC = offsetC.coerceAtLeast(0)))
+    }
 
-    fun setSuperBoost(offsetC: Int) =
+    fun setSuperBoost(offsetC: Int) {
+        programJob?.cancel()
         bleManager.sendWrite(BlePacket.buildStatusWrite(BleConstants.WRITE_SUPERBOOST, superBoostC = offsetC.coerceAtLeast(0)))
+    }
 
     fun setAutoShutdown(seconds: Int) =
         bleManager.sendWrite(BlePacket.buildStatusWrite(BleConstants.WRITE_AUTO_SHUTDOWN, shutdownSec = seconds.coerceAtLeast(0)))

@@ -19,8 +19,11 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.sbtracker.*
 import com.sbtracker.databinding.FragmentSessionBinding
+import com.sbtracker.databinding.DialogProgramEditorBinding
+import com.sbtracker.databinding.ItemProgramStepBinding
 import com.sbtracker.data.SessionProgram
 import com.sbtracker.data.DeviceStatus
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
@@ -66,6 +69,7 @@ class SessionFragment : Fragment() {
         // Hit / Breath Tracking UI
         val cardActiveHit = binding.cardActiveHit
         val tvHitTimer = binding.tvHitTimer
+        val cardProgramPreview = binding.cardProgramPreview
 
         // Controls
         val tvTargetBase = binding.tvTargetTemp
@@ -180,8 +184,7 @@ class SessionFragment : Fragment() {
 
                 val isIdleOrOffline = s == null || s.heaterMode == 0
                 if (!isIdleOrOffline) {
-                    tvHeatUpEstimate.visibility = View.GONE
-                    tvDrainPreview.visibility = View.GONE
+                    cardProgramPreview.visibility = View.GONE
                     
                     // Show next stage countdown if we have one (T-085/87+)
                     if (nextStageAt != null) {
@@ -220,7 +223,7 @@ class SessionFragment : Fragment() {
                     val drainPct = (avgDrain * (durationSec / 60f)).roundToInt()
                     
                     tvDrainPreview.visibility = View.VISIBLE
-                    tvDrainPreview.text = "Program: ${selected.name}\n${"%02d:%02d".format(durationMin, durationRem)} (est.)  −${drainPct}% (Ym est.)"
+                    tvDrainPreview.text = "Program: ${selected.name}\n${"%02d:%02d".format(durationMin, durationRem)} (est.)  −${drainPct}% (avg drain)"
                     
                     // Update Ignite button text
                     btnStartNormal.text = "IGNITE PROGRAM"
@@ -228,6 +231,8 @@ class SessionFragment : Fragment() {
                     tvDrainPreview.visibility = View.GONE
                     btnStartNormal.text = "IGNITE"
                 }
+
+                cardProgramPreview.visibility = if (heatUpEst != null || selected != null) View.VISIBLE else View.GONE
             }.collect {}
         }
 
@@ -285,18 +290,25 @@ class SessionFragment : Fragment() {
         layout.addView(gridLayout)
 
         viewLifecycleOwner.lifecycleScope.launch {
-            combine(sessionVm.defaultPrograms, sessionVm.customPrograms) { defaults, customs ->
-                defaults to customs
-            }.collect { (defaults, customs) ->
+            combine(
+                sessionVm.defaultPrograms,
+                sessionVm.customPrograms,
+                bleVm.latestStatus
+            ) { defaults, customs, status ->
+                Triple(defaults, customs, status)
+            }.collect { (defaults, customs, s) ->
                 gridLayout.removeAllViews()
                 val allPrograms = (defaults + customs).take(6)
                 val selectedId = sessionVm.selectedProgram.value?.id
+                val isRunning = s != null && s.heaterMode > 0
 
                 allPrograms.forEachIndexed { idx, program ->
                     val isSelected = program.id == selectedId
                     val btnProgram = Button(requireContext()).apply {
                         text = "${program.name}\n${program.targetTempC}°C"
                         textSize = 12f
+                        isEnabled = !isRunning
+                        alpha = if (isRunning) 0.5f else 1.0f
                         setTextColor(if (isSelected) 0xFF00FF41.toInt() else 0xFFFFFFFF.toInt())
                         setBackgroundTintList(android.content.res.ColorStateList.valueOf(
                             ContextCompat.getColor(requireContext(), if (isSelected) R.color.color_surface_highlight else R.color.color_surface)
@@ -331,6 +343,8 @@ class SessionFragment : Fragment() {
                         val btnNew = Button(requireContext()).apply {
                             text = "+ NEW"
                             textSize = 12f
+                            isEnabled = !isRunning
+                            alpha = if (isRunning) 0.5f else 1.0f
                             setTextColor(ContextCompat.getColor(requireContext(), R.color.color_boost_bar_fill))
                             setBackgroundTintList(android.content.res.ColorStateList.valueOf(
                                 ContextCompat.getColor(requireContext(), R.color.color_surface)
@@ -358,13 +372,15 @@ class SessionFragment : Fragment() {
     private fun showProgramEditor(program: SessionProgram?) {
         val context = requireContext()
         val isNew = program == null
+        val dialog = BottomSheetDialog(context)
+        val b = DialogProgramEditorBinding.inflate(layoutInflater)
+        dialog.setContentView(b.root)
 
-        // Parse existing steps or create default
         data class StepUI(var temp: Int, var timeSec: Int)
         val baseTemp = program?.targetTempC ?: bleVm.targetTemp.value
         val steps = mutableListOf<StepUI>()
 
-        // Parse boostStepsJson into StepUI list: temp = base + boost, time = duration at this step
+        // 1. Initial Data Load
         try {
             val json = program?.boostStepsJson ?: "[{\"offsetSec\":0,\"boostC\":0}]"
             val stepsArray = org.json.JSONArray(json)
@@ -384,246 +400,89 @@ class SessionFragment : Fragment() {
             steps.add(StepUI(baseTemp, 60))
         }
 
-        val nameInput = EditText(context).apply {
-            setText(program?.name ?: "")
-            hint = "Program name"
-            textSize = 14f
-            setTextColor(0xFFFFFFFF.toInt())
-            setHintTextColor(ContextCompat.getColor(context, R.color.color_gray_dim))
-            setPadding(16, 12, 16, 12)
+        // 2. UI Setup
+        b.editorTitle.text = if (isNew) "New Program" else "Edit Program"
+        b.etProgramName.setText(program?.name ?: "")
+        b.etBaseTemp.setText(baseTemp.toString())
+        if (!isNew && !program!!.isDefault) b.btnDelete.visibility = View.VISIBLE
+
+        fun updateGraph() {
+            val currentBase = b.etBaseTemp.text.toString().toIntOrNull() ?: baseTemp
+            val graphSteps = steps.map { it.timeSec to it.temp }
+            b.programGraph.setSteps(graphSteps)
         }
 
-        val baseTempInput = EditText(context).apply {
-            setText(baseTemp.toString())
-            hint = "Base temp (°C)"
-            inputType = android.text.InputType.TYPE_CLASS_NUMBER
-            textSize = 14f
-            setTextColor(0xFFFFFFFF.toInt())
-            setHintTextColor(ContextCompat.getColor(context, R.color.color_gray_dim))
-            setPadding(16, 12, 16, 12)
-        }
-
-        val tableContainer = LinearLayout(context).apply {
-            orientation = LinearLayout.VERTICAL
-        }
-
-        fun updateTableUI() {
-            tableContainer.removeAllViews()
-
-            // Header row
-            val headerRow = LinearLayout(context).apply {
-                orientation = LinearLayout.HORIZONTAL
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                ).apply { setMargins(0, 0, 0, 8) }
-                gravity = android.view.Gravity.CENTER_VERTICAL
-                setPadding(12, 8, 12, 8)
-                setBackgroundColor(ContextCompat.getColor(context, R.color.color_surface))
-            }
-
-            arrayOf("Step#", "Temp(°C)", "Time(s)", "").forEach { label ->
-                val width = when (label) {
-                    "Step#" -> 40
-                    "Temp(°C)" -> 0
-                    "Time(s)" -> 0
-                    else -> 50 // Remove column
-                }
-                val weight = when (label) {
-                    "Step#" -> 0f
-                    else -> if (label.isEmpty()) 0f else 1f
-                }
-
-                val headerText = TextView(context).apply {
-                    text = label
-                    textSize = 11f
-                    setTextColor(ContextCompat.getColor(context, R.color.color_boost_bar_fill))
-                    layoutParams = if (weight > 0) {
-                        LinearLayout.LayoutParams(width, LinearLayout.LayoutParams.WRAP_CONTENT, weight)
-                    } else {
-                        LinearLayout.LayoutParams(width, LinearLayout.LayoutParams.WRAP_CONTENT)
-                    }
-                    setPadding(8, 8, 8, 8)
-                    setTypeface(null, android.graphics.Typeface.BOLD)
-                }
-                headerRow.addView(headerText)
-            }
-            tableContainer.addView(headerRow)
-
-            // Data rows
-            var totalSec = 0
+        fun refreshStepsUI() {
+            b.stepsContainer.removeAllViews()
             steps.forEachIndexed { idx, step ->
-                totalSec += step.timeSec
-                val dataRow = LinearLayout(context).apply {
-                    orientation = LinearLayout.HORIZONTAL
-                    layoutParams = LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT
-                    ).apply { setMargins(0, 4, 0, 4) }
-                    gravity = android.view.Gravity.CENTER_VERTICAL
-                    setPadding(8, 8, 8, 8)
-                    setBackgroundColor(ContextCompat.getColor(context, R.color.color_tint_green))
+                val stepBinding = ItemProgramStepBinding.inflate(layoutInflater, b.stepsContainer, false)
+                stepBinding.tvStepNum.text = (idx + 1).toString()
+                stepBinding.etStepTemp.setText(step.temp.toString())
+                stepBinding.etStepDuration.setText(step.timeSec.toString())
+
+                stepBinding.etStepTemp.doAfterTextChanged {
+                    step.temp = it.toString().toIntOrNull() ?: baseTemp
+                    updateGraph()
                 }
-
-                // Step #
-                val stepNumText = TextView(context).apply {
-                    text = (idx + 1).toString()
-                    textSize = 11f
-                    setTextColor(0xFFFFFFFF.toInt())
-                    layoutParams = LinearLayout.LayoutParams(40, LinearLayout.LayoutParams.WRAP_CONTENT)
-                    setPadding(8, 4, 8, 4)
-                    gravity = android.view.Gravity.CENTER
+                stepBinding.etStepDuration.doAfterTextChanged {
+                    step.timeSec = it.toString().toIntOrNull()?.coerceAtLeast(1) ?: 60
+                    updateGraph()
                 }
-                dataRow.addView(stepNumText)
-
-                // Temperature input
-                val tempInput = EditText(context).apply {
-                    setText(step.temp.toString())
-                    inputType = android.text.InputType.TYPE_CLASS_NUMBER
-                    textSize = 11f
-                    setTextColor(0xFFFFFFFF.toInt())
-                    setHintTextColor(ContextCompat.getColor(context, R.color.color_gray_dim))
-                    layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-                    setPadding(8, 4, 8, 4)
-                    gravity = android.view.Gravity.CENTER
+                stepBinding.btnRemoveStep.setOnClickListener {
+                    steps.removeAt(idx)
+                    refreshStepsUI()
                 }
-                dataRow.addView(tempInput)
-
-                // Time (seconds) input
-                val timeInput = EditText(context).apply {
-                    setText(step.timeSec.toString())
-                    inputType = android.text.InputType.TYPE_CLASS_NUMBER
-                    textSize = 11f
-                    setTextColor(0xFFFFFFFF.toInt())
-                    setHintTextColor(ContextCompat.getColor(context, R.color.color_gray_dim))
-                    layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-                    setPadding(8, 4, 8, 4)
-                    gravity = android.view.Gravity.CENTER
-                }
-                dataRow.addView(timeInput)
-
-                // Remove button
-                val removeBtn = Button(context).apply {
-                    text = "−"
-                    textSize = 12f
-                    setTextColor(ContextCompat.getColor(context, R.color.color_red))
-                    setBackgroundTintList(android.content.res.ColorStateList.valueOf(
-                        ContextCompat.getColor(context, R.color.color_surface)
-                    ))
-                    layoutParams = LinearLayout.LayoutParams(50, LinearLayout.LayoutParams.WRAP_CONTENT)
-                    setPadding(4, 4, 4, 4)
-                    setOnClickListener {
-                        steps.removeAt(idx)
-                        updateTableUI()
-                    }
-                }
-                dataRow.addView(removeBtn)
-
-                tableContainer.addView(dataRow)
-
-                // Sync inputs to step data eagerly so Save captures the latest value
-                // even if the field still has focus when the button is tapped.
-                tempInput.doAfterTextChanged { step.temp = it.toString().toIntOrNull() ?: baseTemp }
-                timeInput.doAfterTextChanged { step.timeSec = maxOf(1, it.toString().toIntOrNull() ?: 60) }
+                b.stepsContainer.addView(stepBinding.root)
             }
-
-            // Add Step button
-            val addStepBtn = Button(context).apply {
-                text = "+ ADD STEP"
-                textSize = 12f
-                setTextColor(ContextCompat.getColor(context, R.color.color_boost_bar_fill))
-                setBackgroundTintList(android.content.res.ColorStateList.valueOf(
-                    ContextCompat.getColor(context, R.color.color_surface)
-                ))
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                ).apply { setMargins(0, 12, 0, 0) }
-                setPadding(16, 12, 16, 12)
-                setOnClickListener {
-                    steps.add(StepUI(baseTemp + 5, 60))
-                    updateTableUI()
-                }
-            }
-            tableContainer.addView(addStepBtn)
-
-            // Total time summary
-            val summaryText = TextView(context).apply {
-                text = "Total: ${totalSec / 60}m ${totalSec % 60}s"
-                textSize = 12f
-                setTextColor(ContextCompat.getColor(context, R.color.color_boost_bar_fill))
-                setPadding(12, 12, 12, 4)
-                setTypeface(null, android.graphics.Typeface.BOLD)
-            }
-            tableContainer.addView(summaryText)
+            updateGraph()
         }
 
-        updateTableUI()
-
-        val scrollView = android.widget.ScrollView(context).apply {
-            addView(tableContainer)
+        b.etBaseTemp.doAfterTextChanged { updateGraph() }
+        b.btnAddStep.setOnClickListener {
+            val lastTemp = steps.lastOrNull()?.temp ?: (b.etBaseTemp.text.toString().toIntOrNull() ?: baseTemp)
+            steps.add(StepUI(lastTemp + 5, 60))
+            refreshStepsUI()
         }
 
-        val container = LinearLayout(context).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(12, 12, 12, 12)
-            addView(nameInput)
-            addView(baseTempInput)
-            val stepsLabel = TextView(context).apply {
-                text = "HEATING STEPS"
-                textSize = 12f
-                setTextColor(ContextCompat.getColor(context, R.color.color_boost_bar_fill))
-                setPadding(12, 16, 12, 8)
-                setTypeface(null, android.graphics.Typeface.BOLD)
-            }
-            addView(stepsLabel)
-            addView(scrollView)
+        b.btnDelete.setOnClickListener {
+            AlertDialog.Builder(context)
+                .setTitle("Delete Program?")
+                .setMessage("Are you sure? This cannot be undone.")
+                .setPositiveButton("Delete") { _, _ ->
+                    sessionVm.deleteProgram(program!!.id)
+                    dialog.dismiss()
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
         }
 
-        AlertDialog.Builder(context)
-            .setTitle(if (isNew) "New Program" else "Edit Program")
-            .setView(container)
-            .setPositiveButton("Save") { _, _ ->
-                val name = nameInput.text.toString().trim()
-                val newBaseTemp = baseTempInput.text.toString().toIntOrNull()?.coerceIn(40, 230) ?: baseTemp
+        b.btnSave.setOnClickListener {
+            val name = b.etProgramName.text.toString().trim()
+            val newBaseTemp = b.etBaseTemp.text.toString().toIntOrNull()?.coerceIn(40, 230) ?: baseTemp
 
-                if (name.isNotEmpty() && steps.isNotEmpty()) {
-                    // Rebuild boostStepsJson: boost = temp - newBaseTemp
-                    val stepsJson = mutableListOf<String>()
-                    var offsetSec = 0
-                    steps.forEach { step ->
-                        val clampedTemp = step.temp.coerceIn(40, 230)
-                        val boostC = clampedTemp - newBaseTemp
-                        stepsJson.add("{\"offsetSec\":$offsetSec,\"boostC\":$boostC}")
-                        offsetSec += step.timeSec
-                    }
-                    val json = "[${stepsJson.joinToString(",")}]"
-
-                    val updated = (program ?: SessionProgram(
-                        name = name,
-                        targetTempC = newBaseTemp,
-                        boostStepsJson = json,
-                        isDefault = false
-                    )).copy(name = name, targetTempC = newBaseTemp, boostStepsJson = json)
-
-                    sessionVm.saveProgram(updated)
+            if (name.isNotEmpty() && steps.isNotEmpty()) {
+                val stepsJson = mutableListOf<String>()
+                var offsetSec = 0
+                steps.forEach { step ->
+                    val clampedTemp = step.temp.coerceIn(40, 230)
+                    val boostC = clampedTemp - newBaseTemp
+                    stepsJson.add("{\"offsetSec\":$offsetSec,\"boostC\":$boostC}")
+                    offsetSec += step.timeSec
                 }
+                val json = "[${stepsJson.joinToString(",")}]"
+                val updated = (program ?: SessionProgram(
+                    name = name,
+                    targetTempC = newBaseTemp,
+                    boostStepsJson = json,
+                    isDefault = false
+                )).copy(name = name, targetTempC = newBaseTemp, boostStepsJson = json)
+
+                sessionVm.saveProgram(updated)
+                dialog.dismiss()
             }
-            .setNegativeButton("Cancel", null)
-            .apply {
-                if (!isNew && !program!!.isDefault) {
-                    setNeutralButton("Delete") { _, _ ->
-                        AlertDialog.Builder(context)
-                            .setTitle("Delete Program?")
-                            .setMessage("Are you sure? This cannot be undone.")
-                            .setPositiveButton("Delete") { _, _ ->
-                                sessionVm.deleteProgram(program.id)
-                            }
-                            .setNegativeButton("Cancel", null)
-                            .show()
-                    }
-                }
-            }
-            .show()
+        }
+
+        refreshStepsUI()
+        dialog.show()
     }
 }
