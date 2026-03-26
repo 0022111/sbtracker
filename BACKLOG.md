@@ -139,6 +139,8 @@ The codebase is currently in the "Final Hardening" phase. To reach a technical A
 | 2026-03-25 | Oracle full-codebase audit | Comprehensive review of implementation vs. claims across all layers. Verdict: architecture sound, core bug B-010 (temp accuracy) is the primary release blocker. Added B-012–B-015 from audit findings. See CHANGELOG for full report. |
 | 2026-03-25 | Park F-052 Hit Analytics (Oracle verdict) | The threshold problem: no real hit-duration distribution data exists yet. Hardcoded thresholds (e.g. 3s "large hit") are arbitrary and will need ripping out after Alpha. Re-entry conditions: B-010 resolved, F-054 done, F-056 done, Alpha shipped. T-076 reverted; T-077/T-080/T-081 demoted to `planned`. |
 | 2026-03-26 | Oracle UX Audit — app is a data logger, not yet a companion | Full UX evaluation against the live codebase (all 5 screens). Core finding: the architecture is excellent but the human layer is missing. The session narrative is broken across 4 screens; there is no onboarding, no annotation, no time-range filter, and developer tools are exposed to users. Added B-016, F-057–F-062 to address. UX Principles added to PROJECT.md as a standing agent directive. |
+| 2026-03-26 | F-018b: capsule weight is a global setting, not a per-session variable | Users do not meaningfully vary pack weight session to session. The binary isCapsule flag is the meaningful annotation. Per-session weight override UI will not be built; `SessionMetadata.capsuleWeightGrams` field exists in schema but its UI path remains closed. Weight is always resolved from global preferences at query time. |
+| 2026-03-26 | F-018b: Health tab requires day-level intake granularity, not period averages | 7-day and 30-day trailing averages are too coarse — they hide the patterns that matter (which days are heavy, whether trend is up or down). `DailyStats` must gain `totalGramsConsumed` for charting. Default chart view must show ≥14 days. `gramsPerDay7d`/`gramsPerDay30d` can remain as summary figures only. |
 
 ---
 
@@ -217,6 +219,25 @@ The codebase is currently in the "Final Hardening" phase. To reach a technical A
 ### F-018b: Health & Dosage (Phase 2 Insights)
 *Status: Partially unblocked! Database Schema for `SessionMetadata` successfully merged in schema v3.*
 
+#### Design Constraints (Oracle session 2026-03-26)
+
+**Weight is not a per-session variable.**
+A session is either a capsule (fixed weight set once globally in Settings) or a free pack. Users don't meaningfully vary how much they pack from session to session. Therefore:
+- The global `capsuleWeightGrams` preference is the canonical weight source.
+- The `capsuleWeightGrams` field on `SessionMetadata` **may exist in schema** but per-session weight override UI should NOT be built — it adds complexity without solving a real user problem.
+- The meaningful input the user makes is the binary `isCapsule` flag per session (capsule vs. free pack). That is the annotation to optimize for, not a weight slider.
+- T-079 (dose visibility in session cards) correctly reflects this: show `"Xg"` for capsule sessions using the global default. Do not add a per-session weight edit field.
+
+**Time granularity must be day-level, not period-average.**
+`gramsPerDay7d` and `gramsPerDay30d` in `IntakeStats` are trailing averages — too coarse to be meaningful. Even a 7-day average smooths out the patterns that matter (which days are heavy days, whether consumption is trending up). The Health tab needs a day-by-day intake bar chart:
+- `DailyStats` must gain a `totalGramsConsumed: Float` field (computed from `session_metadata` joins).
+- The chart should show at minimum 14 days of daily bars by default. 7 days is not enough context.
+- Period selectors (7d / 30d / 90d) from F-058 should apply here too, but the default view must be granular enough to read individual days.
+- `gramsPerDay7d` / `gramsPerDay30d` can remain as summary figures but must not be the primary display.
+
+**Free-pack sessions are excluded from gram totals — be honest about it.**
+A user who free-packs will see `0.00g` everywhere. The UI should not show gram stats at all for users with no capsule sessions — instead show a prompt to configure intake tracking. Showing zeroes to free-pack users is misleading.
+
 **Release-Complete Implementation Plan:**
 
 1. **Unblock Phase (COMPLETED):**
@@ -224,23 +245,35 @@ The codebase is currently in the "Final Hardening" phase. To reach a technical A
    * **UI Prep (Pending):** Ensure the session report screen and settings are either migrated to Compose or stabilized enough to accept new UI elements without creating merge conflicts.
 
 2. **Data Layer Implementation:**
-   * Update the DataStore/SharedPreferences repository to support saving/reading `capsule_weight_grams` and `default_session_type`.
+   * Global `capsule_weight_grams` and `default_is_capsule` preferences are **already implemented** in `UserPreferencesRepository`.
+   * Extend `DailyStats` with `totalGramsConsumed: Float` — thread `metadataMap` into `computeDailyStats()` in `AnalyticsRepository`.
+   * Do NOT add per-session weight override to the data layer — the schema field exists but the UI path should remain closed.
 
 3. **Analytics Integration:**
-   * Update the `AnalyticsRepository` to merge core Session info with the new `SessionMetadata`.
-   * Write logic to calculate total dosage: count all capsule sessions in a given timeframe and multiply by the capsule weight setting. Calculate trend metrics (e.g., grams per week).
+   * `computeIntakeStats()` is already implemented and correct.
+   * Add week-over-week delta: `gramsChangeVsLastWeek: Float` to `IntakeStats` — pure math, no DB access.
+   * `computeDailyStats()` gains intake grams per day (see above).
 
 4. **UI Updates:**
-   * **Settings:** Add a text input or slider for capsule weight, and a segmented button for the default pack type.
-   * **Session Report:** Add a toggle near the top of the session summary allowing users to retroactively change a session between "Capsule" and "Free Pack."
-   * **Insights Screen:** Build out the new "Health & Intake" card showing total consumed weight and usage habits over time.
+   * **Settings:** Capsule weight input and default pack type toggle are **already implemented**.
+   * **Session Report:** The `isCapsule` toggle (Capsule / Free Pack) is **already implemented**. Do NOT add a weight override field.
+   * **Health Tab:** Replace the three-stat text layout with:
+     - A daily intake bar chart (min 14 days of bars, reuses `HistoryBarChartView` pattern)
+     - A 3-stat summary row: total all time · avg/day · week-over-week delta
+     - A session-type split line: `N capsule · M free-pack`
+     - Empty state for users with no capsule sessions: explain the feature, link to Settings to configure capsule weight.
 
-5. **Testing & QA:**
-   * Write unit tests for the intake calculations in `AnalyticsRepository`.
-   * Verify UI states when changing the capsule weight retroactively (does it update past history correctly?).
-   * Trigger a database rebuild (`backcompileSessionsFromLogs()`) manually to prove user-entered capsule flags survive the process.
+5. **B-013 Gap (Legacy Sessions):**
+   * Sessions predating F-018 have no `SessionMetadata` row and default to free-pack / 0g.
+   * Show a one-time dismissible banner in the Health tab: *"X sessions predate intake tracking and aren't included in these totals."*
+   * Do not attempt a retroactive backfill — there is no reliable signal for what those sessions were.
 
-6. **Release Polish:**
+6. **Testing & QA:**
+   * Write unit tests for `computeIntakeStats()` and the extended `computeDailyStats()` — these are pure functions, trivially testable. Pairs with F-042.
+   * Verify that changing global capsule weight retroactively updates all gram totals correctly (it should, since weight is resolved at query time).
+   * Trigger `backcompileSessionsFromLogs()` to prove `isCapsule` flags in `session_metadata` survive a session rebuild.
+
+7. **Release Polish:**
    * Update `CHANGELOG.md` with the new feature details.
    * Ensure string resources are localized/extracted.
-   * Open the PR and pass all CI checks defined in your GitHub Integrity workflow.
+   * Open the PR and pass all CI checks.
