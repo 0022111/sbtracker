@@ -10,7 +10,7 @@ The codebase is currently in the "Final Hardening" phase. To reach a technical A
 **Critical Alpha Milestones:**
 * **🛡️ [Epic] Data Trust (B-010):** Resolving synthetic temperature accuracy for Venty/Veazy (Critical Blocker).
 * **📂 [Epic] Data Mobility (F-026/027):** Secure database backup/restore and session program schedules for testers.
-* **🎨 [Epic] UI/UX Refresh (F-100):** Consolidating F-053..F-056 and F-050; modernizing Home, Session, and History surfaces.
+* **🎨 [Epic] UI/UX Refresh (F-100):** Consolidating F-053...F-056 and F-050; modernizing Home, Session, and History surfaces.
 
 *Note: Infrastructure refactors (Compose migration) and minor UI bugs are deferred to the Beta/v1.0 phase to ensure a stable Alpha happens first.*
 
@@ -159,8 +159,8 @@ The codebase is currently in the "Final Hardening" phase. To reach a technical A
 | T-044/T-045 | `setupProgramsGrid()` 2×3 grid + `showProgramEditor()` table dialog (Step# / Temp / Time) in `SessionFragment` — programs can be created, edited, deleted |
 
 #### Remaining tasks (in order)
-| Task | What it delivers |
-|------|-----------------|
+| Task | Status | What it delivers |
+|---|---|---|
 | **T-083** | `done` | DB Migration v4→5: `stayOnAtEnd: Boolean` field on `SessionProgram` (infrastructure; no UI yet) |
 | **T-084** | `done` | `AnalyticsRepository.computeAvgDrainPerMinute()` + `HistoryViewModel.avgDrainPerMinute` StateFlow + `SessionViewModel` estimation helpers |
 | **T-046** | `done` | Chip row UI for program selection, `startSessionWithProgram()`, `ActiveProgramHolder` singleton, `setBoost()` coroutine job — **programs execute for the first time** |
@@ -183,7 +183,7 @@ The codebase is currently in the "Final Hardening" phase. To reach a technical A
 **Release-Complete Implementation Plan:**
 
 1. **Unblock Phase (COMPLETED):**
-   * **Database Schema Fix:** Created `session_metadata` mapping to `session_id`. Safely isolates user-provided data from destructive session rebuilds. Migration v2->v3 fully tested.
+   * **Database Schema Fix:** Created `session_metadata` mapping to `session_id`. Safely isolates user-provided data from destructive session rebuilds. Migration v2→v3 fully tested.
    * **UI Prep (Pending):** Ensure the session report screen and settings are either migrated to Compose or stabilized enough to accept new UI elements without creating merge conflicts.
 
 2. **Data Layer Implementation:**

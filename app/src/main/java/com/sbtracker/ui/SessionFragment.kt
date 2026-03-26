@@ -20,6 +20,7 @@ import androidx.lifecycle.lifecycleScope
 import com.sbtracker.*
 import com.sbtracker.databinding.FragmentSessionBinding
 import com.sbtracker.data.SessionProgram
+import com.sbtracker.data.DeviceStatus
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
@@ -159,14 +160,24 @@ class SessionFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             combine(
-                bleVm.latestStatus,
-                historyVm.estimatedHeatUpTimeSecsWithContext(bleVm.targetTemp, bleVm),
-                sessionVm.selectedProgram,
-                historyVm.avgDrainPerMinute,
-                sessionVm.nextStageTimeMs,
-                sessionVm.nextStageTempC,
-                bleVm.isCelsius
-            ) { s, heatUpEst, selected, avgDrain, nextStageAt, nextStageTemp, isCelsius ->
+                listOf(
+                    bleVm.latestStatus,
+                    historyVm.estimatedHeatUpTimeSecsWithContext(bleVm.targetTemp, bleVm),
+                    sessionVm.selectedProgram,
+                    historyVm.avgDrainPerMinute,
+                    sessionVm.nextStageTimeMs,
+                    sessionVm.nextStageTempC,
+                    bleVm.isCelsius
+                )
+            ) { flows ->
+                val s = flows[0] as? DeviceStatus
+                val heatUpEst = flows[1] as? Int
+                val selected = flows[2] as? SessionProgram
+                val avgDrain = flows[3] as Float
+                val nextStageAt = flows[4] as? Long
+                val nextStageTemp = flows[5] as? Int
+                val isCelsius = flows[6] as Boolean
+
                 val isIdleOrOffline = s == null || s.heaterMode == 0
                 if (!isIdleOrOffline) {
                     tvHeatUpEstimate.visibility = View.GONE
