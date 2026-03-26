@@ -28,7 +28,14 @@ class AnalyticsTabFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
-        // ── TIER 1: Hero — Timeline + Quick Stats ─────────────────────────────
+        // ── Section 1: Frequency ──────────────────────────────────────────────
+        // (streak, weekly comparison — wired below)
+
+        // ── Section 2: Dose & Session ─────────────────────────────────────────
+        val tvDoseAvgGrams       = view.findViewById<TextView>(R.id.tv_dose_avg_grams)
+        val tvDoseAvgHitDuration = view.findViewById<TextView>(R.id.tv_dose_avg_hit_duration)
+
+        // ── Section 3: Cycle Insights — Timeline + Quick Stats ────────────────
         val timeline       = view.findViewById<HistoryTimelineView>(R.id.analytics_timeline)
         val tvHeroSessions = view.findViewById<TextView>(R.id.tv_hero_sessions)
         val tvHeroAvgDur   = view.findViewById<TextView>(R.id.tv_hero_avg_duration)
@@ -217,6 +224,17 @@ class AnalyticsTabFragment : Fragment() {
                     HistoryBarChartView.Period.WEEK else HistoryBarChartView.Period.DAY
                 barChart.setData(daily, charges, chartPeriod)
             }
+        }
+
+        // ── Dose & Session card — avg grams/session + avg hit duration ─────────
+        viewLifecycleOwner.lifecycleScope.launch {
+            combine(historyVm.intakeStats, historyVm.historyStats) { intake, stats -> intake to stats }
+                .collect { (intake, stats) ->
+                    tvDoseAvgGrams.text = if (intake.avgGramsPerSession > 0f)
+                        "%.2f g".format(intake.avgGramsPerSession) else "—"
+                    tvDoseAvgHitDuration.text = if (stats.avgHitDurationSec > 0f)
+                        "${stats.avgHitDurationSec.roundToInt()}s" else "—"
+                }
         }
     }
 
