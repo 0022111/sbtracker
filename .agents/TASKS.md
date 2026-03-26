@@ -132,7 +132,7 @@ main  ← stable, merges only from dev
 | ID | Status | Title | Task File | Blocked by |
 |---|---|---|---|---|
 | T-058 | `done` | BackupRepository: Close WAL, Copy DB to Cache, Emit FileProvider URI | [T-058](tasks/T-058-backup-repository.md) | — |
-| T-059 | `blocked` | RestoreRepository: Validate, Close, Overwrite DB, Signal Restart | [T-059](tasks/T-059-restore-repository.md) | T-058 |
+| T-059 | `done` | RestoreRepository: Validate, Close, Overwrite DB, Signal Restart | [T-059](tasks/T-059-restore-repository.md) | T-058 |
 | T-060 | `done` | SettingsViewModel: Backup Action + Settings UI Button | [T-060](tasks/T-060-backup-viewmodel-and-settings-button.md) | T-058 |
 | T-061 | `blocked` | SettingsViewModel: Restore Action + Settings UI Button | [T-061](tasks/T-061-restore-viewmodel-and-settings-button.md) | T-059, T-060 |
 | T-062 | `blocked` | MainActivity: Wire Backup Share Intent + Restore App Restart | [T-062](tasks/T-062-mainactivity-wire-backup-restore-intents.md) | T-060, T-061 |
@@ -159,8 +159,8 @@ main  ← stable, merges only from dev
 |---|---|---|---|---|
 | T-076 | `planned` | Hit Classification Fields in AnalyticsModels | [T-076](tasks/T-076-hit-classification-fields.md) | oracle F-052 redesign |
 | T-077 | `planned` | Compute Hit Achievement Metrics in AnalyticsRepository | [T-077](tasks/T-077-hit-achievement-metrics.md) | oracle F-052 redesign |
-| T-078 | `blocked` | Analytics Tab: Frequency & Dose Section Reorganization | [T-078](tasks/T-078-analytics-frequency-dose-section.md) | T-050 |
-| T-079 | `blocked` | Dose Visibility in Session Cards | [T-079](tasks/T-079-dose-visibility-session-cards.md) | T-049 |
+| T-078 | `ready` | Analytics Tab: Frequency & Dose Section Reorganization | [T-078](tasks/T-078-analytics-frequency-dose-section.md) | T-050 |
+| T-079 | `ready` | Dose Visibility in Session Cards | [T-079](tasks/T-079-dose-visibility-session-cards.md) | T-049 |
 | T-080 | `planned` | Hit Achievements Display on Analytics Tab | [T-080](tasks/T-080-hit-achievements-display.md) | oracle F-052 redesign |
 | T-081 | `planned` | Temperature-Based Achievement Display | [T-081](tasks/T-081-temperature-achievement-display.md) | oracle F-052 redesign |
 | T-082 | `blocked` | Analytics Tab: Cycle & Session Insights Card | [T-082](tasks/T-082-analytics-cycle-insights-card.md) | T-078 |
@@ -170,7 +170,7 @@ main  ← stable, merges only from dev
 | ID | Status | Title | Task File | Blocked by |
 |---|---|---|---|---|
 | T-053 | `done` | Session Report: Redesign Layout with Labeled Sections | [T-053](tasks/T-053-session-report-layout-redesign.md) | — |
-| T-054 | `done` | Session Report: Human-Readable Extraction Timeline | [T-054](tasks/T-054-session-report-hit-timeline.md) | T-053 |
+| T-054 | `ready` | Session Report: Human-Readable Extraction Timeline | [T-054](tasks/T-054-session-report-hit-timeline.md) | T-053 |
 | T-055 | `blocked` | Session Report: Session Classification Label | [T-055](tasks/T-055-session-classification-label.md) | T-054 |
 
 ## Phase 3 — F-050 Notifications Overhaul
@@ -181,6 +181,6 @@ main  ← stable, merges only from dev
 | T-070 | `done` | Persistent Status Notification Content | [T-070](tasks/T-070-persistent-status-notification.md) | T-069 |
 | T-071 | `done` | Notification Drawer Quick Controls | [T-071](tasks/T-071-notification-quick-controls.md) | T-070, T-008 |
 | T-072 | `done` | Configurable Alert Settings UI | [T-072](tasks/T-072-alert-settings-ui.md) | — |
-| T-073 | `blocked` | Alert Delivery Logic (Temp Ready, Charge 80%, Session End) | [T-073](tasks/T-073-alert-delivery-logic.md) | T-069, T-072 |
+| T-073 | `ready` | Alert Delivery Logic (Temp Ready, Charge 80%, Session End) | [T-073](tasks/T-073-alert-delivery-logic.md) | T-069, T-072 |
 | T-074 | `blocked` | Alert Notification Action Buttons (T-019 implementation) | [T-074](tasks/T-074-t019-alert-action-buttons.md) | T-073, T-008 |
 | T-075 | `done` | POST_NOTIFICATIONS Permission Handling (Android 13+) | [T-075](tasks/T-075-notification-permission-handling.md) | — |
