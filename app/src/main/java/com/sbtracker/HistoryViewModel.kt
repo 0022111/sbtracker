@@ -135,6 +135,28 @@ class HistoryViewModel @Inject constructor(
         .map { sessions -> analyticsRepo.getSessionSummaries(sessions) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    /**
+     * Maps each session ID in the current history to its [SessionMetadata].
+     * Capsule weight fallback: when [SessionMetadata.capsuleWeightGrams] is 0, the global
+     * [UserPreferences.capsuleWeightGrams] preference is substituted so adapters always
+     * receive a usable weight value.
+     */
+    val sessionMetadataMap: StateFlow<Map<Long, SessionMetadata>> =
+        combine(sessionSummaries, prefsRepo.userPreferencesFlow) { summaries, prefs ->
+            val ids = summaries.map { it.id }
+            if (ids.isEmpty()) return@combine emptyMap()
+            val rawList = withContext(Dispatchers.IO) {
+                db.sessionMetadataDao().getMetadataForSessions(ids)
+            }
+            rawList.associate { meta ->
+                val effectiveWeight = if (meta.capsuleWeightGrams == 0f)
+                    prefs.capsuleWeightGrams
+                else
+                    meta.capsuleWeightGrams
+                meta.sessionId to meta.copy(capsuleWeightGrams = effectiveWeight)
+            }
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
     private val allSessionSummaries: StateFlow<List<SessionSummary>> =
         db.sessionDao().observeAllSessions()
             .map { sessions -> analyticsRepo.getSessionSummaries(sessions) }

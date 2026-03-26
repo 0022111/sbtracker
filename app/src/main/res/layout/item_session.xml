@@ -78,6 +78,16 @@
                 android:textSize="11sp"
                 android:visibility="gone" />
 
+            <TextView
+                android:id="@+id/tv_dose_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textColor="#80A88F"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
         </LinearLayout>
 
     </LinearLayout>

@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.sbtracker.data.ChargeCycle
+import com.sbtracker.data.SessionMetadata
 import com.sbtracker.data.SessionSummary
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -34,6 +35,9 @@ class SessionHistoryAdapter(
 
     var showDeviceName: Boolean = false
 
+    /** Metadata map keyed by session ID, provided by HistoryViewModel.sessionMetadataMap. */
+    var metadataMap: Map<Long, SessionMetadata> = emptyMap()
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.item_session, parent, false)
         return ViewHolder(view)
@@ -48,6 +52,7 @@ class SessionHistoryAdapter(
         private val tvSummary: TextView = view.findViewById(R.id.tv_session_summary)
         private val tvDrain: TextView = view.findViewById(R.id.tv_session_drain_badge)
         private val tvRating: TextView = view.findViewById(R.id.tv_session_rating)
+        private val tvDoseLabel: TextView = view.findViewById(R.id.tv_dose_label)
         private val vIndicator: View = view.findViewById(R.id.v_session_indicator)
 
         private val sdf = SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault())
@@ -85,6 +90,15 @@ class SessionHistoryAdapter(
                 tvRating.visibility = View.GONE
             }
 
+            // Show gram dose label for capsule sessions; hide for free-pack or missing metadata.
+            val meta = metadataMap[summary.id]
+            if (meta != null && meta.isCapsule) {
+                tvDoseLabel.visibility = View.VISIBLE
+                tvDoseLabel.text = "${"%.2f".format(meta.capsuleWeightGrams)}g"
+            } else {
+                tvDoseLabel.visibility = View.GONE
+            }
+
             val indicatorColor = when {
                 summary.hitCount >= 10 -> "#FF3B30"
                 summary.hitCount >= 5  -> "#FFD60A"
@@ -110,6 +124,8 @@ class SessionHistoryAdapter(
             tvDrain.text = "+${cycle.batteryGained}%"
             tvDrain.setTextColor(Color.parseColor("#30D158"))
             tvDrain.setBackgroundResource(R.drawable.bg_badge_green)
+
+            tvDoseLabel.visibility = View.GONE
 
             vIndicator.setBackgroundColor(Color.parseColor("#44AAFF"))
 
