@@ -69,7 +69,7 @@ main  ← stable, merges only from dev
 | ID | Status | Title | Task File | Blocked by |
 |---|---|---|---|---|
 | T-011 | `done` | Session Notes + Rating | [T-011](tasks/T-011-session-notes-rating.md) | T-007 |
-| T-012 | `ready` | Temperature Presets | [T-012](tasks/T-012-temperature-presets.md) | T-009 |
+| T-012 | `done` | Temperature Presets | [T-012](tasks/T-012-temperature-presets.md) | T-009 |
 | T-013 | `ready` | History Search & Filtering | [T-013](tasks/T-013-history-filtering.md) | T-007 |
 | T-014 | `ready` | Tolerance Break Tracker | [T-014](tasks/T-014-tolerance-break-tracker.md) | T-007 |
 | T-015 | `ready` | Onboarding Flow | [T-015](tasks/T-015-onboarding-flow.md) | T-009 |
