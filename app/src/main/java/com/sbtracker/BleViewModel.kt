@@ -517,6 +517,10 @@ class BleViewModel @Inject constructor(
         private const val NOTIF_ID_TEMP_READY  = 210
         private const val NOTIF_ID_CHARGE_80   = 211
         private const val NOTIF_ID_SESSION_END = 212
+
+        const val TEST_DEVICE_ADDRESS = "AA:BB:CC:DD:EE:FF"
+        const val TEST_DEVICE_SERIAL  = "TEST00001"
+        const val TEST_DEVICE_TYPE    = "Crafty+"
     }
 
     private fun setupLifecycleObserver() {
@@ -696,12 +700,6 @@ class BleViewModel @Inject constructor(
     }
 
     // ── Test device helpers ──
-
-    companion object {
-        const val TEST_DEVICE_ADDRESS = "AA:BB:CC:DD:EE:FF"
-        const val TEST_DEVICE_SERIAL = "TEST00001"
-        const val TEST_DEVICE_TYPE = "Crafty+"
-    }
 
     fun injectTestDevice() {
         viewModelScope.launch {

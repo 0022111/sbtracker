@@ -876,6 +876,16 @@
             android:textColor="#00FF41"
             app:cornerRadius="16dp" />
 
+        <Button
+            android:id="@+id/btn_restore_database"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginTop="12dp"
+            android:backgroundTint="#141E17"
+            android:text="RESTORE DATABASE"
+            android:textColor="#0A84FF"
+            app:cornerRadius="16dp" />
+
         <!-- ── DEVELOPER TOOLS (hidden — tap firmware version 7× to unlock) ── -->
         <LinearLayout
             android:id="@+id/layout_dev_tools"

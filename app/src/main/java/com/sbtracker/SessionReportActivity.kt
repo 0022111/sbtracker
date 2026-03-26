@@ -147,11 +147,11 @@ class SessionReportActivity : AppCompatActivity() {
                 else                               -> "Marathon"
             }
             val classColor = when (classLabel) {
-                "Quick Sip"        -> ContextCompat.getColor(this, R.color.color_gray_mid)
-                "Light Session"    -> ContextCompat.getColor(this, R.color.color_green)
-                "Standard Session" -> ContextCompat.getColor(this, R.color.color_blue)
-                "Heavy Session"    -> ContextCompat.getColor(this, R.color.color_orange)
-                else               -> ContextCompat.getColor(this, R.color.color_red)
+                "Quick Sip"        -> ContextCompat.getColor(this@SessionReportActivity, R.color.color_gray_mid)
+                "Light Session"    -> ContextCompat.getColor(this@SessionReportActivity, R.color.color_green)
+                "Standard Session" -> ContextCompat.getColor(this@SessionReportActivity, R.color.color_blue)
+                "Heavy Session"    -> ContextCompat.getColor(this@SessionReportActivity, R.color.color_orange)
+                else               -> ContextCompat.getColor(this@SessionReportActivity, R.color.color_red)
             }
             findViewById<TextView>(R.id.report_tv_session_class)?.apply {
                 text = classLabel
