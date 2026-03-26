@@ -68,7 +68,7 @@ main  ← stable, merges only from dev
 
 | ID | Status | Title | Task File | Blocked by |
 |---|---|---|---|---|
-| T-011 | `ready` | Session Notes + Rating | [T-011](tasks/T-011-session-notes-rating.md) | T-007 |
+| T-011 | `done` | Session Notes + Rating | [T-011](tasks/T-011-session-notes-rating.md) | T-007 |
 | T-012 | `ready` | Temperature Presets | [T-012](tasks/T-012-temperature-presets.md) | T-009 |
 | T-013 | `ready` | History Search & Filtering | [T-013](tasks/T-013-history-filtering.md) | T-007 |
 | T-014 | `ready` | Tolerance Break Tracker | [T-014](tasks/T-014-tolerance-break-tracker.md) | T-007 |
@@ -83,7 +83,7 @@ main  ← stable, merges only from dev
 
 | ID | Status | Title | Task File | Blocked by |
 |---|---|---|---|---|
-| T-016 | `blocked` | Remove fallbackToDestructiveMigration | [T-016](tasks/T-016-remove-fallback-migration.md) | T-011 |
+| T-016 | `ready` | Remove fallbackToDestructiveMigration | [T-016](tasks/T-016-remove-fallback-migration.md) | T-011 |
 | T-017 | `ready` | Release Build Pipeline | [T-017](tasks/T-017-release-build-pipeline.md) | T-001 |
 | T-018 | `ready` | Crash Reporting | [T-018](tasks/T-018-crash-reporting.md) | T-001 |
 | T-019 | `ready` | Notification Action Buttons | [T-019](tasks/T-019-notification-actions.md) | T-008 |
