@@ -48,18 +48,26 @@ dev    ← NEVER push feature code here directly. PRs only.
    git add <changed files>
    git commit -m "T-XXX: description of change"
    ```
-   Do **not** add unrelated files. Do **not** add TASKS.md here — that comes later.
+   Do **not** add unrelated files. Do **not** add TASKS.md here — that comes in the next step.
 
-6. Append one line to `CHANGELOG.md` under `[Unreleased]`, commit it on your branch.
+6. **Mark the task done — commit TASKS.md on your branch:**
+   Edit `.agents/TASKS.md` to change T-XXX status to `done`, then commit it:
+   ```bash
+   git add .agents/TASKS.md
+   git commit -m "meta: T-XXX done"
+   ```
+   This stays on your feature branch and merges with your PR. **Never push directly to `dev`.**
 
-7. **Rebase onto latest `dev` before pushing** to ensure a clean, conflict-free PR:
+7. **Do NOT touch `CHANGELOG.md`.** The Orchestrator writes one consolidated entry after all PRs in the wave merge.
+
+8. **Rebase onto latest `dev` before pushing** to ensure a clean, conflict-free PR:
    ```bash
    git fetch origin dev
    git rebase origin/dev
    ```
    Resolve any conflicts, then `git rebase --continue`.
 
-8. Establish hardline (Push your branch) and upload to the Nebuchadnezzar (open a PR targeting **`dev`**):
+9. Establish hardline (Push your branch) and upload to the Nebuchadnezzar (open a PR targeting **`dev`**):
    ```bash
    git push -u origin claude/T-XXX-description
    ```
@@ -70,21 +78,6 @@ dev    ← NEVER push feature code here directly. PRs only.
    - `body`: summary of changes + `Closes T-XXX`
    - `head`: `claude/T-XXX-description`
    - `base`: `dev`   ← **always dev, never main**
-
-9. **Mark the task done — isolated meta push to `dev`:**
-   Do NOT use `git push origin HEAD:dev` from your feature branch — that pushes feature code too.
-   Instead, make the TASKS.md update from a clean dev base:
-   ```bash   ```
-   git fetch origin dev
-   git checkout -b meta-T-XXX-done origin/dev
-   # Edit .agents/TASKS.md: change status to `done`
-   git add .agents/TASKS.md
-   git commit -m "meta: T-XXX done"
-   git push origin HEAD:dev
-   git checkout claude/T-XXX-description   # return to your feature branch
-   git branch -d meta-T-XXX-done
-   ```
-   This ensures only the TASKS.md change reaches dev, never your feature code.
 
 ---
 

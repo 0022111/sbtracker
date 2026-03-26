@@ -18,11 +18,11 @@ Requires JDK 21. The CI workflow mirrors these commands.
 
 **⚠️ AGENTS: Debug build FAILS in this environment** (Gradle plugin resolution blocked by proxy). **IGNORE BUILD FAILURES.** Skip `./gradlew assembleDebug` entirely. Code syntax validation is sufficient. CI will handle real builds.
 
-`CHANGELOG.md` exists at the repo root. **After completing ANY work (even meta-updates), you MUST append an entry to the top of the relevant section.** 
+`CHANGELOG.md` exists at the repo root. It is maintained exclusively by the **Orchestrator** after all PRs in a wave are merged to `dev`.
 
 - **Format**: `### YYYY-MM-DD HH:MM — Short Title (Author)`
-- **Metadata**: Include origin (e.g., `Direct push to dev`) and detailed changes.
-- **Rule**: Updates to `CHANGELOG.md` are Meta-files and must be pushed directly to `dev` to prevent sync issues between parallel agents.
+- **Metadata**: Include origin (e.g., `Wave N — Tasks T-XXX, T-YYY`) and detailed changes.
+- **Rule**: Workers must **never** touch `CHANGELOG.md`. The Orchestrator writes one consolidated entry directly to `dev` after the wave completes.
 
 
 # Agent Rules & Guidelines
