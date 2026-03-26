@@ -360,7 +360,9 @@ class SettingsFragment : Fragment() {
                         gravity = android.view.Gravity.CENTER_VERTICAL
                         setPadding(48, 0, 48, 0)
                         minimumHeight = 56.dpToPx()
-                        setBackgroundResource(android.R.attr.selectableItemBackground)
+                        val tv = android.util.TypedValue()
+                        context.theme.resolveAttribute(android.R.attr.selectableItemBackground, tv, true)
+                        if (tv.resourceId != 0) setBackgroundResource(tv.resourceId)
                     }
                     val tvName = android.widget.TextView(requireContext()).apply {
                         text = "${preset.name}  —  ${preset.tempC}°C"
