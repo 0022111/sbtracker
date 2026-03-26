@@ -151,7 +151,7 @@ main  ← stable, merges only from dev
 | ID | Status | Title | Task File | Blocked by |
 |---|---|---|---|---|
 | T-067 | `done` | Add startingBattery to SessionStats | [T-067](tasks/T-067-session-stats-starting-battery.md) | — |
-| T-068 | `blocked` | Display Starting Battery in Active Session UI | [T-068](tasks/T-068-session-fragment-starting-battery-ui.md) | T-067 |
+| T-068 | `done` | Display Starting Battery in Active Session UI | [T-068](tasks/T-068-session-fragment-starting-battery-ui.md) | T-067 |
 
 ## Phase 3 — F-052 Analytics Display Refactoring
 
