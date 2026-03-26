@@ -1,6 +1,7 @@
 package com.sbtracker.ui
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -9,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.SeekBar
 import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.SwitchCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -16,6 +18,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.sbtracker.*
+import com.sbtracker.data.RestoreResult
 import com.sbtracker.databinding.FragmentSettingsBinding
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -28,6 +31,12 @@ class SettingsFragment : Fragment() {
     private val historyVm: HistoryViewModel by activityViewModels()
     private var _binding: FragmentSettingsBinding? = null
     private val binding get() = _binding!!
+
+    private val restoreLauncher = registerForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri: Uri? ->
+        uri?.let { settingsVm.triggerRestore(it) }
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentSettingsBinding.inflate(inflater, container, false)
@@ -154,6 +163,23 @@ class SettingsFragment : Fragment() {
         binding.btnBackupDatabase.setOnClickListener {
             settingsVm.triggerBackup()
         }
+        binding.btnRestoreDatabase.setOnClickListener {
+            restoreLauncher.launch(arrayOf("*/*"))
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            settingsVm.restoreResult.collect { result ->
+                when (result) {
+                    is RestoreResult.Success -> android.widget.Toast.makeText(
+                        requireContext(), "Restore complete. Restarting…", android.widget.Toast.LENGTH_SHORT
+                    ).show()
+                    is RestoreResult.Failure -> android.widget.Toast.makeText(
+                        requireContext(), result.reason, android.widget.Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+        }
+
 
         binding.btnDevRebuildHistory.setOnClickListener {
             viewLifecycleOwner.lifecycleScope.launch {

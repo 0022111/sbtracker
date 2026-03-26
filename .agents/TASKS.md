@@ -134,7 +134,7 @@ main  ← stable, merges only from dev
 | T-058 | `done` | BackupRepository: Close WAL, Copy DB to Cache, Emit FileProvider URI | [T-058](tasks/T-058-backup-repository.md) | — |
 | T-059 | `done` | RestoreRepository: Validate, Close, Overwrite DB, Signal Restart | [T-059](tasks/T-059-restore-repository.md) | T-058 |
 | T-060 | `done` | SettingsViewModel: Backup Action + Settings UI Button | [T-060](tasks/T-060-backup-viewmodel-and-settings-button.md) | T-058 |
-| T-061 | `blocked` | SettingsViewModel: Restore Action + Settings UI Button | [T-061](tasks/T-061-restore-viewmodel-and-settings-button.md) | T-059, T-060 |
+| T-061 | `done` | SettingsViewModel: Restore Action + Settings UI Button | [T-061](tasks/T-061-restore-viewmodel-and-settings-button.md) | T-059, T-060 |
 | T-062 | `blocked` | MainActivity: Wire Backup Share Intent + Restore App Restart | [T-062](tasks/T-062-mainactivity-wire-backup-restore-intents.md) | T-060, T-061 |
 | T-063 | `blocked` | F-026 Smoke Test, CHANGELOG, and BACKLOG Closeout | [T-063](tasks/T-063-backup-restore-smoke-test-and-closeout.md) | T-062 |
 
