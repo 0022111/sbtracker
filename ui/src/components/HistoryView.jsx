@@ -131,7 +131,14 @@ const HistoryView = () => {
             >
               <div className="history-card-head">
                 <div>
-                  <div style={{ fontSize: '17px', fontWeight: 800 }}>{formatDate(session.startTimeMs)}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <div style={{ fontSize: '17px', fontWeight: 800 }}>{formatDate(session.startTimeMs)}</div>
+                    {session.sessionKindLabel && (
+                      <span className="pill" style={pillTone(session.sessionKind)}>
+                        {session.sessionKindLabel}
+                      </span>
+                    )}
+                  </div>
                   <div className="history-meta">
                     <span className="pill"><Clock3 size={12} /> {formatDuration(session.durationMs)}</span>
                     <span className="pill"><Wind size={12} /> {session.hitCount || 0} hits</span>
@@ -145,6 +152,12 @@ const HistoryView = () => {
                   </span>
                 )}
               </div>
+
+              {session.sessionKindDetail && (
+                <div style={{ marginTop: '10px', fontSize: '12px', color: 'var(--text-muted)' }}>
+                  {session.sessionKindDetail}
+                </div>
+              )}
 
               {session.notes && (
                 <div className="history-note">{session.notes}</div>
@@ -187,6 +200,16 @@ const HistoryView = () => {
                 <MetricTile icon={<Thermometer size={16} />} label="Peak temp" value={`${displayTemp(selectedSession.peakTempC, isCelsius)}${unit}`} note="During session" />
                 <MetricTile icon={<Flame size={16} />} label="Battery" value={`${selectedSession.batteryConsumed || 0}%`} note="Consumed" />
               </div>
+
+              {selectedSession.sessionKindLabel && (
+                <div className="glass-panel" style={{ padding: '14px 16px', marginBottom: '18px' }}>
+                  <div className="section-heading" style={{ marginBottom: '8px' }}>Session Read</div>
+                  <div style={{ fontSize: '16px', fontWeight: 800, marginBottom: '4px' }}>{selectedSession.sessionKindLabel}</div>
+                  <div style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                    {selectedSession.sessionKindDetail}
+                  </div>
+                </div>
+              )}
 
               <div style={{ marginBottom: '16px' }}>
                 <div className="section-heading" style={{ marginBottom: '10px' }}>Rating</div>
@@ -255,6 +278,19 @@ const formatDuration = (durationMs) => {
   const totalMinutes = Math.floor((durationMs || 0) / 60000)
   const seconds = Math.floor(((durationMs || 0) % 60000) / 1000)
   return `${totalMinutes}m ${seconds}s`
+}
+
+const pillTone = (kind) => {
+  switch (kind) {
+    case 'warmup_only':
+      return { color: 'var(--accent-orange)', borderColor: 'rgba(231, 164, 91, 0.25)' }
+    case 'heavy':
+      return { color: '#f1b37a', borderColor: 'rgba(235, 107, 99, 0.2)' }
+    case 'check':
+      return { color: 'var(--text-muted)' }
+    default:
+      return { color: 'var(--accent-cyan)' }
+  }
 }
 
 export default HistoryView

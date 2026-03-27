@@ -2,6 +2,7 @@ package com.sbtracker
 
 import com.sbtracker.data.DeviceStatus
 import com.sbtracker.SessionTracker
+import com.sbtracker.analytics.SessionClassifier
 import org.json.JSONObject
 
 /**
@@ -199,6 +200,7 @@ object TelemetryMapper {
         root.put("type", "history")
         val array = org.json.JSONArray()
         summaries.forEach { s ->
+            val classification = SessionClassifier.classify(s)
             val obj = JSONObject()
             obj.put("id", s.id)
             obj.put("startTimeMs", s.startTimeMs)
@@ -213,6 +215,9 @@ object TelemetryMapper {
             obj.put("heatUpTimeMs", s.heatUpTimeMs)
             obj.put("rating", s.rating ?: 0)
             obj.put("notes", s.notes ?: "")
+            obj.put("sessionKind", classification.key)
+            obj.put("sessionKindLabel", classification.label)
+            obj.put("sessionKindDetail", classification.detail)
             array.put(obj)
         }
         root.put("data", array)

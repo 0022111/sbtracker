@@ -116,6 +116,7 @@ const AnalysisView = () => {
           <div className="section-heading" style={{ marginBottom: '12px' }}>What history suggests</div>
           <InfoRow label="Productive sessions" value={productivePct ? `${productivePct.toFixed(0)}%` : '—'} />
           <InfoRow label="Warm-up only runs" value={historyStats?.warmupOnlySessionCount || '—'} />
+          <InfoRow label="Productive runs" value={historyStats?.productiveSessionCount || '—'} />
           <InfoRow
             label="Best return temp"
             value={bestEfficiencyTemp ? `${displayTemp(bestEfficiencyTemp, isCelsius)}°${isCelsius ? 'C' : 'F'}` : 'Need more history'}
