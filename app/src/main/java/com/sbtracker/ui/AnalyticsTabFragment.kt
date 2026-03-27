@@ -78,6 +78,12 @@ class AnalyticsTabFragment : Fragment() {
         val tvTotalDaysActive   = view.findViewById<TextView>(R.id.tv_total_days_active)
         val tvAvgHeatUp         = view.findViewById<TextView>(R.id.tv_avg_heat_up)
 
+        // ── Battery Health (NEW) ────────────────────────────────────────────
+        val tvDrainTrend        = view.findViewById<TextView>(R.id.tv_drain_trend)
+        val tvDrainStdDev       = view.findViewById<TextView>(R.id.tv_drain_std_dev)
+        val tvDepthOfDischarge  = view.findViewById<TextView>(R.id.tv_depth_of_discharge)
+        val tvDaysPerCharge     = view.findViewById<TextView>(R.id.tv_days_per_charge)
+
         // Period toggle
         val tvPeriodDay  = view.findViewById<TextView>(R.id.tv_graph_period_day)
         val tvPeriodWeek = view.findViewById<TextView>(R.id.tv_graph_period_week)
@@ -244,14 +250,26 @@ class AnalyticsTabFragment : Fragment() {
                 batteryVm.drainTrend,
                 batteryVm.drainStdDev,
                 batteryVm.avgDepthOfDischarge,
-                batteryVm.daysPerChargeCycle,
-                batteryVm.personalRecords
-            ) { trend, stdDev, depthOfDischarge, daysPerCycle, records ->
-                // Log battery health signals for debugging
-                android.util.Log.d("BatteryAnalytics",
-                    "Drain Trend: $trend | StdDev: $stdDev | DoD: $depthOfDischarge | Days/Cycle: $daysPerCycle")
-                // This collector runs to trigger the data flow even if no UI is directly bound yet
-                Unit
+                batteryVm.daysPerChargeCycle
+            ) { trend, stdDev, depthOfDischarge, daysPerCycle ->
+                // Display drain trend (positive = degrading)
+                tvDrainTrend.text = if (trend > 0.1f) "+%.1f%%".format(trend) else if (trend < -0.1f) "%.1f%%".format(trend) else "Stable"
+                tvDrainTrend.setTextColor(ContextCompat.getColor(requireContext(),
+                    when {
+                        trend > 0.5f -> R.color.color_red      // Degrading fast
+                        trend > 0f -> R.color.color_orange     // Degrading slow
+                        else -> R.color.color_green            // Improving
+                    }
+                ))
+
+                // Consistency (lower std dev = better/more consistent)
+                tvDrainStdDev.text = if (stdDev > 0f) "%.1f%%".format(stdDev) else "—"
+
+                // Depth of discharge (lower is better for battery health)
+                tvDepthOfDischarge.text = if (depthOfDischarge > 0f) "%.0f%%".format(depthOfDischarge) else "—"
+
+                // Days per charge cycle from real usage
+                tvDaysPerCharge.text = if (daysPerCycle != null && daysPerCycle > 0f) "%.1f d".format(daysPerCycle) else "—"
             }.collect { }
         }
 
