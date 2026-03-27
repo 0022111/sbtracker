@@ -13,6 +13,9 @@ const AnalysisView = () => {
   const weeklyHitsDelta = (usageInsights?.hitsThisWeek || 0) - (usageInsights?.hitsLastWeek || 0)
   const recentDays = Array.isArray(dailyStats) ? dailyStats.slice(-14) : []
   const maxSessions = Math.max(1, ...recentDays.map((day) => day.sessionCount || 0))
+  const productivePct = historyStats?.productiveSessionPct
+  const bestEfficiencyTemp = historyStats?.bestEfficiencyTempC
+  const lowYieldTemp = historyStats?.lowYieldTemp
 
   return (
     <motion.section
@@ -110,20 +113,44 @@ const AnalysisView = () => {
 
       <div className="split-layout">
         <div className="glass-card" style={{ padding: '18px' }}>
+          <div className="section-heading" style={{ marginBottom: '12px' }}>What history suggests</div>
+          <InfoRow label="Productive sessions" value={productivePct ? `${productivePct.toFixed(0)}%` : '—'} />
+          <InfoRow label="Warm-up only runs" value={historyStats?.warmupOnlySessionCount || '—'} />
+          <InfoRow
+            label="Best return temp"
+            value={bestEfficiencyTemp ? `${displayTemp(bestEfficiencyTemp, isCelsius)}°${isCelsius ? 'C' : 'F'}` : 'Need more history'}
+          />
+          <InfoRow
+            label="Low-yield temp"
+            value={lowYieldTemp ? `${displayTemp(lowYieldTemp, isCelsius)}°${isCelsius ? 'C' : 'F'}` : 'No repeated pattern'}
+          />
+          <div style={{ marginTop: '12px', fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+            Productive means at least one detected hit. Warm-up only means the heater consumed battery but no hit was detected, which usually points to aborted starts or low-yield temperature choices.
+          </div>
+        </div>
+
+        <div className="glass-card" style={{ padding: '18px' }}>
           <div className="section-heading" style={{ marginBottom: '12px' }}>Dose context</div>
           <InfoRow label="Total used" value={`${(intake?.totalGramsAllTime || 0).toFixed(2)}g`} />
           <InfoRow label="This week" value={`${(intake?.totalGramsThisWeek || 0).toFixed(2)}g`} />
           <InfoRow label="This month" value={`${(intake?.totalGramsThisMonth || 0).toFixed(2)}g`} />
           <InfoRow label="Avg per session" value={`${(intake?.avgGramsPerSession || 0).toFixed(2)}g`} />
         </div>
+      </div>
 
-        <div className="glass-card" style={{ padding: '18px' }}>
-          <div className="section-heading" style={{ marginBottom: '12px' }}>Battery trend</div>
-          <InfoRow label="Drain trend" value={formatTrend(batteryInsights?.drainTrend)} />
-          <InfoRow label="Median drain" value={batteryInsights?.medianDrain ? `${batteryInsights.medianDrain.toFixed(1)}%` : '—'} />
-          <InfoRow label="Drain consistency" value={batteryInsights?.drainStdDev ? `±${batteryInsights.drainStdDev.toFixed(1)}%` : '—'} />
-          <InfoRow label="Sessions per charge" value={formatMaybeNumber(batteryInsights?.sessionsPerCycle)} />
-          <InfoRow label="Longest run" value={batteryInsights?.longestRunSessions || '—'} />
+      <div className="glass-card" style={{ padding: '18px' }}>
+        <div className="section-heading" style={{ marginBottom: '12px' }}>Battery trend</div>
+        <div className="split-layout">
+          <div>
+            <InfoRow label="Drain trend" value={formatTrend(batteryInsights?.drainTrend)} />
+            <InfoRow label="Median drain" value={batteryInsights?.medianDrain ? `${batteryInsights.medianDrain.toFixed(1)}%` : '—'} />
+            <InfoRow label="Drain consistency" value={batteryInsights?.drainStdDev ? `±${batteryInsights.drainStdDev.toFixed(1)}%` : '—'} />
+          </div>
+          <div>
+            <InfoRow label="Sessions per charge" value={formatMaybeNumber(batteryInsights?.sessionsPerCycle)} />
+            <InfoRow label="Longest run" value={batteryInsights?.longestRunSessions || '—'} />
+            <InfoRow label="Recent drain" value={batteryInsights?.avgDrainRecent ? `${batteryInsights.avgDrainRecent.toFixed(1)}%` : '—'} />
+          </div>
         </div>
       </div>
     </motion.section>

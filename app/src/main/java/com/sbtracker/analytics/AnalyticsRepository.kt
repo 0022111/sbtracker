@@ -185,6 +185,37 @@ class AnalyticsRepository(private val db: AppDatabase) {
         val avgHeatUp      = if (heatUpSessions.isNotEmpty())
             heatUpSessions.sumOf { it.heatUpTimeMs } / heatUpSessions.size / 1000 else 0L
 
+        val productiveSessions = summaries.filter { it.hitCount > 0 }
+        val productiveCount    = productiveSessions.size
+        val warmupOnlyCount    = summaries.count { it.hitCount == 0 && it.batteryConsumed > 0 }
+        val productivePct      = (productiveCount * 100f) / summaries.size
+
+        val bestEfficiencyTemp = summaries
+            .filter { it.hitCount > 0 && it.batteryConsumed > 0 && it.peakTempC > 0 }
+            .groupBy { ((it.peakTempC + 2) / 5) * 5 }
+            .mapValues { (_, bucketSessions) ->
+                val totalHits = bucketSessions.sumOf { it.hitCount }
+                val totalDrain = bucketSessions.sumOf { it.batteryConsumed }
+                val count = bucketSessions.size
+                val ratio = if (totalDrain > 0) totalHits.toFloat() / totalDrain else 0f
+                Triple(ratio, count, bucketSessions.sumOf { it.hitCount })
+            }
+            .filterValues { (_, count, totalHitsInBucket) -> count >= 2 && totalHitsInBucket >= 8 }
+            .maxWithOrNull(
+                compareBy<Map.Entry<Int, Triple<Float, Int, Int>>> { it.value.first }
+                    .thenBy { it.value.second }
+                    .thenBy { it.value.third }
+            )
+            ?.key
+
+        val lowYieldTemp = summaries
+            .filter { it.hitCount == 0 && it.batteryConsumed > 0 && it.peakTempC > 0 }
+            .groupingBy { ((it.peakTempC + 2) / 5) * 5 }
+            .eachCount()
+            .filterValues { it >= 2 }
+            .maxByOrNull { it.value }
+            ?.key
+
         // Per-day session rates
         val nowMs       = System.currentTimeMillis()
         val in7d        = summaries.count { it.startTimeMs >= nowMs - 7L  * 24 * 3_600_000L }
@@ -207,7 +238,12 @@ class AnalyticsRepository(private val db: AppDatabase) {
             avgHeatUpTimeSec          = avgHeatUp,
             sessionsPerDay7d          = sessPerDay7d,
             sessionsPerDay30d         = sessPerDay30d,
-            peakSessionsInADay        = peakDay
+            peakSessionsInADay        = peakDay,
+            productiveSessionCount    = productiveCount,
+            warmupOnlySessionCount    = warmupOnlyCount,
+            productiveSessionPct      = productivePct,
+            bestEfficiencyTempC       = bestEfficiencyTemp,
+            lowYieldTemp              = lowYieldTemp
         )
     }
 

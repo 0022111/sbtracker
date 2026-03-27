@@ -31,7 +31,17 @@ data class HistoryStats(
     /** Sessions per day averaged over the last 30 days of data. */
     val sessionsPerDay30d: Float = 0f,
     /** Maximum sessions recorded in a single day. */
-    val peakSessionsInADay: Int = 0
+    val peakSessionsInADay: Int = 0,
+    /** Sessions with at least one detected hit. */
+    val productiveSessionCount: Int = 0,
+    /** Sessions that consumed battery but never registered a hit. */
+    val warmupOnlySessionCount: Int = 0,
+    /** Productive sessions as a share of total history. */
+    val productiveSessionPct: Float = 0f,
+    /** Peak-temp bucket with the best average hits-per-battery-spent ratio. */
+    val bestEfficiencyTempC: Int? = null,
+    /** Peak-temp bucket with the most repeated warmup-only sessions. */
+    val lowYieldTemp: Int? = null
 )
 
 /**
@@ -160,4 +170,3 @@ data class IntakeStats(
     /** Grams per day averaged over the last 30 days. */
     val gramsPerDay30d: Float = 0f
 )
-

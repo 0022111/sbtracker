@@ -158,6 +158,11 @@ object TelemetryMapper {
             hist.put("sessionsPerDay7d", hs.sessionsPerDay7d)
             hist.put("sessionsPerDay30d", hs.sessionsPerDay30d)
             hist.put("peakSessionsInDay", hs.peakSessionsInADay)
+            hist.put("productiveSessionCount", hs.productiveSessionCount)
+            hist.put("warmupOnlySessionCount", hs.warmupOnlySessionCount)
+            hist.put("productiveSessionPct", hs.productiveSessionPct)
+            hist.put("bestEfficiencyTempC", hs.bestEfficiencyTempC ?: JSONObject.NULL)
+            hist.put("lowYieldTemp", hs.lowYieldTemp ?: JSONObject.NULL)
             val favTemps = org.json.JSONArray()
             hs.favoriteTempsCelsius.forEach { (temp, count) ->
                 val pair = JSONObject()
