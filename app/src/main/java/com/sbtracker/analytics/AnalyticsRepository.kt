@@ -776,4 +776,89 @@ class AnalyticsRepository(private val db: AppDatabase) {
             clearCache()
         }
     }
+
+    suspend fun rebuildChargeHistory(db: AppDatabase) {
+        withContext(Dispatchers.IO) {
+            val addresses = db.deviceStatusDao().getAllDeviceAddresses()
+            if (addresses.isEmpty()) return@withContext
+
+            val chargeEndGraceMs = 60_000L
+            val minChargeDurationMs = 60_000L
+
+            for (address in addresses) {
+                val statuses = db.deviceStatusDao().getAllForAddress(address)
+                if (statuses.isEmpty()) continue
+
+                val serial = runCatching { db.deviceInfoDao().getByAddress(address)?.serialNumber }.getOrNull()
+
+                var charging = false
+                var chargeStartMs = 0L
+                var chargeStartBattery = 0
+                var chargeEndPendingMs = -1L
+                var chargeEndBattery = 0
+                var startChargeVoltageLimit = false
+                var startChargeCurrentOpt = false
+
+                suspend fun commit(endMs: Long, endBattery: Int) {
+                    val durationMs = endMs - chargeStartMs
+                    val batteryGained = (endBattery - chargeStartBattery).coerceAtLeast(0)
+                    if (durationMs < minChargeDurationMs || batteryGained <= 0) return
+                    if (db.chargeCycleDao().findExistingCycleNear(address, chargeStartMs) != null) return
+
+                    val avgRate = batteryGained / (durationMs / 60_000f)
+                    db.chargeCycleDao().insert(
+                        ChargeCycle(
+                            deviceAddress = address,
+                            serialNumber = serial,
+                            startTimeMs = chargeStartMs,
+                            endTimeMs = endMs,
+                            startBattery = chargeStartBattery,
+                            endBattery = endBattery,
+                            avgRatePctPerMin = avgRate,
+                            chargeVoltageLimit = startChargeVoltageLimit,
+                            chargeCurrentOptimization = startChargeCurrentOpt
+                        )
+                    )
+                }
+
+                for (status in statuses) {
+                    if (!charging && status.isCharging) {
+                        charging = true
+                        chargeStartMs = status.timestampMs
+                        chargeStartBattery = status.batteryLevel
+                        chargeEndPendingMs = -1L
+                        chargeEndBattery = status.batteryLevel
+                        startChargeVoltageLimit = status.chargeVoltageLimit
+                        startChargeCurrentOpt = status.chargeCurrentOptimization
+                        continue
+                    }
+
+                    if (!charging) continue
+
+                    if (status.isCharging) {
+                        chargeEndPendingMs = -1L
+                        chargeEndBattery = status.batteryLevel
+                    } else {
+                        if (chargeEndPendingMs == -1L) {
+                            chargeEndPendingMs = status.timestampMs
+                            chargeEndBattery = status.batteryLevel
+                        }
+
+                        if (status.timestampMs - chargeEndPendingMs >= chargeEndGraceMs) {
+                            commit(chargeEndPendingMs, chargeEndBattery)
+                            charging = false
+                            chargeStartMs = 0L
+                            chargeStartBattery = 0
+                            chargeEndPendingMs = -1L
+                            chargeEndBattery = 0
+                        }
+                    }
+                }
+
+                if (charging && chargeEndBattery > chargeStartBattery) {
+                    commit(statuses.last().timestampMs, chargeEndBattery)
+                }
+            }
+        }
+    }
 }

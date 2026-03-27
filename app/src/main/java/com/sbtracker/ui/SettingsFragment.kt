@@ -183,7 +183,7 @@ class SettingsFragment : Fragment() {
 
         binding.btnDevRebuildHistory.setOnClickListener {
             viewLifecycleOwner.lifecycleScope.launch {
-                historyVm.rebuildSessionHistoryFromLogs()
+                historyVm.rebuildDerivedHistoryFromLogs()
             }
         }
         binding.btnDevInjectTestDevice.setOnClickListener {

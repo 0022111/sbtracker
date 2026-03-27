@@ -46,6 +46,9 @@ interface ChargeCycleDao {
     @Insert
     suspend fun insert(cycle: ChargeCycle): Long
 
+    @Query("SELECT id FROM charge_cycles WHERE deviceAddress = :address AND ABS(startTimeMs - :startMs) < 30000 LIMIT 1")
+    suspend fun findExistingCycleNear(address: String, startMs: Long): Long?
+
     @Query("SELECT * FROM charge_cycles WHERE serialNumber = :serial OR deviceAddress = :address ORDER BY startTimeMs DESC")
     fun observeCycles(serial: String, address: String): Flow<List<ChargeCycle>>
 

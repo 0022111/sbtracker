@@ -161,7 +161,7 @@ class MainActivity : AppCompatActivity() {
         
         lifecycleScope.launch {
             withContext(Dispatchers.IO) {
-                runCatching { historyVm.rebuildSessionHistoryFromLogs() }
+                runCatching { historyVm.rebuildDerivedHistoryFromLogs() }
             }
         }
     }

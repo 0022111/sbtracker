@@ -554,8 +554,9 @@ class HistoryViewModel @Inject constructor(
 
     // ── Session rebuild ──
 
-    suspend fun rebuildSessionHistoryFromLogs() {
+    suspend fun rebuildDerivedHistoryFromLogs() {
         analyticsRepo.rebuildSessionHistory(db)
+        analyticsRepo.rebuildChargeHistory(db)
     }
 
     // ── Helpers ──
