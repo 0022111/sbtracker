@@ -14,6 +14,16 @@
         android:paddingTop="20dp"
         android:paddingBottom="32dp">
 
+        <!-- ── BUILD INDICATOR ──────────────────────────────────────────── -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🔴 bingbong"
+            android:textColor="#FF6B6B"
+            android:textSize="10sp"
+            android:alpha="0.6"
+            android:layout_marginBottom="8dp" />
+
         <!-- ── HEADER ROW ──────────────────────────────────────────────── -->
         <LinearLayout
             android:layout_width="match_parent"
