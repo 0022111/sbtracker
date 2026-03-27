@@ -140,6 +140,7 @@ const HistoryView = () => {
                   <div className="history-meta">
                     <span className="pill"><Clock3 size={12} /> {formatDuration(session.durationMs)}</span>
                     <span className="pill"><Wind size={12} /> {session.hitCount || 0} hits</span>
+                    <span className="pill">{formatAvgHit(session.totalHitMs, session.hitCount)}</span>
                     <span className="pill"><Flame size={12} /> {session.battery || 0}% drain</span>
                     <span className="pill">{displayTemp(session.peakTempC, isCelsius)}°{isCelsius ? 'C' : 'F'}</span>
                   </div>
@@ -189,7 +190,7 @@ const HistoryView = () => {
                 <MetricTile icon={<Wind size={16} />} label="Hits" value={selectedSession.hitCount || 0} note="Detected" />
                 <MetricTile icon={<Clock3 size={16} />} label="Duration" value={formatDuration(selectedSession.durationMs)} note="Heater active" />
                 <MetricTile icon={<Flame size={16} />} label="Drain" value={`${selectedSession.battery || 0}%`} note="Battery used" />
-                <MetricTile icon={<Calendar size={16} />} label="Score" value={selectedSession.sessionScore} note={selectedSession.storyLabel} />
+                <MetricTile icon={<Calendar size={16} />} label="Avg hit" value={formatAvgHitValue(selectedSession.totalHitMs, selectedSession.hitCount)} note={selectedSession.storyLabel} />
               </div>
 
               <div className="glass-panel" style={{ padding: '14px 16px', marginBottom: '18px' }}>
@@ -271,5 +272,15 @@ const formatDuration = (durationMs) => {
 const displayTemp = (celsiusValue, isCelsius) => (
   isCelsius ? celsiusValue : Math.round(celsiusValue * 1.8 + 32)
 )
+
+const formatAvgHit = (totalHitMs, hitCount) => {
+  if (!hitCount || !totalHitMs) return 'No hit time'
+  return `${formatAvgHitValue(totalHitMs, hitCount)} avg`
+}
+
+const formatAvgHitValue = (totalHitMs, hitCount) => {
+  if (!hitCount || !totalHitMs) return '—'
+  return `${(totalHitMs / hitCount / 1000).toFixed(1)}s`
+}
 
 export default HistoryView

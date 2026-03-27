@@ -11,6 +11,9 @@ const OverviewView = () => {
     hasSeenOnboarding,
     setHasSeenOnboarding,
     setView,
+    currentSessionSeries,
+    sessionHits,
+    heatUpTimeSeconds,
   } = useStore()
   const intelligence = useSessionIntelligence('30d')
 
@@ -27,6 +30,8 @@ const OverviewView = () => {
   const tempRatio = status ? clamp((status.targetTempC - limits.min) / (limits.max - limits.min), 0, 1) : 0
   const currentRatio = status ? clamp((status.currentTempC - limits.min) / (limits.max - limits.min), 0, 1) : 0
   const leadRecommendation = intelligence.recommendations[0]
+  const hasSessionTrace = currentSessionSeries.length > 1
+  const liveAvgHitSec = stats?.hitCount > 0 ? ((stats?.avgHitDurationSec || 0).toFixed(1)) : null
   const primaryAction = !isConnected
     ? { label: 'Find device', onClick: () => sendCommand('startScan'), className: 'btn-secondary' }
     : isHeating
@@ -214,6 +219,51 @@ const OverviewView = () => {
         />
       </div>
 
+      {(isHeating || hasSessionTrace) && (
+        <div className="glass-card panel-card">
+          <div className="session-trace-head">
+            <div>
+              <div className="section-heading">Extraction Trace</div>
+              <div className="trace-subtitle">
+                {isHeating
+                  ? 'Live temperature curve with hit markers layered onto it.'
+                  : 'Last captured session trace. Useful for checking whether hit detection felt honest.'}
+              </div>
+            </div>
+            <div className="trace-badges">
+              <span className="pill">{sessionHits.length} markers</span>
+              <span className="pill">
+                {liveAvgHitSec ? `${liveAvgHitSec}s avg hit` : 'No completed hits yet'}
+              </span>
+              <span className="pill">
+                {heatUpTimeSeconds ? `${heatUpTimeSeconds}s heat-up` : 'Heat-up pending'}
+              </span>
+            </div>
+          </div>
+
+          <TempGraph
+            data={currentSessionSeries}
+            hits={sessionHits}
+            isCelsius={isCelsius}
+            limits={limits}
+          />
+
+          <div className="hit-strip">
+            {sessionHits.length ? sessionHits.slice(-6).map((hit, index, list) => (
+              <div key={`${hit.endTime}-${index}`} className="hit-chip">
+                <div className="hit-chip-index">Hit {sessionHits.length - list.length + index + 1}</div>
+                <div className="hit-chip-duration">{formatHitSeconds(hit.durationSec)}</div>
+                <div className="hit-chip-temp">{displayTemp(hit.peakTemp, isCelsius)}{unit}</div>
+              </div>
+            )) : (
+              <div className="empty-copy">
+                Hit markers will land here as soon as the detector closes a real pull.
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="glass-card panel-card">
         <div className="section-heading">Recent session reads</div>
         <div className="story-list">
@@ -348,5 +398,81 @@ const getToneColor = (tone) => {
 }
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value))
+
+const formatHitSeconds = (seconds) => {
+  if (!seconds && seconds !== 0) return '—'
+  return `${seconds.toFixed(1)}s`
+}
+
+const TempGraph = ({ data, hits, isCelsius, limits }) => {
+  if (!data || data.length < 2) {
+    return <div className="empty-copy">A live session trace appears once the heater has enough samples to draw a curve.</div>
+  }
+
+  const start = data[0].t
+  const end = data[data.length - 1].t
+  const duration = Math.max(1, end - start)
+  const minTemp = Math.min(...data.map((point) => point.temp), limits.min)
+  const maxTemp = Math.max(...data.map((point) => point.temp), limits.max)
+  const range = Math.max(20, maxTemp - minTemp)
+
+  const points = data.map((point) => {
+    const x = ((point.t - start) / duration) * 360
+    const y = 112 - (((point.temp - minTemp) / range) * 92)
+    return `${x},${y}`
+  }).join(' ')
+
+  return (
+    <svg width="100%" height="156" viewBox="0 0 360 156" preserveAspectRatio="none" className="trace-graph">
+      <defs>
+        <linearGradient id="trace-fill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="rgba(113, 215, 192, 0.35)" />
+          <stop offset="100%" stopColor="rgba(113, 215, 192, 0.02)" />
+        </linearGradient>
+      </defs>
+
+      {[0.25, 0.5, 0.75].map((fraction) => (
+        <line
+          key={fraction}
+          x1="0"
+          x2="360"
+          y1={28 + (fraction * 88)}
+          y2={28 + (fraction * 88)}
+          stroke="rgba(255,255,255,0.07)"
+          strokeDasharray="4 6"
+        />
+      ))}
+
+      {hits.map((hit, index) => {
+        const xStart = ((hit.endTime - hit.durationSec * 1000 - start) / duration) * 360
+        const xEnd = ((hit.endTime - start) / duration) * 360
+        return (
+          <g key={`${hit.endTime}-${index}`}>
+            <rect
+              x={Math.max(0, xStart)}
+              y="18"
+              width={Math.max(5, xEnd - xStart)}
+              height="108"
+              rx="8"
+              fill="rgba(231, 164, 91, 0.16)"
+            />
+            <circle
+              cx={Math.max(6, xEnd)}
+              cy="22"
+              r="4"
+              fill="rgba(231, 164, 91, 0.95)"
+            />
+          </g>
+        )
+      })}
+
+      <path d={`M 0 126 L ${points} L 360 126 Z`} fill="url(#trace-fill)" />
+      <polyline fill="none" stroke="rgba(113, 215, 192, 0.92)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" points={points} />
+
+      <text x="4" y="14" className="trace-label">{displayTemp(maxTemp, isCelsius)}{isCelsius ? 'C' : 'F'}</text>
+      <text x="4" y="150" className="trace-label">{displayTemp(minTemp, isCelsius)}{isCelsius ? 'C' : 'F'}</text>
+    </svg>
+  )
+}
 
 export default OverviewView

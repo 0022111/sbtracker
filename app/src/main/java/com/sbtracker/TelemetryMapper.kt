@@ -207,6 +207,7 @@ object TelemetryMapper {
             obj.put("endTimeMs", s.endTimeMs)
             obj.put("durationMs", s.durationMs)
             obj.put("hitCount", s.hitCount)
+            obj.put("totalHitMs", s.totalHitDurationMs)
             obj.put("peakTempC", s.peakTempC)
             obj.put("avgTempC", s.avgTempC)
             obj.put("startBattery", s.startBattery)
