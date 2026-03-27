@@ -369,13 +369,13 @@ class HistoryViewModel @Inject constructor(
 
     // ── Extracted personal record signals ──
 
-    val longestSessionDurationMs: StateFlow<Long?> = combine(allSessionSummaries) { summaries ->
-        summaries.maxByOrNull { it.durationMs }?.durationMs
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    val longestSessionDurationMs: StateFlow<Long?> = allSessionSummaries
+        .map { summaries -> summaries.maxByOrNull { it.durationMs }?.durationMs }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    val mostHitsInSession: StateFlow<Int> = combine(allSessionSummaries) { summaries ->
-        summaries.maxOfOrNull { it.hitCount } ?: 0
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+    val mostHitsInSession: StateFlow<Int> = allSessionSummaries
+        .map { summaries -> summaries.maxOfOrNull { it.hitCount } ?: 0 }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
     val favoriteTempCelsius: StateFlow<Int?> = historyStats
         .map { stats ->
