@@ -97,8 +97,8 @@ class AnalyticsRepositoryTest {
 
         // Only s1 is a capsule.
         assertEquals(0.15f, stats.totalGramsAllTime, 0.001f)
-        assertTrue(stats.capsuleCount == 1)
-        assertTrue(stats.freePackCount == 1)
+        assertTrue(stats.capsuleSessionCount == 1)
+        assertTrue(stats.freePackSessionCount == 1)
     }
 
     @Test
