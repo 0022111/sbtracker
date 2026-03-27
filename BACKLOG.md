@@ -82,10 +82,6 @@ The codebase is currently in the "Final Hardening" phase. To reach a technical A
 | F-052 | `parked` | Hit Analytics | Classification of hits by duration/temp | On hold until B-010 is resolved |
 | B-005 | `planned` | History Graph Condensing | Collapse dead space in charts | Condensed timeline visualization |
 | B-006 | `planned` | Zoomable Graphs | Enable zoom/pinch interaction | Interactive visual scope |
-| B-016 | `planned` | Developer Tools Segregation | *(see UX Debt section above)* | Pre-Alpha blocker |
-| F-057 | `planned` | Session Annotation / Notes | *(see UX Debt section above)* | Pairs with F-054 |
-| F-058 | `planned` | Time Range Filter | *(see UX Debt section above)* | Pairs with F-056 |
-| F-059 | `planned` | Onboarding & Empty States | *(see UX Debt section above)* | New user experience |
 
 ### 🛡️ Epic: Data Trust & Protocol Reliability (Critical)
 | ID | Status | Feature | Description | Acceptance Criteria |
@@ -97,14 +93,13 @@ The codebase is currently in the "Final Hardening" phase. To reach a technical A
 | B-015 | `in-progress` | Drain Confidence | Add `drainEstimateReliable` flag to stats | UI shows confidence warning |
 | B-013 | `documented` | Legacy Metadata Gap | pre-F-018 sessions lack metadata rows | Documented; UI fix planned |
 
-## 🏗️ Future Architecture (v0.3 — Beta)
+## 🏗️ Future Platform & Scale (v0.3 — Beta)
 | ID | Status | Feature | Description |
 |---|---|---|---|
-| F-047 | `planned` | Compose Migration | Migrate UI fragments to Jetpack Compose |
 | F-049 | `planned` | Multi-Device Sync | Cross-device aggregate tracking |
 | F-060 | `planned` | Device Care Signals | *(see UX Debt section above)* — heater runtime → cleaning reminders |
 | F-061 | `planned` | Session Search & Filter | *(see UX Debt section above)* — filterable/searchable history list |
-| F-062 | `planned` | Session Flow Arc | *(see UX Debt section above)* — unified home→heat→session→summary arc; design-first, depends on F-047 Compose migration for clean implementation |
+| F-062 | `planned` | Session Flow Arc | *(see UX Debt section above)* — unified home→heat→session→summary arc across the hybrid web UI |
 
 ## 🪵 Legacy Foundation (All 'Done' P1/P2 Archive)
 | ID | Feature | Summary |
