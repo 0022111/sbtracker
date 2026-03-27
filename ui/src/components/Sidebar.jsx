@@ -1,13 +1,13 @@
 import React from 'react'
 import { motion } from 'framer-motion'
-import { Battery, BarChart3, Flame, History, Home, Settings } from 'lucide-react'
+import { Battery, Flame, History, Home, Radar, Settings } from 'lucide-react'
 import useStore from '../store/useStore'
 
 const items = [
-  { id: 'overview', icon: Home, label: 'Home' },
-  { id: 'session', icon: Flame, label: 'Programs' },
-  { id: 'history', icon: History, label: 'History' },
-  { id: 'analysis', icon: BarChart3, label: 'Insights' },
+  { id: 'overview', icon: Home, label: 'Flight' },
+  { id: 'session', icon: Flame, label: 'Rituals' },
+  { id: 'history', icon: History, label: 'Ledger' },
+  { id: 'analysis', icon: Radar, label: 'Signals' },
   { id: 'battery', icon: Battery, label: 'Battery' },
   { id: 'settings', icon: Settings, label: 'Settings' },
 ]
@@ -28,7 +28,7 @@ const Sidebar = () => {
             onClick={() => setView(item.id)}
             whileTap={{ scale: 0.97 }}
           >
-            <Icon size={19} />
+            <Icon size={18} />
             <span>{item.label}</span>
           </motion.button>
         )

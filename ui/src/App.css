@@ -105,6 +105,48 @@ button {
   z-index: 50;
 }
 
+.status-chip {
+  padding: 8px 14px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(15, 24, 20, 0.92);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.status-chip-label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.mission-ribbon {
+  padding: 58px 16px 0;
+  position: relative;
+  z-index: 3;
+}
+
+.mission-ribbon-card {
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: 12px 16px;
+  border-radius: 20px;
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+}
+
+.mission-ribbon-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
 .sidebar {
   position: fixed;
   left: 0;
@@ -155,7 +197,7 @@ button {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 56px 16px 132px;
+  padding: 18px 16px 132px;
   display: flex;
   flex-direction: column;
   gap: 18px;
@@ -279,17 +321,22 @@ button {
   text-transform: uppercase;
 }
 
+.badge-good {
+  border-color: rgba(125, 217, 146, 0.25);
+}
+
+.badge-warn {
+  border-color: rgba(231, 164, 91, 0.25);
+}
+
+.badge-accent {
+  border-color: rgba(113, 215, 192, 0.25);
+}
+
 .status-dot {
   width: 8px;
   height: 8px;
   border-radius: 999px;
-}
-
-.control-panel {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
 }
 
 .button-row {
@@ -336,6 +383,10 @@ button {
   color: var(--text-main);
   font-size: 12px;
   font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .btn-secondary.active {
@@ -362,6 +413,75 @@ button {
   transform: scale(0.98);
 }
 
+.compact-button {
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 14px;
+}
+
+.command-card,
+.panel-card {
+  padding: 18px;
+}
+
+.command-card-head,
+.feature-panel-head,
+.story-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.feature-panel {
+  min-height: 180px;
+}
+
+.feature-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  background: rgba(113, 215, 192, 0.12);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-cyan);
+}
+
+.feature-body,
+.story-copy,
+.banner-copy,
+.empty-copy {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+.feature-body {
+  margin-top: 14px;
+}
+
+.feature-footer {
+  margin-top: auto;
+  padding-top: 12px;
+  font-size: 12px;
+  color: var(--text-soft);
+}
+
+.info-banner {
+  padding: 18px 20px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.banner-title {
+  font-size: 16px;
+  font-weight: 800;
+  margin: 8px 0 6px;
+}
+
 .temp-ring-container {
   position: relative;
   width: clamp(214px, 60vw, 286px);
@@ -369,7 +489,25 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto;
+  margin: 10px auto 16px;
+}
+
+.ring-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.ring-copy {
+  position: absolute;
+  z-index: 1;
+  text-align: center;
+  pointer-events: none;
+}
+
+.ring-subtitle {
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--text-muted);
 }
 
 .temp-text {
@@ -427,7 +565,8 @@ button {
   color: var(--text-muted);
 }
 
-.toolbar {
+.toolbar,
+.filter-row {
   width: 100%;
   display: flex;
   gap: 10px;
@@ -455,7 +594,9 @@ button {
 }
 
 .program-list,
-.session-list {
+.session-list,
+.story-list,
+.band-list {
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -463,7 +604,8 @@ button {
 }
 
 .program-card,
-.history-card {
+.history-card,
+.story-card {
   width: 100%;
   padding: 18px;
 }
@@ -484,11 +626,23 @@ button {
 }
 
 .program-meta,
-.history-meta {
+.history-meta,
+.story-traits {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 10px;
+}
+
+.story-title {
+  font-size: 16px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.story-meta {
+  font-size: 12px;
+  color: var(--text-soft);
 }
 
 .pill {
@@ -574,34 +728,43 @@ button {
   cursor: pointer;
 }
 
-.daily-bars {
-  width: 100%;
-  display: grid;
-  grid-template-columns: repeat(14, minmax(0, 1fr));
-  gap: 6px;
-  align-items: end;
-  min-height: 120px;
-}
-
-.daily-bar {
+.band-row {
   display: flex;
-  flex-direction: column;
-  justify-content: end;
-  gap: 8px;
-  min-height: 120px;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.daily-bar-fill {
-  width: 100%;
-  border-radius: 999px 999px 10px 10px;
-  background: linear-gradient(180deg, rgba(113, 215, 192, 0.92), rgba(113, 215, 192, 0.34));
-  min-height: 10px;
+.band-row:last-child {
+  border-bottom: 0;
 }
 
-.daily-bar-label {
-  font-size: 10px;
-  text-align: center;
-  color: var(--text-soft);
+.band-rank,
+.band-score {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.05);
+  font-weight: 800;
+}
+
+.band-main {
+  flex: 1;
+}
+
+.band-title {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.band-copy {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--text-muted);
 }
 
 .settings-section-label {
@@ -652,6 +815,23 @@ button {
   font-weight: 700;
 }
 
+.settings-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--accent-cyan);
+  box-shadow: 0 0 0 3px rgba(113, 215, 192, 0.18);
+}
+
+.settings-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--accent-cyan);
+  border: 0;
+}
+
 .tg-switch {
   width: 44px;
   height: 24px;
@@ -672,6 +852,20 @@ button {
   left: 2px;
   border-radius: 999px;
   background: #fff;
+}
+
+.tone-good,
+.tone-efficient {
+  border-color: rgba(125, 217, 146, 0.18);
+}
+
+.tone-warn,
+.tone-heavy {
+  border-color: rgba(231, 164, 91, 0.18);
+}
+
+.tone-warmup {
+  border-color: rgba(235, 107, 99, 0.18);
 }
 
 .text-glow-cyan,
@@ -699,6 +893,11 @@ button {
 }
 
 @media (min-width: 720px) {
+  .mission-ribbon {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
   .view-container {
     padding-left: 20px;
     padding-right: 20px;

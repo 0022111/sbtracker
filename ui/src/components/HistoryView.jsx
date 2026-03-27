@@ -1,62 +1,51 @@
 import React from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Calendar, Clock3, Flame, Search, Star, Thermometer, Wind, X } from 'lucide-react'
+import { Calendar, Clock3, Flame, Search, Star, Wind, X } from 'lucide-react'
 import useStore from '../store/useStore'
+import { HISTORY_RANGES, buildSessionIntelligence } from '../lib/sessionIntelligence'
 
-const ranges = ['7d', '30d', '90d', 'All']
+const filters = [
+  { id: 'all', label: 'All reads' },
+  { id: 'efficient', label: 'Dense' },
+  { id: 'heavy', label: 'Heavy' },
+  { id: 'warmup', label: 'Warm-up only' },
+]
 
 const HistoryView = () => {
   const { sessionHistory, telemetry, sendCommand, setView } = useStore()
   const isCelsius = telemetry.status?.isCelsius ?? true
-  const unit = isCelsius ? '°C' : '°F'
 
   const [selectedId, setSelectedId] = React.useState(null)
   const [searchQuery, setSearchQuery] = React.useState('')
   const [range, setRange] = React.useState('30d')
+  const [filter, setFilter] = React.useState('all')
   const [tempNote, setTempNote] = React.useState('')
   const [tempRating, setTempRating] = React.useState(0)
 
-  const selectedSession = sessionHistory.find((session) => session.id === selectedId) || null
+  const intelligence = React.useMemo(
+    () => buildSessionIntelligence({ telemetry, sessionHistory, range }),
+    [range, sessionHistory, telemetry]
+  )
+
+  const filteredHistory = intelligence.sessions.filter((session) => {
+    if (filter !== 'all' && session.storyKey !== filter) return false
+    if (!searchQuery.trim()) return true
+
+    const query = searchQuery.trim().toLowerCase()
+    return formatDate(session.startTimeMs).toLowerCase().includes(query)
+      || (session.notes || '').toLowerCase().includes(query)
+      || session.storyLabel.toLowerCase().includes(query)
+  })
+
+  const selectedSession = filteredHistory.find((session) => session.id === selectedId)
+    || intelligence.sessions.find((session) => session.id === selectedId)
+    || null
 
   React.useEffect(() => {
     if (!selectedSession) return
     setTempNote(selectedSession.notes || '')
     setTempRating(selectedSession.rating || 0)
   }, [selectedSession])
-
-  const filteredHistory = sessionHistory.filter((session) => {
-    if (range !== 'All') {
-      const diffDays = (Date.now() - session.startTimeMs) / (1000 * 60 * 60 * 24)
-      if (range === '7d' && diffDays > 7) return false
-      if (range === '30d' && diffDays > 30) return false
-      if (range === '90d' && diffDays > 90) return false
-    }
-
-    if (!searchQuery.trim()) return true
-    const query = searchQuery.trim().toLowerCase()
-    return formatDate(session.startTimeMs).toLowerCase().includes(query)
-      || (session.notes || '').toLowerCase().includes(query)
-  })
-
-  const summary = React.useMemo(() => {
-    if (!filteredHistory.length) {
-      return { sessions: 0, hits: 0, avgDurationMin: 0, avgDrain: 0 }
-    }
-
-    const totals = filteredHistory.reduce((acc, session) => {
-      acc.hits += session.hitCount || 0
-      acc.durationMs += session.durationMs || 0
-      acc.drain += session.batteryConsumed || 0
-      return acc
-    }, { hits: 0, durationMs: 0, drain: 0 })
-
-    return {
-      sessions: filteredHistory.length,
-      hits: totals.hits,
-      avgDurationMin: totals.durationMs / filteredHistory.length / 60000,
-      avgDrain: totals.drain / filteredHistory.length,
-    }
-  }, [filteredHistory])
 
   const saveSessionMeta = () => {
     if (!selectedId) return
@@ -73,10 +62,10 @@ const HistoryView = () => {
       className="view-container"
     >
       <header className="page-header">
-        <p className="view-title">History</p>
-        <h1 className="page-title">What your sessions looked like</h1>
+        <p className="view-title">Ledger</p>
+        <h1 className="page-title">Session history with a point of view.</h1>
         <p className="page-subtitle">
-          Review each session as a real event, not just a log row. Search by note or date and keep the details that help you remember what worked.
+          Every run gets re-read into a story: efficient, heavy, warm-up-only, or quick. The log is still the source of truth, but this view tries to answer what each session actually meant.
         </p>
       </header>
 
@@ -86,12 +75,12 @@ const HistoryView = () => {
           <input
             className="toolbar-input"
             style={{ paddingLeft: '40px' }}
-            placeholder="Search dates or notes"
+            placeholder="Search date, notes, or session read"
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
           />
         </div>
-        {ranges.map((item) => (
+        {HISTORY_RANGES.map((item) => (
           <button
             key={item}
             className={`btn-secondary range-chip ${range === item ? 'active' : ''}`}
@@ -102,21 +91,33 @@ const HistoryView = () => {
         ))}
       </div>
 
+      <div className="filter-row">
+        {filters.map((item) => (
+          <button
+            key={item.id}
+            className={`btn-secondary range-chip ${filter === item.id ? 'active' : ''}`}
+            onClick={() => setFilter(item.id)}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
+
       <div className="summary-grid">
-        <MetricTile icon={<Calendar size={16} />} label="Sessions" value={summary.sessions} note={`${range} view`} />
-        <MetricTile icon={<Wind size={16} />} label="Hits" value={summary.hits} note="Detected total" />
-        <MetricTile icon={<Clock3 size={16} />} label="Avg duration" value={summary.sessions ? `${summary.avgDurationMin.toFixed(1)}m` : '—'} note="Per session" />
-        <MetricTile icon={<Flame size={16} />} label="Avg drain" value={summary.sessions ? `${summary.avgDrain.toFixed(1)}%` : '—'} note="Battery used" />
+        <MetricTile icon={<Calendar size={16} />} label="Sessions" value={filteredHistory.length} note={`${range} scope`} />
+        <MetricTile icon={<Wind size={16} />} label="Productive" value={`${intelligence.summary.productiveShare}%`} note="With at least one hit" />
+        <MetricTile icon={<Clock3 size={16} />} label="Avg duration" value={intelligence.summary.avgDurationMin ? `${intelligence.summary.avgDurationMin.toFixed(1)}m` : '—'} note="Session time" />
+        <MetricTile icon={<Flame size={16} />} label="Top signal" value={intelligence.recommendations[0]?.title || '—'} note="From this window" />
       </div>
 
       {!filteredHistory.length ? (
         <div className="glass-card empty-state">
           <Calendar size={28} style={{ opacity: 0.5 }} />
-          <div style={{ fontSize: '18px', fontWeight: 800 }}>No sessions in this range</div>
+          <div style={{ fontSize: '18px', fontWeight: 800 }}>No sessions match this view</div>
           <div style={{ maxWidth: '280px', fontSize: '13px', lineHeight: 1.55, color: 'var(--text-muted)' }}>
-            Finish a session to start building history, or widen the range if you know the data is already there.
+            Widen the range, drop the filter, or finish a session to give the ledger more raw material.
           </div>
-          <button className="btn-secondary" onClick={() => setView('overview')}>Go to Home</button>
+          <button className="btn-secondary" onClick={() => setView('overview')}>Back to Flight</button>
         </div>
       ) : (
         <div className="session-list">
@@ -124,7 +125,7 @@ const HistoryView = () => {
             <motion.button
               key={session.id}
               type="button"
-              className="glass-card history-card"
+              className={`glass-card history-card tone-${session.storyKey}`}
               onClick={() => setSelectedId(session.id)}
               whileTap={{ scale: 0.985 }}
               style={{ border: 'none', cursor: 'pointer', textAlign: 'left' }}
@@ -133,17 +134,14 @@ const HistoryView = () => {
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                     <div style={{ fontSize: '17px', fontWeight: 800 }}>{formatDate(session.startTimeMs)}</div>
-                    {session.sessionKindLabel && (
-                      <span className="pill" style={pillTone(session.sessionKind)}>
-                        {session.sessionKindLabel}
-                      </span>
-                    )}
+                    <span className="pill">{session.storyLabel}</span>
+                    <span className="pill">Score {session.sessionScore}</span>
                   </div>
                   <div className="history-meta">
                     <span className="pill"><Clock3 size={12} /> {formatDuration(session.durationMs)}</span>
                     <span className="pill"><Wind size={12} /> {session.hitCount || 0} hits</span>
-                    <span className="pill"><Thermometer size={12} /> {displayTemp(session.peakTempC, isCelsius)}{unit}</span>
-                    <span className="pill"><Flame size={12} /> {session.batteryConsumed || 0}%</span>
+                    <span className="pill"><Flame size={12} /> {session.battery || 0}% drain</span>
+                    <span className="pill">{displayTemp(session.peakTempC, isCelsius)}°{isCelsius ? 'C' : 'F'}</span>
                   </div>
                 </div>
                 {!!session.rating && (
@@ -153,15 +151,8 @@ const HistoryView = () => {
                 )}
               </div>
 
-              {session.sessionKindDetail && (
-                <div style={{ marginTop: '10px', fontSize: '12px', color: 'var(--text-muted)' }}>
-                  {session.sessionKindDetail}
-                </div>
-              )}
-
-              {session.notes && (
-                <div className="history-note">{session.notes}</div>
-              )}
+              <div className="story-copy" style={{ marginTop: '12px' }}>{session.storyDetail}</div>
+              {session.notes && <div className="history-note">{session.notes}</div>}
             </motion.button>
           ))}
         </div>
@@ -186,7 +177,7 @@ const HistoryView = () => {
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '16px' }}>
                 <div>
-                  <div className="view-title" style={{ marginBottom: '8px' }}>Session Review</div>
+                  <div className="view-title" style={{ marginBottom: '8px' }}>Session Read</div>
                   <h2 style={{ margin: 0, fontSize: '24px', letterSpacing: '-0.03em' }}>{formatDate(selectedSession.startTimeMs)}</h2>
                 </div>
                 <button className="adj-btn" onClick={() => setSelectedId(null)}>
@@ -197,19 +188,17 @@ const HistoryView = () => {
               <div className="summary-grid" style={{ marginBottom: '18px' }}>
                 <MetricTile icon={<Wind size={16} />} label="Hits" value={selectedSession.hitCount || 0} note="Detected" />
                 <MetricTile icon={<Clock3 size={16} />} label="Duration" value={formatDuration(selectedSession.durationMs)} note="Heater active" />
-                <MetricTile icon={<Thermometer size={16} />} label="Peak temp" value={`${displayTemp(selectedSession.peakTempC, isCelsius)}${unit}`} note="During session" />
-                <MetricTile icon={<Flame size={16} />} label="Battery" value={`${selectedSession.batteryConsumed || 0}%`} note="Consumed" />
+                <MetricTile icon={<Flame size={16} />} label="Drain" value={`${selectedSession.battery || 0}%`} note="Battery used" />
+                <MetricTile icon={<Calendar size={16} />} label="Score" value={selectedSession.sessionScore} note={selectedSession.storyLabel} />
               </div>
 
-              {selectedSession.sessionKindLabel && (
-                <div className="glass-panel" style={{ padding: '14px 16px', marginBottom: '18px' }}>
-                  <div className="section-heading" style={{ marginBottom: '8px' }}>Session Read</div>
-                  <div style={{ fontSize: '16px', fontWeight: 800, marginBottom: '4px' }}>{selectedSession.sessionKindLabel}</div>
-                  <div style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                    {selectedSession.sessionKindDetail}
-                  </div>
+              <div className="glass-panel" style={{ padding: '14px 16px', marginBottom: '18px' }}>
+                <div className="section-heading" style={{ marginBottom: '8px' }}>Interpretation</div>
+                <div style={{ fontSize: '16px', fontWeight: 800, marginBottom: '4px' }}>{selectedSession.storyLabel}</div>
+                <div style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                  {selectedSession.storyDetail}
                 </div>
-              )}
+              </div>
 
               <div style={{ marginBottom: '16px' }}>
                 <div className="section-heading" style={{ marginBottom: '10px' }}>Rating</div>
@@ -258,39 +247,29 @@ const MetricTile = ({ icon, label, value, note }) => (
       {icon}
       <span className="metric-label">{label}</span>
     </div>
-    <div className="metric-value" style={{ fontSize: '24px' }}>{value}</div>
+    <div className="metric-value" style={{ fontSize: typeof value === 'string' && value.length > 12 ? '18px' : '24px' }}>{value}</div>
     <div className="metric-note">{note}</div>
   </div>
 )
 
+const formatDate = (value) => (
+  new Date(value).toLocaleString([], {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  })
+)
+
+const formatDuration = (durationMs) => {
+  const totalSeconds = Math.round((durationMs || 0) / 1000)
+  const minutes = Math.floor(totalSeconds / 60)
+  const seconds = totalSeconds % 60
+  return `${minutes}:${`${seconds}`.padStart(2, '0')}`
+}
+
 const displayTemp = (celsiusValue, isCelsius) => (
   isCelsius ? celsiusValue : Math.round(celsiusValue * 1.8 + 32)
 )
-
-const formatDate = (timestampMs) => new Date(timestampMs).toLocaleString(undefined, {
-  month: 'short',
-  day: 'numeric',
-  hour: 'numeric',
-  minute: '2-digit',
-})
-
-const formatDuration = (durationMs) => {
-  const totalMinutes = Math.floor((durationMs || 0) / 60000)
-  const seconds = Math.floor(((durationMs || 0) % 60000) / 1000)
-  return `${totalMinutes}m ${seconds}s`
-}
-
-const pillTone = (kind) => {
-  switch (kind) {
-    case 'warmup_only':
-      return { color: 'var(--accent-orange)', borderColor: 'rgba(231, 164, 91, 0.25)' }
-    case 'heavy':
-      return { color: '#f1b37a', borderColor: 'rgba(235, 107, 99, 0.2)' }
-    case 'check':
-      return { color: 'var(--text-muted)' }
-    default:
-      return { color: 'var(--accent-cyan)' }
-  }
-}
 
 export default HistoryView

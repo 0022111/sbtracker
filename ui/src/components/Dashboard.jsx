@@ -1,6 +1,8 @@
 import React from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
+import { Activity, Bluetooth, Sparkles } from 'lucide-react'
 import { useVaporizerData } from '../hooks/useVaporizerData'
+import { useSessionIntelligence } from '../hooks/useSessionIntelligence'
 import useStore from '../store/useStore'
 import Sidebar from './Sidebar'
 import OverviewView from './OverviewView'
@@ -15,11 +17,13 @@ import '../App.css'
 const Dashboard = () => {
   useVaporizerData()
   const { view, telemetry } = useStore()
+  const intelligence = useSessionIntelligence('30d')
 
   return (
     <div className="dashboard-container">
       <BubbleMatrix />
       <StatusPill state={telemetry.connectionState} deviceType={telemetry.status?.deviceType} />
+      <MissionRibbon telemetry={telemetry} intelligence={intelligence} />
 
       <main className="dashboard-main">
         <AnimatePresence mode="wait">
@@ -83,27 +87,37 @@ const StatusPill = ({ state, deviceType }) => {
 
   return (
     <div className="dashboard-status-pill">
-      <div
-        className="glass-card"
-        style={{
-          padding: '8px 14px',
-          borderRadius: '999px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          background: 'rgba(15, 24, 20, 0.92)',
-          borderColor: `${color}33`,
-        }}
-      >
+      <div className="glass-card status-chip">
         <motion.span
           className="status-dot"
           animate={{ opacity: [0.55, 1, 0.55], scale: [1, 1.15, 1] }}
           transition={{ duration: 1.8, repeat: Infinity }}
           style={{ background: color, boxShadow: `0 0 14px ${color}` }}
         />
-        <span style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase' }}>
-          {label}
-        </span>
+        <span className="status-chip-label">{label}</span>
+      </div>
+    </div>
+  )
+}
+
+const MissionRibbon = ({ telemetry, intelligence }) => {
+  const isConnected = telemetry.connectionState === 'Connected'
+
+  return (
+    <div className="mission-ribbon">
+      <div className="glass-card mission-ribbon-card">
+        <div className="mission-ribbon-item">
+          <Bluetooth size={14} />
+          <span>{isConnected ? 'Bridge live' : 'Bridge idle'}</span>
+        </div>
+        <div className="mission-ribbon-item">
+          <Activity size={14} />
+          <span>{intelligence.summary.sessionCount} sessions in focus</span>
+        </div>
+        <div className="mission-ribbon-item">
+          <Sparkles size={14} />
+          <span>{intelligence.recommendations[0]?.title || 'Waiting for enough history'}</span>
+        </div>
       </div>
     </div>
   )

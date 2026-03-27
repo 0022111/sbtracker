@@ -127,16 +127,41 @@ class SessionTracker {
         startChargeVoltageLimit = s.startChargeVoltageLimit; startChargeCurrentOpt = s.startChargeCurrentOpt
     }
 
-    private val taperBands = listOf(70 to 1.0, 80 to 0.60, 90 to 0.35, 100 to 0.15)
+    private val chargeBands = listOf(
+        65 to 1.00, // Flat CC region
+        75 to 0.82, // Softer current after 65%
+        85 to 0.52, // CV taper becomes noticeable
+        92 to 0.28, // Aggressive taper
+        100 to 0.12 // Top-off crawl
+    )
 
-    private fun taperEtaMinutes(fromPct: Int, targetPct: Int, fastRate: Double): Double {
-        var total = 0.0; var b = fromPct
-        for ((bandEnd, factor) in taperBands) {
-            if (b >= targetPct) break
-            val segEnd = minOf(bandEnd, targetPct)
-            if (segEnd > b) { total += (segEnd - b) / (fastRate * factor); b = segEnd }
+    private fun chargeBandFactor(batteryPct: Int): Double =
+        chargeBands.firstOrNull { batteryPct < it.first }?.second ?: chargeBands.last().second
+
+    /**
+     * Estimate remaining charge time using a piecewise device-specific curve.
+     *
+     * The current device charges at a fairly flat rate up to ~65%, softens through ~75%,
+     * then enters an aggressive CV taper. We normalize the observed rate back to the
+     * base CC rate for the current band, then integrate across the remaining bands.
+     */
+    private fun piecewiseChargeEtaMinutes(fromPct: Int, targetPct: Int, observedRate: Double): Double {
+        if (targetPct <= fromPct || observedRate <= 0.0) return 0.0
+
+        val currentFactor = chargeBandFactor(fromPct).coerceAtLeast(0.12)
+        val baseCcRate = (observedRate / currentFactor).coerceAtLeast(0.1)
+
+        var totalMinutes = 0.0
+        var currentPct = fromPct
+        for ((bandEnd, factor) in chargeBands) {
+            if (currentPct >= targetPct) break
+            val segEnd = minOf(targetPct, bandEnd)
+            if (segEnd > currentPct) {
+                totalMinutes += (segEnd - currentPct) / (baseCcRate * factor)
+                currentPct = segEnd
+            }
         }
-        return total
+        return totalMinutes
     }
 
     fun update(s: DeviceStatus, rawBytes: ByteArray, serial: String?, heaterRuntime: Int): UpdateResult {
@@ -295,16 +320,22 @@ class SessionTracker {
 
                 if (bestRate != null && bestRate > 0) {
                     chargeRatePctPerMin = bestRate.toFloat()
-                    chargeEta = (pctRem / bestRate).toInt()
+                    chargeEta = kotlin.math.ceil(
+                        piecewiseChargeEtaMinutes(s.batteryLevel, target, bestRate)
+                    ).toInt()
                     if (s.batteryLevel < 80) {
-                        val to80 = (80 - s.batteryLevel).coerceAtLeast(0)
-                        chargeEta80 = (to80 / bestRate).toInt()
+                        chargeEta80 = kotlin.math.ceil(
+                            piecewiseChargeEtaMinutes(s.batteryLevel, 80, bestRate)
+                        ).toInt()
                     }
                 } else if (historicalRate != null && historicalRate > 0) {
-                    val fastRate = historicalRate * 1.2
-                    chargeEta = taperEtaMinutes(s.batteryLevel, target, fastRate).toInt()
+                    chargeEta = kotlin.math.ceil(
+                        piecewiseChargeEtaMinutes(s.batteryLevel, target, historicalRate)
+                    ).toInt()
                     if (s.batteryLevel < 80) {
-                        chargeEta80 = taperEtaMinutes(s.batteryLevel, 80, fastRate).toInt()
+                        chargeEta80 = kotlin.math.ceil(
+                            piecewiseChargeEtaMinutes(s.batteryLevel, 80, historicalRate)
+                        ).toInt()
                     }
                 }
             }
