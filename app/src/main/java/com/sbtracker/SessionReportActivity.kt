@@ -71,7 +71,7 @@ class SessionReportActivity : AppCompatActivity() {
                 val h   = db.hitDao().getHitsForSession(session.id)
                 val hs  = db.hitDao().getHitStatsForSession(session.id)
                 val sb  = db.deviceStatusDao().getBatteryAtStart(session.deviceAddress, session.startTimeMs, session.endTimeMs) ?: 0
-                val eb  = db.deviceStatusDao().getBatteryAtEnd(session.deviceAddress, session.endTimeMs) ?: 0
+                val eb  = db.deviceStatusDao().getBatteryAtEnd(session.deviceAddress, session.startTimeMs, session.endTimeMs) ?: 0
                 val pt  = db.deviceStatusDao().getPeakTempForRange(
                     session.deviceAddress, session.startTimeMs, session.endTimeMs
                 ) ?: 0

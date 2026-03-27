@@ -85,9 +85,9 @@ interface DeviceStatusDao {
     @Query("SELECT batteryLevel FROM device_status WHERE deviceAddress = :address AND timestampMs >= :startMs AND timestampMs <= :endMs ORDER BY timestampMs ASC LIMIT 1")
     suspend fun getBatteryAtStart(address: String, startMs: Long, endMs: Long): Int?
 
-    /** Battery level at (or just before) [endMs] — the closing reading for a session. */
-    @Query("SELECT batteryLevel FROM device_status WHERE deviceAddress = :address AND timestampMs <= :endMs ORDER BY timestampMs DESC LIMIT 1")
-    suspend fun getBatteryAtEnd(address: String, endMs: Long): Int?
+    /** Battery level at (or just before) [endMs], bounded to the session window. */
+    @Query("SELECT batteryLevel FROM device_status WHERE deviceAddress = :address AND timestampMs >= :startMs AND timestampMs <= :endMs ORDER BY timestampMs DESC LIMIT 1")
+    suspend fun getBatteryAtEnd(address: String, startMs: Long, endMs: Long): Int?
 
     /** Average heater temperature (°C) while heater was on, for the given time window. */
     @Query("SELECT AVG(currentTempC) FROM device_status WHERE deviceAddress = :address AND timestampMs BETWEEN :startMs AND :endMs AND heaterMode > 0")

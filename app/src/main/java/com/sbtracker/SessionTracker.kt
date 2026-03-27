@@ -403,12 +403,10 @@ class SessionTracker {
         disconnectedMs = System.currentTimeMillis()
     }
 
-    fun markReconnected(currentBattery: Int) {
+    fun markReconnected() {
         if (isCharging && disconnectedMs > 0) {
             val gap = System.currentTimeMillis() - disconnectedMs
             if (gap > 120_000) {
-                chargeStartMs = System.currentTimeMillis()
-                chargeStartBattery = currentBattery
                 chargeRateWindow.clear()
             }
         }

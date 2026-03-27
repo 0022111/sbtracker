@@ -94,7 +94,7 @@ class AnalyticsRepository(private val db: AppDatabase) {
             coroutineScope {
                 val hitStatsD       = async { db.hitDao().getHitStatsForSession(session.id) }
                 val startBatD       = async { db.deviceStatusDao().getBatteryAtStart(session.deviceAddress, session.startTimeMs, session.endTimeMs) ?: 0 }
-                val endBatD         = async { db.deviceStatusDao().getBatteryAtEnd(session.deviceAddress, session.endTimeMs) ?: 0 }
+                val endBatD         = async { db.deviceStatusDao().getBatteryAtEnd(session.deviceAddress, session.startTimeMs, session.endTimeMs) ?: 0 }
                 val avgTempD        = async { db.deviceStatusDao().getAvgTempForRange(session.deviceAddress, session.startTimeMs, session.endTimeMs)?.toInt() ?: 0 }
                 val peakTempD       = async { db.deviceStatusDao().getPeakTempForRange(session.deviceAddress, session.startTimeMs, session.endTimeMs) ?: 0 }
                 val firstSetpointD  = async { db.deviceStatusDao().getFirstSetpointReachedMs(session.deviceAddress, session.startTimeMs, session.endTimeMs) }

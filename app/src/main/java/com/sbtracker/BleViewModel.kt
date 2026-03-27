@@ -37,6 +37,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.math.abs
 import javax.inject.Inject
 
 /**
@@ -113,6 +114,7 @@ class BleViewModel @Inject constructor(
 
     private val trackers = mutableMapOf<String, SessionTracker>()
     private val lastSavedChargeState = mutableMapOf<String, SessionTracker.ChargeState?>()
+    private val lastPersistedStatus = mutableMapOf<String, DeviceStatus>()
 
     private val devicePrefs by lazy {
         getApplication<Application>().getSharedPreferences("known_devices_v1", Context.MODE_PRIVATE)
@@ -148,7 +150,6 @@ class BleViewModel @Inject constructor(
     private var lastHeaterOn = false
     private var heaterSessionStartMs = 0L
     private var isAppInForeground = false
-    private var statusTick = 0
     private var hasSyncedInitialTemp = false
 
     // Dim-on-charge state
@@ -198,17 +199,15 @@ class BleViewModel @Inject constructor(
                     }
                 }
 
-                statusTick++
-                val shouldLog = (status.heaterMode > 0) || (statusTick % 60 == 0)
-                if (shouldLog) {
+                if (shouldPersistStatus(status)) {
                     db.deviceStatusDao().insert(status)
+                    lastPersistedStatus[address] = status
                 }
 
                 val serial = info?.serialNumber
-                val trackerKey = serial ?: address
                 val currentRuntime = _latestExtended.value?.heaterRuntimeMinutes ?: 0
-                val tracker = trackerFor(trackerKey, address)
-                tracker.markReconnected(status.batteryLevel)
+                val tracker = trackerFor(address)
+                tracker.markReconnected()
                 val result = tracker.update(status, bytes, serial, currentRuntime)
 
                 _sessionStats.value = result.stats
@@ -239,7 +238,7 @@ class BleViewModel @Inject constructor(
                         )
 
                         val startBat = db.deviceStatusDao().getBatteryAtStart(session.deviceAddress, session.startTimeMs, session.endTimeMs)
-                        val endBat = db.deviceStatusDao().getBatteryAtEnd(session.deviceAddress, session.endTimeMs)
+                        val endBat = db.deviceStatusDao().getBatteryAtEnd(session.deviceAddress, session.startTimeMs, session.endTimeMs)
                         if (startBat != null && endBat != null) {
                             val drain = (startBat - endBat).coerceAtLeast(0)
                             tracker.recordSessionDrain(drain)
@@ -249,9 +248,9 @@ class BleViewModel @Inject constructor(
                 result.completedCharge?.let { db.chargeCycleDao().insert(it) }
 
                 val chargeState = tracker.getChargeState()
-                if (serial != null && chargeState != lastSavedChargeState[serial]) {
-                    saveChargeState(serial, chargeState)
-                    lastSavedChargeState[serial] = chargeState
+                if (chargeState != lastSavedChargeState[address]) {
+                    saveChargeState(address, chargeState)
+                    lastSavedChargeState[address] = chargeState
                 }
             }
         }
@@ -259,54 +258,6 @@ class BleViewModel @Inject constructor(
         viewModelScope.launch {
             bleManager.extendedBytes.collect { (bytes, address) ->
                 val extended = BlePacket.parseExtended(bytes, address) ?: return@collect
-
-                if (_latestExtended.value == null) {
-                    withContext(Dispatchers.IO) {
-                        try {
-                            val dbExtended = db.extendedDataDao().getByAddress(address)
-                            if (dbExtended != null) {
-                                val gapMinutes = extended.heaterRuntimeMinutes - dbExtended.heaterRuntimeMinutes
-                                if (gapMinutes > 0) {
-                                    val lastStatus = db.deviceStatusDao().getLatestForAddress(address)
-                                    val currentStatus = _latestStatus.value
-
-                                    val startBattery = lastStatus?.batteryLevel ?: currentStatus?.batteryLevel ?: 50
-                                    val endBattery = currentStatus?.batteryLevel ?: startBattery
-                                    val serial = _latestInfo.value?.serialNumber ?: db.deviceInfoDao().getByAddress(address)?.serialNumber
-
-                                    val endTimeMs = System.currentTimeMillis()
-                                    val startTimeMs = endTimeMs - (gapMinutes * 60_000L)
-
-                                    val existingId = db.sessionDao().findExistingSessionNear(address, startTimeMs)
-                                    if (existingId != null) return@withContext
-
-                                    val sessionId = db.sessionDao().insert(
-                                        Session(
-                                            deviceAddress = address,
-                                            serialNumber = serial,
-                                            startTimeMs = startTimeMs,
-                                            endTimeMs = endTimeMs
-                                        )
-                                    )
-
-                                    val baseStatus = currentStatus ?: lastStatus
-                                    if (baseStatus != null) {
-                                        db.deviceStatusDao().insert(baseStatus.copy(
-                                            id = 0, timestampMs = startTimeMs, batteryLevel = startBattery, heaterMode = 1
-                                        ))
-                                        db.deviceStatusDao().insert(baseStatus.copy(
-                                            id = 0, timestampMs = endTimeMs, batteryLevel = endBattery, heaterMode = 0
-                                        ))
-                                    }
-
-                                    analyticsRepo.invalidateSession(sessionId)
-                                }
-                            }
-                        } catch (e: Exception) {
-                            android.util.Log.e("BleViewModel", "Offline gap detection failed", e)
-                        }
-                    }
-                }
 
                 _latestExtended.value = extended
                 db.extendedDataDao().upsert(extended)
@@ -338,12 +289,9 @@ class BleViewModel @Inject constructor(
             bleManager.connectionState.collect { state ->
                 if (state == BleManager.ConnectionState.Disconnected) {
                     hasSyncedInitialTemp = false
-                    val serial = _latestInfo.value?.serialNumber
-                    if (serial != null) {
-                        trackers[serial]?.let { tracker ->
-                            tracker.markDisconnected()
-                            tracker.reset()
-                        }
+                    val address = _latestStatus.value?.deviceAddress ?: _activeDevice.value?.deviceAddress
+                    if (address != null) {
+                        trackers[address]?.markDisconnected()
                     }
                     _sessionStats.value = SessionTracker.SessionStats()
                     _latestStatus.value = null
@@ -658,16 +606,16 @@ class BleViewModel @Inject constructor(
 
     // ── Session tracker helpers ──
 
-    private fun trackerFor(key: String, address: String): SessionTracker =
-        trackers.getOrPut(key) {
+    private fun trackerFor(address: String): SessionTracker =
+        trackers.getOrPut(address) {
             SessionTracker().apply {
-                loadChargeState(key)?.let { restoreChargeState(it) }
+                loadChargeState(address)?.let { restoreChargeState(it) }
                 viewModelScope.launch {
-                    val recentSessions = db.sessionDao().getRecentSessions(key, address, 50)
-                    val recentCycles = db.chargeCycleDao().getRecentCycles(key, address, 20)
+                    val recentSessions = db.sessionDao().getRecentSessions(address, address, 50)
+                    val recentCycles = db.chargeCycleDao().getRecentCycles(address, address, 20)
                     val drains = recentSessions.mapNotNull { s ->
                         val start = db.deviceStatusDao().getBatteryAtStart(s.deviceAddress, s.startTimeMs, s.endTimeMs)
-                        val end = db.deviceStatusDao().getBatteryAtEnd(s.deviceAddress, s.endTimeMs)
+                        val end = db.deviceStatusDao().getBatteryAtEnd(s.deviceAddress, s.startTimeMs, s.endTimeMs)
                         if (start != null && end != null) (start - end).coerceAtLeast(0) else null
                     }
                     setHistoricalData(drains = drains, rates = recentCycles.map { it.avgRatePctPerMin })
@@ -675,38 +623,65 @@ class BleViewModel @Inject constructor(
             }
         }
 
-    private fun saveChargeState(serial: String, state: SessionTracker.ChargeState?) {
+    private fun saveChargeState(address: String, state: SessionTracker.ChargeState?) {
         val ed = chargeStatePrefs.edit()
         if (state == null) {
-            ed.remove("${serial}_active")
-            ed.remove("${serial}_startMs")
-            ed.remove("${serial}_startBat")
-            ed.remove("${serial}_endPendMs")
-            ed.remove("${serial}_endBat")
-            ed.remove("${serial}_voltLim")
-            ed.remove("${serial}_curOpt")
+            ed.remove("${address}_active")
+            ed.remove("${address}_startMs")
+            ed.remove("${address}_startBat")
+            ed.remove("${address}_endPendMs")
+            ed.remove("${address}_endBat")
+            ed.remove("${address}_voltLim")
+            ed.remove("${address}_curOpt")
         } else {
-            ed.putBoolean("${serial}_active", true)
-            ed.putLong("${serial}_startMs", state.chargeStartMs)
-            ed.putInt("${serial}_startBat", state.chargeStartBattery)
-            ed.putLong("${serial}_endPendMs", state.chargeEndPendingMs)
-            ed.putInt("${serial}_endBat", state.chargeEndBattery)
-            ed.putBoolean("${serial}_voltLim", state.startChargeVoltageLimit)
-            ed.putBoolean("${serial}_curOpt", state.startChargeCurrentOpt)
+            ed.putBoolean("${address}_active", true)
+            ed.putLong("${address}_startMs", state.chargeStartMs)
+            ed.putInt("${address}_startBat", state.chargeStartBattery)
+            ed.putLong("${address}_endPendMs", state.chargeEndPendingMs)
+            ed.putInt("${address}_endBat", state.chargeEndBattery)
+            ed.putBoolean("${address}_voltLim", state.startChargeVoltageLimit)
+            ed.putBoolean("${address}_curOpt", state.startChargeCurrentOpt)
         }
         ed.apply()
     }
 
-    private fun loadChargeState(serial: String): SessionTracker.ChargeState? {
-        if (!chargeStatePrefs.getBoolean("${serial}_active", false)) return null
+    private fun loadChargeState(address: String): SessionTracker.ChargeState? {
+        if (!chargeStatePrefs.getBoolean("${address}_active", false)) return null
         return SessionTracker.ChargeState(
-            chargeStartMs = chargeStatePrefs.getLong("${serial}_startMs", 0L),
-            chargeStartBattery = chargeStatePrefs.getInt("${serial}_startBat", 0),
-            chargeEndPendingMs = chargeStatePrefs.getLong("${serial}_endPendMs", -1L),
-            chargeEndBattery = chargeStatePrefs.getInt("${serial}_endBat", 0),
-            startChargeVoltageLimit = chargeStatePrefs.getBoolean("${serial}_voltLim", false),
-            startChargeCurrentOpt = chargeStatePrefs.getBoolean("${serial}_curOpt", false)
+            chargeStartMs = chargeStatePrefs.getLong("${address}_startMs", 0L),
+            chargeStartBattery = chargeStatePrefs.getInt("${address}_startBat", 0),
+            chargeEndPendingMs = chargeStatePrefs.getLong("${address}_endPendMs", -1L),
+            chargeEndBattery = chargeStatePrefs.getInt("${address}_endBat", 0),
+            startChargeVoltageLimit = chargeStatePrefs.getBoolean("${address}_voltLim", false),
+            startChargeCurrentOpt = chargeStatePrefs.getBoolean("${address}_curOpt", false)
         )
+    }
+
+    private fun shouldPersistStatus(status: DeviceStatus): Boolean {
+        val previous = lastPersistedStatus[status.deviceAddress] ?: return true
+
+        if (status.heaterMode > 0 || previous.heaterMode > 0) return true
+
+        if (status.isCharging || previous.isCharging) {
+            val chargeBoundaryChanged =
+                status.isCharging != previous.isCharging ||
+                    status.batteryLevel != previous.batteryLevel ||
+                    status.chargeCurrentOptimization != previous.chargeCurrentOptimization ||
+                    status.chargeVoltageLimit != previous.chargeVoltageLimit
+            return chargeBoundaryChanged || (status.timestampMs - previous.timestampMs) >= 15_000L
+        }
+
+        val meaningfulIdleChange =
+            status.heaterMode != previous.heaterMode ||
+                status.isCharging != previous.isCharging ||
+                status.setpointReached != previous.setpointReached ||
+                status.targetTempC != previous.targetTempC ||
+                status.boostOffsetC != previous.boostOffsetC ||
+                status.superBoostOffsetC != previous.superBoostOffsetC ||
+                status.batteryLevel != previous.batteryLevel ||
+                abs(status.autoShutdownSeconds - previous.autoShutdownSeconds) > 2
+
+        return meaningfulIdleChange || (status.timestampMs - previous.timestampMs) >= 30_000L
     }
 
     // ── Test device helpers ──
