@@ -55,7 +55,11 @@ class BatteryViewModel @Inject constructor(
 
     fun updateDayStartHour(hour: Int) {
         viewModelScope.launch {
-            prefsRepo.updateDayStartHour(hour)
+            try {
+                prefsRepo.updateDayStartHour(hour)
+            } catch (e: Exception) {
+                android.util.Log.e("BatteryViewModel", "Failed to update dayStartHour", e)
+            }
         }
     }
 
@@ -93,6 +97,24 @@ class BatteryViewModel @Inject constructor(
         deviceSessionSummaries.map { summaries ->
             analyticsRepo.computePersonalRecords(summaries)
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), PersonalRecords())
+
+    // ── Extracted battery health signals ──
+
+    val drainTrend: StateFlow<Float> = batteryInsights
+        .map { it.drainTrend }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0f)
+
+    val drainStdDev: StateFlow<Float> = batteryInsights
+        .map { it.drainStdDev }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0f)
+
+    val avgDepthOfDischarge: StateFlow<Float> = batteryInsights
+        .map { it.avgDepthOfDischarge }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0f)
+
+    val daysPerChargeCycle: StateFlow<Float?> = batteryInsights
+        .map { it.avgDaysPerChargeCycle }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     // ── Card expand/collapse ──
 

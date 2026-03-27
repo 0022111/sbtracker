@@ -162,7 +162,7 @@ class HistoryViewModel @Inject constructor(
             .map { sessions -> analyticsRepo.getSessionSummaries(sessions) }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val lastSession: StateFlow<SessionSummary?> =
+     val lastSession: StateFlow<SessionSummary?> =
         allSessionSummaries.map { it.firstOrNull() }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
@@ -329,6 +329,63 @@ class HistoryViewModel @Inject constructor(
         combine(deviceSessionSummaries, dayStartHour) { summaries, startHour ->
             analyticsRepo.computeUsageInsights(summaries, startHour)
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UsageInsights())
+
+    // ── Extracted usage pattern signals ──
+
+    val currentStreakDaysFlow: StateFlow<Int> = usageInsights
+        .map { it.currentStreakDays }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
+    val longestStreakDaysFlow: StateFlow<Int> = usageInsights
+        .map { it.longestStreakDays }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
+    val peakTimeOfDayLabel: StateFlow<String> = usageInsights
+        .map { insights ->
+            when (insights.peakTimeOfDay) {
+                0 -> "Night (12am–6am)"
+                1 -> "Morning (6am–12pm)"
+                2 -> "Afternoon (12pm–6pm)"
+                3 -> "Evening (6pm–12am)"
+                else -> "No data"
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "No data")
+
+    val busiestDayOfWeekLabel: StateFlow<String> = usageInsights
+        .map { insights ->
+            val days = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+            if (insights.busiestDayOfWeek in 0..6) days[insights.busiestDayOfWeek] else "No data"
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "No data")
+
+    val avgHitsPerMinuteFlow: StateFlow<Float> = usageInsights
+        .map { it.avgHitsPerMinute }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0f)
+
+    val totalDaysActiveFlow: StateFlow<Int> = usageInsights
+        .map { it.totalDaysActive }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
+    // ── Extracted personal record signals ──
+
+    val longestSessionDurationMs: StateFlow<Long?> = combine(allSessionSummaries) { summaries ->
+        summaries.maxByOrNull { it.durationMs }?.durationMs
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    val mostHitsInSession: StateFlow<Int> = combine(allSessionSummaries) { summaries ->
+        summaries.maxOfOrNull { it.hitCount } ?: 0
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
+    val favoriteTempCelsius: StateFlow<Int?> = historyStats
+        .map { stats ->
+            stats.favoriteTempsCelsius.firstOrNull()?.first
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    val peakSessionsInADay: StateFlow<Int> = historyStats
+        .map { it.peakSessionsInADay }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
     val dailyStats: StateFlow<List<DailyStats>> =
         combine(deviceSessionSummaries, dayStartHour) { summaries, startHour ->
