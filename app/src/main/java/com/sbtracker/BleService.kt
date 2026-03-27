@@ -296,12 +296,16 @@ class BleService : Service() {
                     }
 
                     // Add dynamic heat-up estimation
-                    if (status != null && status.heaterMode != 0 && !status.setpointReached) {
+                    if (status != null && status.currentTempC < status.targetTempC) {
                         val remainingC = status.targetTempC - status.currentTempC
                         if (remainingC > 0) {
                             val summaries = analyticsRepository.getSessionSummaries(db.sessionDao().getAllSessionsSync())
                             val estMs = analyticsRepository.computeEstimatedHeatUpTime(status.targetTempC, summaries)
-                            if (estMs != null) root.put("estHeatUpMs", estMs)
+                            if (estMs != null) {
+                                root.put("estHeatUpMs", estMs)
+                                val statsObj = root.optJSONObject("stats") ?: JSONObject().also { root.put("stats", it) }
+                                statsObj.put("estHeatUpMs", estMs)
+                            }
                         }
                     }
 

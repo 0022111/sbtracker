@@ -273,6 +273,60 @@ class AnalyticsTabFragment : Fragment() {
             }.collect { }
         }
 
+        // ── Personal Records card ────────────────────────────────────────────
+        val tvPersonalMostHits = view.findViewById<TextView>(R.id.tv_personal_most_hits)
+        val tvPersonalLongestSession = view.findViewById<TextView>(R.id.tv_personal_longest_session)
+        val tvPersonalFavoriteTemp = view.findViewById<TextView>(R.id.tv_personal_favorite_temp)
+        val tvPersonalPeakInDay = view.findViewById<TextView>(R.id.tv_personal_peak_in_day)
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            historyVm.mostHitsInSession.collect { mostHits ->
+                tvPersonalMostHits.text = if (mostHits > 0) mostHits.toString() else "—"
+            }
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            historyVm.longestSessionDurationMs.collect { longestMs ->
+                tvPersonalLongestSession.text = if ((longestMs ?: 0L) > 0L) {
+                    formatDurationShort((longestMs ?: 0L) / 1000)
+                } else {
+                    "—"
+                }
+            }
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            combine(historyVm.favoriteTempCelsius, bleVm.isCelsius) { favTempC, celsius ->
+                favTempC to celsius
+            }.collect { (favTempC, celsius) ->
+                tvPersonalFavoriteTemp.text = if ((favTempC ?: 0) > 0) {
+                    "${(favTempC ?: 0).toDisplayTemp(celsius)}${celsius.unitSuffix()}"
+                } else {
+                    "—"
+                }
+            }
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            historyVm.peakSessionsInADay.collect { peakInDay ->
+                tvPersonalPeakInDay.text = if (peakInDay > 0) peakInDay.toString() else "—"
+            }
+        }
+
+        // ── Additional Metrics card ──────────────────────────────────────────
+        val tvMetricHitsPerMinute = view.findViewById<TextView>(R.id.tv_metric_hits_per_minute)
+        val tvTotalActiveDaysMetric = view.findViewById<TextView>(R.id.tv_total_active_days_metric)
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            combine(historyVm.avgHitsPerMinuteFlow, historyVm.totalDaysActiveFlow) { avgHpm, totalDays ->
+                avgHpm to totalDays
+            }.collect { (avgHpm, totalDays) ->
+                tvMetricHitsPerMinute.text = if (avgHpm > 0f) "%.2f".format(avgHpm) else "—"
+                tvTotalActiveDaysMetric.text = if (totalDays > 0) totalDays.toString() else "—"
+            }
+        }
+    }
+
     private fun openSessionReport(s: SessionSummary) {
         val intent = Intent(requireContext(), SessionReportActivity::class.java).apply {
             putExtra("session_id", s.id)
