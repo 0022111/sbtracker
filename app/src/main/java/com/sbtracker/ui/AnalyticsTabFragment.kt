@@ -22,6 +22,7 @@ import dagger.hilt.android.AndroidEntryPoint
 class AnalyticsTabFragment : Fragment() {
     private val bleVm: BleViewModel by activityViewModels()
     private val historyVm: HistoryViewModel by activityViewModels()
+    private val batteryVm: BatteryViewModel by activityViewModels()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
         inflater.inflate(R.layout.fragment_analytics_tab, container, false)
@@ -235,6 +236,47 @@ class AnalyticsTabFragment : Fragment() {
                     tvDoseAvgHitDuration.text = if (stats.avgHitDurationSec > 0f)
                         "${stats.avgHitDurationSec.roundToInt()}s" else "—"
                 }
+        }
+
+        // ── Battery Health Analytics (NEW) ───────────────────────────────────
+        viewLifecycleOwner.lifecycleScope.launch {
+            combine(
+                batteryVm.drainTrend,
+                batteryVm.drainStdDev,
+                batteryVm.avgDepthOfDischarge,
+                batteryVm.daysPerChargeCycle,
+                batteryVm.personalRecords
+            ) { trend, stdDev, depthOfDischarge, daysPerCycle, records ->
+                // Log battery health signals for debugging
+                android.util.Log.d("BatteryAnalytics",
+                    "Drain Trend: $trend | StdDev: $stdDev | DoD: $depthOfDischarge | Days/Cycle: $daysPerCycle")
+                // This collector runs to trigger the data flow even if no UI is directly bound yet
+                Unit
+            }.collect { }
+        }
+
+        // ── Extended Personal Records & Usage Metrics (NEW) ──────────────────
+        viewLifecycleOwner.lifecycleScope.launch {
+            combine(
+                historyVm.currentStreakDaysFlow,
+                historyVm.longestStreakDaysFlow,
+                historyVm.peakTimeOfDayLabel,
+                historyVm.busiestDayOfWeekLabel,
+                historyVm.avgHitsPerMinuteFlow,
+                historyVm.totalDaysActiveFlow,
+                historyVm.longestSessionDurationMs,
+                historyVm.mostHitsInSession,
+                historyVm.favoriteTempCelsius,
+                historyVm.peakSessionsInADay
+            ) { streak, longStreak, peakTime, busiestDay, hitsPerMin, daysActive, 
+                longestDur, mostHits, favTemp, peakSessions ->
+                // Log newly exposed metrics for debugging
+                android.util.Log.d("HistoryAnalytics",
+                    "Streak: $streak | Peak Time: $peakTime | Busiest: $busiestDay | " +
+                    "Hits/Min: $hitsPerMin | Days Active: $daysActive | " +
+                    "Longest: $longestDur | Most Hits: $mostHits | Fav Temp: $favTemp | Peak Sessions: $peakSessions")
+                Unit
+            }.collect { }
         }
     }
 
