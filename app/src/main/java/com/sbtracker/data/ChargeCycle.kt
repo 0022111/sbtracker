@@ -49,6 +49,12 @@ interface ChargeCycleDao {
     @Query("SELECT id FROM charge_cycles WHERE deviceAddress = :address AND ABS(startTimeMs - :startMs) < 30000 LIMIT 1")
     suspend fun findExistingCycleNear(address: String, startMs: Long): Long?
 
+    @Query("SELECT id FROM charge_cycles WHERE deviceAddress = :address AND startTimeMs = :startMs AND endTimeMs = :endMs LIMIT 1")
+    suspend fun getIdForBoundary(address: String, startMs: Long, endMs: Long): Long?
+
+    @Query("DELETE FROM charge_cycles WHERE id IN (:cycleIds)")
+    suspend fun deleteByIds(cycleIds: List<Long>)
+
     @Query("SELECT * FROM charge_cycles WHERE serialNumber = :serial OR deviceAddress = :address ORDER BY startTimeMs DESC")
     fun observeCycles(serial: String, address: String): Flow<List<ChargeCycle>>
 
@@ -57,6 +63,9 @@ interface ChargeCycleDao {
 
     @Query("SELECT * FROM charge_cycles WHERE (serialNumber = :serial OR deviceAddress = :address) AND endBattery > startBattery ORDER BY startTimeMs DESC LIMIT :limit")
     suspend fun getRecentCycles(serial: String, address: String, limit: Int): List<ChargeCycle>
+
+    @Query("SELECT * FROM charge_cycles WHERE deviceAddress = :address AND endTimeMs >= :startMs AND startTimeMs <= :endMs ORDER BY startTimeMs ASC")
+    suspend fun getCyclesOverlapping(address: String, startMs: Long, endMs: Long): List<ChargeCycle>
 
     /** Delete all charge cycles for a device (user-initiated history clear). */
     @Query("DELETE FROM charge_cycles WHERE deviceAddress = :address")

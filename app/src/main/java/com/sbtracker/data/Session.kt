@@ -63,6 +63,9 @@ interface SessionDao {
     @Delete
     suspend fun delete(session: Session)
 
+    @Query("DELETE FROM sessions WHERE id IN (:sessionIds)")
+    suspend fun deleteByIds(sessionIds: List<Long>)
+
     @Query("DELETE FROM sessions WHERE serialNumber = :serial OR deviceAddress = :address")
     suspend fun clearHistory(serial: String, address: String)
 
@@ -77,6 +80,9 @@ interface SessionDao {
 
     @Query("SELECT * FROM sessions WHERE serialNumber = :serial OR deviceAddress = :address ORDER BY startTimeMs DESC LIMIT :limit")
     suspend fun getRecentSessions(serial: String, address: String, limit: Int): List<Session>
+
+    @Query("SELECT * FROM sessions WHERE deviceAddress = :address AND endTimeMs >= :startMs AND startTimeMs <= :endMs ORDER BY startTimeMs ASC")
+    suspend fun getSessionsOverlapping(address: String, startMs: Long, endMs: Long): List<Session>
 
     @Query("SELECT * FROM sessions WHERE id = :id LIMIT 1")
     suspend fun getById(id: Long): Session?

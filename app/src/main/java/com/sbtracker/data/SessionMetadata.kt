@@ -40,6 +40,9 @@ interface SessionMetadataDao {
     @Query("DELETE FROM session_metadata WHERE sessionId = :sessionId")
     suspend fun deleteForSession(sessionId: Long)
 
+    @Query("DELETE FROM session_metadata WHERE sessionId IN (:sessionIds)")
+    suspend fun deleteForSessions(sessionIds: List<Long>)
+
     @Query("SELECT * FROM session_metadata WHERE sessionId IN (:sessionIds)")
     suspend fun getMetadataForSessions(sessionIds: List<Long>): List<SessionMetadata>
 

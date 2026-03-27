@@ -211,41 +211,72 @@ class BleViewModel @Inject constructor(
                 val result = tracker.update(status, bytes, serial, currentRuntime)
 
                 _sessionStats.value = result.stats
-                result.completedSession?.let { session ->
-                    val sessionId = db.sessionDao().insert(session)
+                if (result.completedSession != null || result.completedCharge != null) {
                     withContext(Dispatchers.IO) {
-                        val statuses = db.deviceStatusDao().getStatusForRange(
-                            session.deviceAddress, session.startTimeMs, session.endTimeMs
+                        val completedSession = result.completedSession
+                        val completedCharge = result.completedCharge
+                        val appliedProgram = completedSession?.let { activeProgramHolder.consume() }
+                        val candidateStarts = listOfNotNull(
+                            completedSession?.startTimeMs,
+                            completedCharge?.startTimeMs
                         )
-                        val hits = HitDetector.detect(statuses).map { ph ->
-                            Hit(
-                                sessionId = sessionId,
-                                deviceAddress = session.deviceAddress,
-                                startTimeMs = ph.startTimeMs,
-                                durationMs = ph.durationMs,
-                                peakTempC = ph.peakTempC
-                            )
-                        }
-                        if (hits.isNotEmpty()) db.hitDao().insertAll(hits)
+                        val earliestStartMs = candidateStarts.minOrNull() ?: status.timestampMs
+                        val windowStartMs = (earliestStartMs - 120_000L).coerceAtLeast(0L)
+                        val windowEndMs = status.timestampMs + 120_000L
 
-                        // Save Program Metadata (T-056)
-                        val appliedProgram = activeProgramHolder.consume()
-                        db.sessionMetadataDao().insertOrUpdate(
-                            SessionMetadata(
-                                sessionId = sessionId,
-                                appliedProgramId = appliedProgram?.id
-                            )
+                        analyticsRepo.reconcileRecentDerivedData(
+                            db = db,
+                            address = address,
+                            serial = serial,
+                            windowStartMs = windowStartMs,
+                            windowEndMs = windowEndMs
                         )
 
-                        val startBat = db.deviceStatusDao().getBatteryAtStart(session.deviceAddress, session.startTimeMs, session.endTimeMs)
-                        val endBat = db.deviceStatusDao().getBatteryAtEnd(session.deviceAddress, session.startTimeMs, session.endTimeMs)
-                        if (startBat != null && endBat != null) {
-                            val drain = (startBat - endBat).coerceAtLeast(0)
-                            tracker.recordSessionDrain(drain)
+                        completedSession?.let { projected ->
+                            val reconciledSession = db.sessionDao()
+                                .getSessionsOverlapping(
+                                    address,
+                                    (projected.startTimeMs - 30_000L).coerceAtLeast(0L),
+                                    projected.endTimeMs + 30_000L
+                                )
+                                .minByOrNull { existing ->
+                                    abs(existing.startTimeMs - projected.startTimeMs) +
+                                        abs(existing.endTimeMs - projected.endTimeMs)
+                                }
+
+                            reconciledSession?.let { session ->
+                                if (appliedProgram != null) {
+                                    val existingMetadata = db.sessionMetadataDao().getMetadataForSession(session.id)
+                                    db.sessionMetadataDao().insertOrUpdate(
+                                        SessionMetadata(
+                                            sessionId = session.id,
+                                            isCapsule = existingMetadata?.isCapsule ?: false,
+                                            capsuleWeightGrams = existingMetadata?.capsuleWeightGrams ?: 0.0f,
+                                            notes = existingMetadata?.notes,
+                                            appliedProgramId = appliedProgram.id,
+                                            rating = existingMetadata?.rating
+                                        )
+                                    )
+                                }
+
+                                val startBat = db.deviceStatusDao().getBatteryAtStart(
+                                    session.deviceAddress,
+                                    session.startTimeMs,
+                                    session.endTimeMs
+                                )
+                                val endBat = db.deviceStatusDao().getBatteryAtEnd(
+                                    session.deviceAddress,
+                                    session.startTimeMs,
+                                    session.endTimeMs
+                                )
+                                if (startBat != null && endBat != null) {
+                                    val drain = (startBat - endBat).coerceAtLeast(0)
+                                    tracker.recordSessionDrain(drain)
+                                }
+                            }
                         }
                     }
                 }
-                result.completedCharge?.let { db.chargeCycleDao().insert(it) }
 
                 val chargeState = tracker.getChargeState()
                 if (chargeState != lastSavedChargeState[address]) {

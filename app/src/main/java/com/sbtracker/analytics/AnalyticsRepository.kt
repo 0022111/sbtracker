@@ -37,6 +37,12 @@ import kotlin.math.sqrt
  * multiple coroutines are safe. All DB-bound work is dispatched on [Dispatchers.IO].
  */
 class AnalyticsRepository(private val db: AppDatabase) {
+    companion object {
+        private const val MIN_SESSION_DURATION_MS = 30_000L
+        private const val SESSION_END_GRACE_MS = 8_000L
+        private const val MIN_CHARGE_DURATION_MS = 60_000L
+        private const val CHARGE_END_GRACE_MS = 60_000L
+    }
 
     // ── Session summary cache ─────────────────────────────────────────────────
 
@@ -702,74 +708,11 @@ class AnalyticsRepository(private val db: AppDatabase) {
 
                 val serial = runCatching { db.deviceInfoDao().getByAddress(address)?.serialNumber }.getOrNull()
 
-                val minDurationMs = 30_000L
-                val endGraceMs = 8_000L
-
-                var inSession = false
-                var startMs = 0L
-                var endPendingMs = -1L
-                var lastOnMs = 0L
-
-                suspend fun commit(endMs: Long) {
-                    val duration = endMs - startMs
-                    if (duration < minDurationMs) return
-
-                    val existingId = db.sessionDao().findExistingSessionNear(address, startMs)
-                    if (existingId != null) return
-
-                    val sessionId = db.sessionDao().insert(
-                        Session(
-                            deviceAddress = address,
-                            serialNumber = serial,
-                            startTimeMs = startMs,
-                            endTimeMs = endMs
-                        )
-                    )
-
-                    val window = db.deviceStatusDao().getStatusForRange(address, startMs, endMs)
-                    val hits = HitDetector.detect(window).map { ph ->
-                        Hit(
-                            sessionId = sessionId,
-                            deviceAddress = address,
-                            startTimeMs = ph.startTimeMs,
-                            durationMs = ph.durationMs,
-                            peakTempC = ph.peakTempC
-                        )
-                    }
-                    if (hits.isNotEmpty()) db.hitDao().insertAll(hits)
-                }
-
-                for (s in statuses) {
-                    val heaterOn = s.heaterMode > 0
-
-                    if (!inSession && heaterOn) {
-                        inSession = true
-                        startMs = s.timestampMs
-                        lastOnMs = s.timestampMs
-                        endPendingMs = -1L
-                        continue
-                    }
-
-                    if (!inSession) continue
-
-                    if (heaterOn) {
-                        lastOnMs = s.timestampMs
-                        endPendingMs = -1L
-                    } else {
-                        if (endPendingMs == -1L) endPendingMs = s.timestampMs
-                        if (s.timestampMs - endPendingMs >= endGraceMs) {
-                            val endMs = endPendingMs
-                            commit(endMs)
-                            inSession = false
-                            startMs = 0L
-                            endPendingMs = -1L
-                            lastOnMs = 0L
-                        }
-                    }
-                }
-
-                if (inSession && lastOnMs > startMs) {
-                    commit(lastOnMs)
+                val projectedSessions = deriveSessionsFromStatuses(address, serial, statuses)
+                for (projected in projectedSessions) {
+                    if (db.sessionDao().findExistingSessionNear(address, projected.startTimeMs) != null) continue
+                    val sessionId = db.sessionDao().insert(projected)
+                    insertProjectedHits(address, sessionId, projected.startTimeMs, projected.endTimeMs)
                 }
             }
 
@@ -782,83 +725,207 @@ class AnalyticsRepository(private val db: AppDatabase) {
             val addresses = db.deviceStatusDao().getAllDeviceAddresses()
             if (addresses.isEmpty()) return@withContext
 
-            val chargeEndGraceMs = 60_000L
-            val minChargeDurationMs = 60_000L
-
             for (address in addresses) {
                 val statuses = db.deviceStatusDao().getAllForAddress(address)
                 if (statuses.isEmpty()) continue
 
                 val serial = runCatching { db.deviceInfoDao().getByAddress(address)?.serialNumber }.getOrNull()
 
-                var charging = false
-                var chargeStartMs = 0L
-                var chargeStartBattery = 0
-                var chargeEndPendingMs = -1L
-                var chargeEndBattery = 0
-                var startChargeVoltageLimit = false
-                var startChargeCurrentOpt = false
-
-                suspend fun commit(endMs: Long, endBattery: Int) {
-                    val durationMs = endMs - chargeStartMs
-                    val batteryGained = (endBattery - chargeStartBattery).coerceAtLeast(0)
-                    if (durationMs < minChargeDurationMs || batteryGained <= 0) return
-                    if (db.chargeCycleDao().findExistingCycleNear(address, chargeStartMs) != null) return
-
-                    val avgRate = batteryGained / (durationMs / 60_000f)
-                    db.chargeCycleDao().insert(
-                        ChargeCycle(
-                            deviceAddress = address,
-                            serialNumber = serial,
-                            startTimeMs = chargeStartMs,
-                            endTimeMs = endMs,
-                            startBattery = chargeStartBattery,
-                            endBattery = endBattery,
-                            avgRatePctPerMin = avgRate,
-                            chargeVoltageLimit = startChargeVoltageLimit,
-                            chargeCurrentOptimization = startChargeCurrentOpt
-                        )
-                    )
-                }
-
-                for (status in statuses) {
-                    if (!charging && status.isCharging) {
-                        charging = true
-                        chargeStartMs = status.timestampMs
-                        chargeStartBattery = status.batteryLevel
-                        chargeEndPendingMs = -1L
-                        chargeEndBattery = status.batteryLevel
-                        startChargeVoltageLimit = status.chargeVoltageLimit
-                        startChargeCurrentOpt = status.chargeCurrentOptimization
-                        continue
-                    }
-
-                    if (!charging) continue
-
-                    if (status.isCharging) {
-                        chargeEndPendingMs = -1L
-                        chargeEndBattery = status.batteryLevel
-                    } else {
-                        if (chargeEndPendingMs == -1L) {
-                            chargeEndPendingMs = status.timestampMs
-                            chargeEndBattery = status.batteryLevel
-                        }
-
-                        if (status.timestampMs - chargeEndPendingMs >= chargeEndGraceMs) {
-                            commit(chargeEndPendingMs, chargeEndBattery)
-                            charging = false
-                            chargeStartMs = 0L
-                            chargeStartBattery = 0
-                            chargeEndPendingMs = -1L
-                            chargeEndBattery = 0
-                        }
-                    }
-                }
-
-                if (charging && chargeEndBattery > chargeStartBattery) {
-                    commit(statuses.last().timestampMs, chargeEndBattery)
+                val projectedCharges = deriveChargeCyclesFromStatuses(address, serial, statuses)
+                for (projected in projectedCharges) {
+                    if (db.chargeCycleDao().findExistingCycleNear(address, projected.startTimeMs) != null) continue
+                    db.chargeCycleDao().insert(projected)
                 }
             }
         }
+    }
+
+    suspend fun reconcileRecentDerivedData(
+        db: AppDatabase,
+        address: String,
+        serial: String?,
+        windowStartMs: Long,
+        windowEndMs: Long
+    ) {
+        withContext(Dispatchers.IO) {
+            val statuses = db.deviceStatusDao().getStatusForRange(address, windowStartMs, windowEndMs)
+            if (statuses.isEmpty()) return@withContext
+
+            val projectedSessions = deriveSessionsFromStatuses(address, serial, statuses)
+            val existingSessions = db.sessionDao().getSessionsOverlapping(address, windowStartMs, windowEndMs)
+            val existingByBoundary = existingSessions.associateBy { it.startTimeMs to it.endTimeMs }
+            val desiredSessionIds = mutableSetOf<Long>()
+
+            for (projected in projectedSessions) {
+                val sessionId = existingByBoundary[projected.startTimeMs to projected.endTimeMs]?.id
+                    ?: db.sessionDao().insert(projected)
+                desiredSessionIds += sessionId
+                db.hitDao().deleteHitsForSession(sessionId)
+                insertProjectedHits(address, sessionId, projected.startTimeMs, projected.endTimeMs)
+            }
+
+            val staleSessionIds = existingSessions.map { it.id }.filterNot { it in desiredSessionIds }
+            if (staleSessionIds.isNotEmpty()) {
+                db.hitDao().deleteHitsForSessions(staleSessionIds)
+                db.sessionMetadataDao().deleteForSessions(staleSessionIds)
+                db.sessionDao().deleteByIds(staleSessionIds)
+            }
+
+            val projectedCharges = deriveChargeCyclesFromStatuses(address, serial, statuses)
+            val existingCharges = db.chargeCycleDao().getCyclesOverlapping(address, windowStartMs, windowEndMs)
+            val existingChargeBoundaries = existingCharges.associateBy { it.startTimeMs to it.endTimeMs }
+            val desiredChargeIds = mutableSetOf<Long>()
+
+            for (projected in projectedCharges) {
+                val chargeId = existingChargeBoundaries[projected.startTimeMs to projected.endTimeMs]?.id
+                    ?: db.chargeCycleDao().insert(projected)
+                desiredChargeIds += chargeId
+            }
+
+            val staleChargeIds = existingCharges.map { it.id }.filterNot { it in desiredChargeIds }
+            if (staleChargeIds.isNotEmpty()) {
+                db.chargeCycleDao().deleteByIds(staleChargeIds)
+            }
+
+            clearCache()
+        }
+    }
+
+    private suspend fun insertProjectedHits(address: String, sessionId: Long, startMs: Long, endMs: Long) {
+        val window = db.deviceStatusDao().getStatusForRange(address, startMs, endMs)
+        val hits = HitDetector.detect(window).map { ph ->
+            Hit(
+                sessionId = sessionId,
+                deviceAddress = address,
+                startTimeMs = ph.startTimeMs,
+                durationMs = ph.durationMs,
+                peakTempC = ph.peakTempC
+            )
+        }
+        if (hits.isNotEmpty()) db.hitDao().insertAll(hits)
+    }
+
+    private fun deriveSessionsFromStatuses(
+        address: String,
+        serial: String?,
+        statuses: List<com.sbtracker.data.DeviceStatus>
+    ): List<Session> {
+        val sessions = mutableListOf<Session>()
+        var inSession = false
+        var startMs = 0L
+        var endPendingMs = -1L
+        var lastOnMs = 0L
+
+        fun commit(endMs: Long) {
+            val duration = endMs - startMs
+            if (duration < MIN_SESSION_DURATION_MS) return
+            sessions += Session(
+                deviceAddress = address,
+                serialNumber = serial,
+                startTimeMs = startMs,
+                endTimeMs = endMs
+            )
+        }
+
+        for (status in statuses) {
+            val heaterOn = status.heaterMode > 0
+            if (!inSession && heaterOn) {
+                inSession = true
+                startMs = status.timestampMs
+                lastOnMs = status.timestampMs
+                endPendingMs = -1L
+                continue
+            }
+            if (!inSession) continue
+
+            if (heaterOn) {
+                lastOnMs = status.timestampMs
+                endPendingMs = -1L
+            } else {
+                if (endPendingMs == -1L) endPendingMs = status.timestampMs
+                if (status.timestampMs - endPendingMs >= SESSION_END_GRACE_MS) {
+                    commit(endPendingMs)
+                    inSession = false
+                    startMs = 0L
+                    endPendingMs = -1L
+                    lastOnMs = 0L
+                }
+            }
+        }
+
+        if (inSession && lastOnMs > startMs) {
+            commit(lastOnMs)
+        }
+        return sessions
+    }
+
+    private fun deriveChargeCyclesFromStatuses(
+        address: String,
+        serial: String?,
+        statuses: List<com.sbtracker.data.DeviceStatus>
+    ): List<ChargeCycle> {
+        val charges = mutableListOf<ChargeCycle>()
+        var charging = false
+        var chargeStartMs = 0L
+        var chargeStartBattery = 0
+        var chargeEndPendingMs = -1L
+        var chargeEndBattery = 0
+        var startChargeVoltageLimit = false
+        var startChargeCurrentOpt = false
+
+        fun commit(endMs: Long, endBattery: Int) {
+            val durationMs = endMs - chargeStartMs
+            val batteryGained = (endBattery - chargeStartBattery).coerceAtLeast(0)
+            if (durationMs < MIN_CHARGE_DURATION_MS || batteryGained <= 0) return
+            val avgRate = batteryGained / (durationMs / 60_000f)
+            charges += ChargeCycle(
+                deviceAddress = address,
+                serialNumber = serial,
+                startTimeMs = chargeStartMs,
+                endTimeMs = endMs,
+                startBattery = chargeStartBattery,
+                endBattery = endBattery,
+                avgRatePctPerMin = avgRate,
+                chargeVoltageLimit = startChargeVoltageLimit,
+                chargeCurrentOptimization = startChargeCurrentOpt
+            )
+        }
+
+        for (status in statuses) {
+            if (!charging && status.isCharging) {
+                charging = true
+                chargeStartMs = status.timestampMs
+                chargeStartBattery = status.batteryLevel
+                chargeEndPendingMs = -1L
+                chargeEndBattery = status.batteryLevel
+                startChargeVoltageLimit = status.chargeVoltageLimit
+                startChargeCurrentOpt = status.chargeCurrentOptimization
+                continue
+            }
+            if (!charging) continue
+
+            if (status.isCharging) {
+                chargeEndPendingMs = -1L
+                chargeEndBattery = status.batteryLevel
+            } else {
+                if (chargeEndPendingMs == -1L) {
+                    chargeEndPendingMs = status.timestampMs
+                    chargeEndBattery = status.batteryLevel
+                }
+                if (status.timestampMs - chargeEndPendingMs >= CHARGE_END_GRACE_MS) {
+                    commit(chargeEndPendingMs, chargeEndBattery)
+                    charging = false
+                    chargeStartMs = 0L
+                    chargeStartBattery = 0
+                    chargeEndPendingMs = -1L
+                    chargeEndBattery = 0
+                }
+            }
+        }
+
+        if (charging && chargeEndBattery > chargeStartBattery) {
+            commit(statuses.last().timestampMs, chargeEndBattery)
+        }
+        return charges
     }
 }

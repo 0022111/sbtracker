@@ -73,6 +73,9 @@ interface HitDao {
     @Query("DELETE FROM hits WHERE sessionId = :sessionId")
     suspend fun deleteHitsForSession(sessionId: Long)
 
+    @Query("DELETE FROM hits WHERE sessionId IN (:sessionIds)")
+    suspend fun deleteHitsForSessions(sessionIds: List<Long>)
+
     /** Delete all hits for a device (user-initiated history clear). */
     @Query("DELETE FROM hits WHERE deviceAddress = :address")
     suspend fun clearAll(address: String)
