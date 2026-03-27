@@ -50,8 +50,9 @@ data class DeviceStatus(
     val vibrationEnabled:          Boolean,
     val chargeCurrentOptimization: Boolean,
     val chargeVoltageLimit:        Boolean,
-    val permanentBluetooth:        Boolean,
-    val boostVisualization:        Boolean
+    val permanentBluetooth:        Boolean = false,
+    val boostVisualization:        Boolean = false,
+    val isSynthetic:               Boolean = false
 )
 
 @Dao

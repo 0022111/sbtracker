@@ -5,24 +5,23 @@ Connects via Bluetooth LE, tracks usage sessions, and provides analytics — all
 
 ---
 
-## Architecture — Event Sourcing
+## Architecture — Hybrid Web-Bridge
 
-The entire system follows an **event-sourcing pattern**. One table rules everything:
+The system follows a **Hybrid Frontend / Native Backend** pattern. The Android application acts as a persistent BLE orchestrator and data-store, while the primary user interface is a **React/Vite** application hosted in a full-screen WebView.
 
-### The God Log: `device_status`
+### 1. The God Log: `device_status` (Event Sourcing)
 - Every ~500ms while the heater is on (every ~30s when idle), the BLE layer polls CMD 0x01 and inserts a row.
 - Contains: temperature (current / target / boost), battery, heater mode, charging state, settings flags.
 - Indexed on `(deviceAddress, timestampMs)` — covers all range/aggregate queries.
 
-### Derived Data (computed, never stored)
-- **Sessions** — boundary rows in `sessions` table (start/end timestamps only). Everything else is computed from `device_status` at query time.
-- **Hits** — detected from `device_status` temperature patterns via `HitDetector`. Stored in `hits` table but re-detectable from raw log.
-- **SessionSummary** — NOT a Room entity. Assembled on demand from `device_status` + `hits` + `extended_data`. Cached in-memory by `AnalyticsRepository`.
-- **All analytics** (HistoryStats, UsageInsights, BatteryInsights, PersonalRecords, DailyStats) — pure functions over `List<SessionSummary>`. No DB access.
+### 2. Derived Data (computed, never stored)
+- **Sessions** / **Hits** / **Analytics** — computed from `device_status` patterns via `HitDetector` and `AnalyticsRepository`.
+- **Key Invariant**: Never store derived data. Improving any algorithm retroactively improves all history without migrations.
 
-### Key Invariant
-> **Never store derived data.** Compute from `device_status` at query time.
-> Improving any algorithm retroactively improves all history without migrations or re-ingestion.
+### 3. Communication Layer: WebSocket Bridge
+- **VaporizerWebSocketServer**: A lightweight server running in `BleService` on port `8080`.
+- **Telemetry Stream**: Native models are mapped to JSON via `TelemetryMapper` and broadcasted to Web clients.
+- **Command Handling**: The Web UI sends commands (JSON) to the bridge, which `BleService` translates into BLE writes or ViewModel actions.
 
 ### Retroactive Rebuild
 `MainViewModel.backcompileSessionsFromLogs()` can reconstruct all sessions and hits from the raw `device_status` log. This means feature tables can be wiped and rebuilt.
@@ -91,32 +90,25 @@ The entire system follows an **event-sourcing pattern**. One table rules everyth
 
 | File / Folder | Purpose |
 |---|---|
-| `MainActivity.kt` | Single hosting activity, minimal lifecycle and navigation |
-| `ui/LandingFragment.kt` | Home screen (Command Center / Quick stats) |
-| `ui/SessionFragment.kt` | Active session tracking, temp controls, and live graphs |
-| `ui/HistoryFragment.kt` | Analytics and historical sessions list |
-| `ui/BatteryFragment.kt` | Battery health and charging graphs |
-| `ui/SettingsFragment.kt` | App settings and preferences |
-| `SessionReportActivity.kt` | Detail view for a single session |
-| `SessionHistoryAdapter.kt` | RecyclerView adapter for session list |
-| `GraphView.kt` | Real-time temperature graph (custom View) |
-| `BatteryGraphView.kt` | Battery level graph (custom View) |
-| `SessionGraphView.kt` | Per-session temperature detail graph (custom View) |
-| `HistoryBarChartView.kt` | Daily sessions bar chart (custom View) |
-| `HistoryTimelineView.kt` | Timeline visualization (custom View) |
+| `ui/` | **Primary UI**: React/Vite application (Dashboard, Session, History, etc.) |
+| `MainActivity.kt` | Hybrid host: Configures the full-screen WebView and permission logic |
+| `VaporizerWebSocketServer.kt` | Communication bridge between React and Native |
+| `TelemetryMapper.kt` | Maps native models to JSON for the Web UI |
+| `BleService.kt` | **Orchestrator**: Owns BLE lifecycle, WebSocket bridge, and session logic |
+| `SessionReportActivity.kt` | *Legacy/Precursor*: Detail view for a single session (bridged by Web) |
+| `ui/LandingFragment.kt` | *Legacy/Precursor*: Native home screen (superseded by Web) |
 
 ---
 
 ## Tech Stack
 
-- **Language**: Kotlin
-- **UI**: Programmatic Views (no XML layouts, no Compose)
-- **Database**: Room (SQLite)
-- **Async**: Kotlin Coroutines + Flow
-- **BLE**: Android BLE API (BluetoothGatt) 
-- **Architecture**: Single-Activity, MVVM via `MainViewModel`
-- **Build**: Gradle (Groovy DSL)
-- **Min SDK**: Android
+| Layer | Stack |
+|---|---|
+| **Android Core** | Kotlin, Room, Coroutines, Hilt |
+| **User Interface** | **React**, Vite, Vanilla CSS, Framer Motion |
+| **Communication** | Java-WebSocket (Port 8080) |
+| **Build** | Gradle (Native) + NPM/Vite (UI) |
+| **Min SDK** | Android 8.0 (API 26) |
 
 ---
 
@@ -189,8 +181,9 @@ The architecture is intentionally split to maximise portability:
 
 **Platform notes:**
 - iOS App Store: likely blocked by guideline 1.4.3 (cannabis device facilitation)
-- PWA: not viable — background BLE keepalive is impossible in a browser context
-- React Native: viable for Android; BLE layer is the prototype risk, validate keepalive first
+- iOS App Store: likely blocked by guideline 1.4.3 (cannabis device facilitation)
+- PWA: **Hybrid-Viable** — The UI is now a standard React app. While background BLE is restricted in browsers, the UI can run in any modern browser to monitor a device running SBTracker on a local network or via the Android WebView host.
+- Desktop: Viable via local WebSocket connection to the Android bridge.
 
 ---
 

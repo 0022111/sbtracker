@@ -10,9 +10,10 @@ The codebase is currently in the "Final Hardening" phase. To reach a technical A
 **Critical Alpha Milestones:**
 * **🛡️ [Epic] Data Trust (B-010):** Resolving synthetic temperature accuracy for Venty/Veazy (Critical Blocker).
 * **📂 [Epic] Data Mobility (F-026/027):** Secure database backup/restore and session program schedules for testers.
-* **🎨 [Epic] UI/UX Refresh (F-100):** Consolidating F-053...F-056 and F-050; modernizing Home, Session, and History surfaces.
+* **🎨 [Epic] UI/UX Refresh (F-100):** Transitioned to a **Hybrid Web UI** (React/Vite). Home, Session, and History surfaces now live in `ui/`.
+* **🔌 [Epic] Bridge Maturity:** Hardening the WebSocket Telemetry Bridge (v0.2.0 milestone).
 
-*Note: Infrastructure refactors (Compose migration) and minor UI bugs are deferred to the Beta/v1.0 phase to ensure a stable Alpha happens first.*
+*Note: Infrastructure refactors (Compose migration) are superseded by the React UI transition for primary user-facing features.*
 
 ---
 

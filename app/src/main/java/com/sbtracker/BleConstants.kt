@@ -19,7 +19,9 @@ object BleConstants {
 
     // Volcano Hybrid
     val VOLCANO_STATE_SVC:   UUID = UUID.fromString("10100000-5354-4f52-5a26-4249434b454c")
+    val VOLCANO_STATE_CHAR:  UUID = UUID.fromString("10100001-5354-4f52-5a26-4249434b454c")
     val VOLCANO_CTRL_SVC:    UUID = UUID.fromString("10110000-5354-4f52-5a26-4249434b454c")
+    val VOLCANO_CTRL_CHAR:   UUID = UUID.fromString("10110001-5354-4f52-5a26-4249434b454c")
 
     val CCCD_UUID:           UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
 

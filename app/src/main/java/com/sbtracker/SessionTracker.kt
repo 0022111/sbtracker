@@ -12,20 +12,16 @@ import kotlin.math.sqrt
 class SessionTracker {
 
     companion object {
-        private const val MIN_SESSION_DURATION_SEC  = 30       // Minimum 30s for a valid session
-        private const val SESSION_END_GRACE_MS      = 8_000L   // 8s grace before closing session
+        private const val MIN_SESSION_DURATION_SEC  = 30
+        private const val SESSION_END_GRACE_MS      = 8_000L
         private const val CHARGE_END_GRACE_MS       = 60_000L
 
         private const val DRAIN_HISTORY_SIZE  = 50
         private const val RATE_HISTORY_SIZE   = 20
-        private const val RATE_WINDOW_SIZE    = 60  // ~30s of samples — enough to see a 1% tick
+        private const val RATE_WINDOW_SIZE    = 60
 
-        /** B-015: Minimum samples for reliable drain estimate. Users with fewer samples may see misleading predictions. */
         private const val MIN_DRAIN_SAMPLES_FOR_CONFIDENCE = 10
-
         private const val CRITICAL_BATTERY_LEVEL = 15
-        private const val TAPER_START       = 70
-
     }
 
     enum class State { IDLE, ACTIVE }
@@ -49,20 +45,13 @@ class SessionTracker {
         val currentBattery:      Int     = 0,
         val sessionsRemaining:   Int     = 0,
         val sessionsToCritical:  Int     = 0,
-        /** Mean drain per session across history samples (%) */
         val avgDrainPctPerSession: Float = 0f,
-        /** Number of sessions in the drain history */
         val drainSampleCount:    Int     = 0,
-        /** B-015: True if drain estimate is based on enough samples (≥10) for reliable predictions */
         val drainEstimateReliable: Boolean = false,
-        /** Pessimistic remaining sessions estimate (mean + 1σ drain) */
         val sessionsRemainingLow:  Int   = 0,
-        /** Optimistic remaining sessions estimate (mean − 1σ drain) */
         val sessionsRemainingHigh: Int   = 0,
         val chargeEtaMinutes:    Int?    = null,
         val chargeEta80Minutes:  Int?    = null,
-        /** Live charge rate in %/min derived from the rolling window; 0 when not charging
-         *  or when only a historical estimate is available (i.e. not yet a measured rate). */
         val chargeRatePctPerMin: Float   = 0f,
         val debugHex:            String  = "",
         val tempTimeMap:         Map<Int, Long> = emptyMap()
@@ -107,6 +96,7 @@ class SessionTracker {
     private var hitStartTimeMs = 0L
     private var totalHitDurationMs = 0L
     private var hitPeakTempC = 0
+    private var lastBaselineTemp = 0
 
     private val tempTimeMap = mutableMapOf<Int, Long>()
     private var lastUpdateMs = 0L
@@ -137,18 +127,6 @@ class SessionTracker {
         startChargeVoltageLimit = s.startChargeVoltageLimit; startChargeCurrentOpt = s.startChargeCurrentOpt
     }
 
-    /**
-     * Charging model:
-     *  - 0–70%:  linear fast charge (rate = fastRate)
-     *  - 70–80%: taper begins (60% of fast rate)
-     *  - 80–90%: deeper taper  (35% of fast rate)
-     *  - 90–100%: trickle      (15% of fast rate)
-     *
-     * NOTE: B-014 — The taper multipliers (0.60, 0.35, 0.15) are UNVALIDATED magic numbers.
-     * They are reasonable approximations of S&B charging curves but have not been measured
-     * against real devices. ETA accuracy at 70%+ battery is unknown.
-     * Action required: Measure real S&B taper curve before production release.
-     */
     private val taperBands = listOf(70 to 1.0, 80 to 0.60, 90 to 0.35, 100 to 0.15)
 
     private fun taperEtaMinutes(fromPct: Int, targetPct: Int, fastRate: Double): Double {
@@ -177,7 +155,7 @@ class SessionTracker {
             prevTargetTempC = s.targetTempC; prevBoostOffsets = s.boostOffsetC + s.superBoostOffsetC
             heatUpStartMs = s.timestampMs; heatUpEndMs = 0L; hitInProgress = false; hitStartTimeMs = 0L
             totalHitDurationMs = 0L; tempTimeMap.clear(); startHeaterRuntime = heaterRuntime
-            heatingMs = 0L; readyMs = 0L
+            heatingMs = 0L; readyMs = 0L; lastBaselineTemp = 0
         } else if (state == State.ACTIVE) {
             val deltaMs = now - lastUpdateMs
             lastUpdateMs = now
@@ -185,17 +163,14 @@ class SessionTracker {
             if (isHeaterOn) {
                 sessionEndPendingMs = -1L
                 
-                // Track temperature regardless of setpointReached
                 tempAccum += s.currentTempC
                 tempSamples++
                 peakTempC = max(peakTempC, s.currentTempC)
                 tempTimeMap[s.currentTempC] = (tempTimeMap[s.currentTempC] ?: 0L) + deltaMs
 
-                // Detect Hit (Breath)
-                // Deprioritize temperature detection due to low Bluetooth polling rate. 
-                // Rely firmly on the device's internal timer reset behavior for hits instead.
-                val isTempStable = s.targetTempC == prevTargetTempC && (s.boostOffsetC + s.superBoostOffsetC) == prevBoostOffsets
-                val timerResetTrigger = prevShutdownSecs != -1 && s.autoShutdownSeconds > prevShutdownSecs + 2 && isTempStable
+                // V1.0 FIX: Trigger hit on ANY timer jump, even if setpoint hasn't been reached yet.
+                // This handles users taking "early hits" during the heat-up phase.
+                val timerResetTrigger = prevShutdownSecs != -1 && s.autoShutdownSeconds > prevShutdownSecs + 2
 
                 if (timerResetTrigger) {
                     if (!hitInProgress) {
@@ -203,6 +178,7 @@ class SessionTracker {
                         hitInProgress = true
                         hitStartTimeMs = now
                         hitPeakTempC = s.currentTempC
+                        lastBaselineTemp = s.currentTempC
                     }
                 }
 
@@ -210,7 +186,11 @@ class SessionTracker {
                     hitPeakTempC = max(hitPeakTempC, s.currentTempC)
                     val isTimerTickingDown = prevShutdownSecs != -1 && s.autoShutdownSeconds < prevShutdownSecs
                     
-                    if (!timerResetTrigger && isTimerTickingDown) {
+                    // Hit ends if:
+                    // 1. Timer is ticking down (not resetting) AND
+                    // 2. Temperature has recovered or dip is gone
+                    val tempRecovered = lastBaselineTemp > 0 && (lastBaselineTemp - s.currentTempC) < 1.0
+                    if (!timerResetTrigger && isTimerTickingDown && tempRecovered) {
                         endHit(now)
                     }
                 }
@@ -231,8 +211,6 @@ class SessionTracker {
                 if (s.timestampMs - sessionEndPendingMs >= SESSION_END_GRACE_MS) {
                     val durationSec = (sessionEndPendingMs - sessionStartMs) / 1000
                     if (durationSec >= MIN_SESSION_DURATION_SEC) {
-                        // Session stores only boundary markers — all stats are computed
-                        // at query time from device_status, hits, and extended_data.
                         completedSession = Session(
                             deviceAddress = s.deviceAddress,
                             serialNumber  = serial,
@@ -368,8 +346,11 @@ class SessionTracker {
 
     private fun endHit(endTimeMs: Long) {
         val durationMs = endTimeMs - hitStartTimeMs
-        if (durationMs > 0) {
+        if (durationMs >= 2000) {
             totalHitDurationMs += durationMs
+        } else if (durationMs > 0 && hitInProgress) {
+            // If it was a valid start but too short, we revert count
+            if (hitCount > 0) hitCount--
         }
         hitInProgress  = false
         hitStartTimeMs = 0L
@@ -410,7 +391,6 @@ class SessionTracker {
         }
     }
 
-    /** Population standard deviation of the drain history samples. Returns 0 if < 2 samples. */
     private fun drainStdDev(): Double {
         if (drainHistory.size < 2) return 0.0
         val mean = drainHistory.average()

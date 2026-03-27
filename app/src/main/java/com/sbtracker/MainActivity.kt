@@ -14,43 +14,42 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
+import android.webkit.CookieManager
+import android.webkit.WebResourceRequest
+import android.webkit.WebSettings
+import android.webkit.WebStorage
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.RecyclerView
-import androidx.viewpager2.adapter.FragmentStateAdapter
-import androidx.viewpager2.widget.ViewPager2
+import com.sbtracker.data.BackupRepository
+import com.sbtracker.data.RestoreRepository
 import com.sbtracker.data.RestoreResult
-import com.sbtracker.data.SessionSummary
-import com.sbtracker.databinding.ActivityMainPagedBinding
-import com.sbtracker.ui.LandingFragment
-import com.sbtracker.ui.SessionFragment
-import com.sbtracker.ui.HistoryFragment
-import com.sbtracker.ui.BatteryFragment
-import com.sbtracker.ui.SettingsFragment
 import com.sbtracker.data.UserPreferencesRepository
+import com.sbtracker.databinding.ActivityMainPagedBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
-    @javax.inject.Inject lateinit var prefsRepo: UserPreferencesRepository
+    @Inject lateinit var prefsRepo: UserPreferencesRepository
+    @Inject lateinit var backupRepo: BackupRepository
+    @Inject lateinit var restoreRepo: RestoreRepository
 
     lateinit var bleVm: BleViewModel
     lateinit var historyVm: HistoryViewModel
     lateinit var batteryVm: BatteryViewModel
     lateinit var settingsVm: SettingsViewModel
-    private lateinit var navVm: NavigationViewModel
     private lateinit var binding: ActivityMainPagedBinding
 
     private var bleService: BleService? = null
@@ -73,7 +72,7 @@ class MainActivity : AppCompatActivity() {
     private val requestPermissions =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { results ->
             if (results.values.all { it }) ensureBluetoothEnabled()
-            else Toast.makeText(this, "Permissions required", Toast.LENGTH_SHORT).show()
+            else Toast.makeText(this, "Permissions required for BLE", Toast.LENGTH_SHORT).show()
         }
 
     private val requestEnableBt =
@@ -82,16 +81,22 @@ class MainActivity : AppCompatActivity() {
         }
 
     private val requestNotificationPermission =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-            // Permission granted or denied; allow app to continue
-            // Notification attempts will be gated by NotificationPermissionHelper.isGranted()
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { _ -> }
+
+    private val pickRestoreFile =
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+            uri?.let {
+                lifecycleScope.launch {
+                    restoreRepo.restoreFrom(it)
+                }
+            }
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
-        // First-run onboarding check (reads DataStore; fast on subsequent runs)
+        // First-run onboarding check
         val onboardingDone = runBlocking { prefsRepo.userPreferencesFlow.first().onboardingComplete }
         if (!onboardingDone) {
             startActivity(Intent(this, OnboardingActivity::class.java))
@@ -106,125 +111,102 @@ class MainActivity : AppCompatActivity() {
         historyVm = ViewModelProvider(this)[HistoryViewModel::class.java]
         batteryVm = ViewModelProvider(this)[BatteryViewModel::class.java]
         settingsVm = ViewModelProvider(this)[SettingsViewModel::class.java]
-        navVm = ViewModelProvider(this)[NavigationViewModel::class.java]
 
-        // Cross-VM state sync: activeDevice
-        lifecycleScope.launch {
-            bleVm.activeDevice.collect { device ->
-                historyVm.updateActiveDevice(device)
-                batteryVm.updateActiveDevice(device)
-            }
-        }
-
-        // Cross-VM state sync: dayStartHour
-        lifecycleScope.launch {
-            settingsVm.dayStartHour.collect { hour ->
-                historyVm.updateDayStartHour(hour)
-                batteryVm.updateDayStartHour(hour)
-            }
-        }
-
-        // Refresh intake stats when active device or capsule settings change
-        lifecycleScope.launch {
-            bleVm.activeDevice.collect {
-                historyVm.refreshIntakeStats(
-                    settingsVm.capsuleWeightGrams.value,
-                    settingsVm.defaultIsCapsule.value
-                )
-            }
-        }
-
-        // Backcompile sessions if needed
-        lifecycleScope.launch {
-            withContext(Dispatchers.IO) {
-                runCatching { historyVm.rebuildSessionHistoryFromLogs() }
-            }
-        }
-
-        // Request POST_NOTIFICATIONS permission on first run (API 33+)
-        if (Build.VERSION.SDK_INT >= 33) {
-            if (!NotificationPermissionHelper.isGranted(this)) {
-                requestNotificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
-            }
-        }
-
-        val adapter = PagedAdapter(this)
-        binding.viewPager.adapter = adapter
-        (binding.viewPager.getChildAt(0) as? RecyclerView)?.isNestedScrollingEnabled = false
-        binding.viewPager.isUserInputEnabled = true
-
-        binding.bottomNavigation.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.nav_overview -> binding.viewPager.currentItem = 0
-                R.id.nav_session  -> binding.viewPager.currentItem = 1
-                R.id.nav_history  -> binding.viewPager.currentItem = 2
-                R.id.nav_battery  -> binding.viewPager.currentItem = 3
-                R.id.nav_settings -> binding.viewPager.currentItem = 4
-            }
-            true
-        }
-
-        binding.viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-            override fun onPageSelected(position: Int) {
-                binding.bottomNavigation.menu.getItem(position).isChecked = true
-            }
-        })
-
-        // Navigation events from fragments
-        lifecycleScope.launch {
-            navVm.navigateTo.collect { tab -> navigateTo(tab) }
-        }
-        lifecycleScope.launch {
-            navVm.requestScan.collect { checkPermissionsAndScan() }
-        }
-
-        // Auto-navigate to session tab when heater starts
-        lifecycleScope.launch {
-            bleVm.latestStatus.collect { s ->
-                if (s != null && s.heaterMode > 0 && binding.viewPager.currentItem == 0) {
-                    binding.viewPager.currentItem = 1
-                }
-            }
-        }
-
+        setupWebView()
         startAndBindBleService()
+        checkPermissionsAndScan()
 
-        // Handle CSV export
+        // 1. Observe Backup URIs
         lifecycleScope.launch {
-            historyVm.exportUri.collect { uri ->
-                val intent = Intent(Intent.ACTION_SEND).apply {
-                    type = "text/csv"
-                    putExtra(Intent.EXTRA_STREAM, uri)
-                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                }
-                startActivity(Intent.createChooser(intent, "Export History"))
-            }
-        }
-
-        // Handle DB backup share
-        lifecycleScope.launch {
-            settingsVm.backupUri.collect { uri ->
+            backupRepo.backupUri.collect { uri ->
                 val intent = Intent(Intent.ACTION_SEND).apply {
                     type = "application/octet-stream"
                     putExtra(Intent.EXTRA_STREAM, uri)
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
-                startActivity(Intent.createChooser(intent, "Save Database Backup"))
+                startActivity(Intent.createChooser(intent, "Save SBTracker Backup"))
             }
         }
 
-        // Handle DB restore completion
+        // 2. Observe Restore results
         lifecycleScope.launch {
-            settingsVm.restoreResult.collect { result ->
-                if (result is RestoreResult.Success) {
-                    // Hard-restart so Room reopens the freshly restored database.
-                    val restart = Intent(this@MainActivity, MainActivity::class.java)
-                    restart.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                    startActivity(restart)
-                    android.os.Process.killProcess(android.os.Process.myPid())
+            restoreRepo.restoreResult.collect { result ->
+                when (result) {
+                    is RestoreResult.Success -> {
+                        Toast.makeText(this@MainActivity, "Restore successful! Restarting...", Toast.LENGTH_LONG).show()
+                        val intent = Intent(this@MainActivity, MainActivity::class.java)
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                        startActivity(intent)
+                        android.os.Process.killProcess(android.os.Process.myPid())
+                    }
+                    is RestoreResult.Failure -> {
+                        Toast.makeText(this@MainActivity, "Restore failed: ${result.reason}", Toast.LENGTH_LONG).show()
+                    }
                 }
-                // Failure Toasts are already shown in SettingsFragment (T-061).
             }
+        }
+
+        // 3. Observe Restore Trigger
+        lifecycleScope.launch {
+            bleVm.triggerRestorePicker.collect {
+                pickRestoreFile.launch(arrayOf("*/*"))
+            }
+        }
+
+        if (Build.VERSION.SDK_INT >= 33) {
+            if (!NotificationPermissionHelper.isGranted(this)) {
+                requestNotificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+        
+        lifecycleScope.launch {
+            withContext(Dispatchers.IO) {
+                runCatching { historyVm.rebuildSessionHistoryFromLogs() }
+            }
+        }
+    }
+
+    @SuppressLint("SetJavaScriptEnabled")
+    private fun setupWebView() {
+        // AGGRESSIVE CACHE CLEANING
+        WebStorage.getInstance().deleteAllData()
+        CookieManager.getInstance().removeAllCookies(null)
+        CookieManager.getInstance().flush()
+
+        binding.webView.apply {
+            clearCache(true)
+            clearFormData()
+            clearHistory()
+            
+            settings.apply {
+                javaScriptEnabled = true
+                domStorageEnabled = true
+                allowFileAccess = true
+                allowContentAccess = true
+                
+                // Disable caching
+                cacheMode = WebSettings.LOAD_NO_CACHE
+                
+                // Allow local XHR/WebSockets
+                allowFileAccessFromFileURLs = true
+                allowUniversalAccessFromFileURLs = true
+                
+                // Ensure viewport behaves
+                useWideViewPort = true
+                loadWithOverviewMode = true
+            }
+
+            setBackgroundColor(android.graphics.Color.parseColor("#0a0a0a"))
+
+            webViewClient = object : WebViewClient() {
+                override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
+                    return false
+                }
+            }
+            
+            // Add cache-buster timestamp to local URL
+            val cacheBuster = System.currentTimeMillis()
+            loadUrl("file:///android_asset/ui/index.html?v=$cacheBuster")
         }
     }
 
@@ -256,7 +238,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun checkPermissionsAndScan() {
+    private fun checkPermissionsAndScan() {
         val needed = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             arrayOf(Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.POST_NOTIFICATIONS)
         } else {
@@ -268,30 +250,4 @@ class MainActivity : AppCompatActivity() {
             requestPermissions.launch(needed)
         }
     }
-
-    /** Navigate to a tab from any fragment (0=Landing, 1=Session, 2=History, 3=Battery, 4=Settings). */
-    fun navigateTo(tab: Int) {
-        binding.viewPager.currentItem = tab
-    }
-
-    private inner class PagedAdapter(fa: AppCompatActivity) : FragmentStateAdapter(fa) {
-        override fun getItemCount() = 5
-        override fun createFragment(position: Int): Fragment = when (position) {
-            0 -> LandingFragment()
-            1 -> SessionFragment()
-            2 -> HistoryFragment()
-            3 -> BatteryFragment()
-            4 -> SettingsFragment()
-            else -> LandingFragment()
-        }
-    }
-}
-
-fun MainActivity.confirmDelete(summary: SessionSummary) {
-    AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog)
-        .setTitle("Delete Session")
-        .setMessage("Remove this session?")
-        .setPositiveButton("Delete") { _, _ -> historyVm.deleteSession(summary.session) }
-        .setNegativeButton("Cancel", null)
-        .show()
 }

@@ -80,4 +80,20 @@ dependencies {
     // Testing
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.mockito:mockito-core:5.11.0'
+
+    // WebSocket
+    implementation "org.java-websocket:Java-WebSocket:1.6.0"
 }
+
+task cleanUiAssets(type: Delete) {
+    delete "src/main/assets/ui"
+}
+
+task syncUiAssets(type: Copy) {
+    dependsOn cleanUiAssets
+    from "${project.rootDir}/ui/dist"
+    into "src/main/assets/ui"
+}
+
+// Ensure assets are synced before build
+preBuild.dependsOn syncUiAssets

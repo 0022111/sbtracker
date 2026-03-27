@@ -43,25 +43,30 @@ object BlePacket {
         // NOTE: B-010 — This synthetic temperature calculation is unvalidated.
         // Boost offset semantics (additive delta vs. absolute) are unconfirmed.
         // Real-device packet capture needed before alpha to confirm accuracy.
-        val currentTempC = if (parsedCurrentC > 0) {
-            parsedCurrentC
+        val currentTempC: Int
+        val isSynthetic: Boolean
+        
+        if (parsedCurrentC > 0) {
+            currentTempC = parsedCurrentC
+            isSynthetic  = false
         } else {
-            val syntheticTemp = when (heaterMode) {
+            isSynthetic = true
+            currentTempC = when (heaterMode) {
                 2    -> targetTempC + boostOffsetC
                 3    -> targetTempC + superBoostOffsetC
                 else -> if (heaterMode > 0) targetTempC else 0
             }
-            if (syntheticTemp > 0) {
-                Log.v("BlePacket", "[B-010] Using synthetic temp for $deviceType: $syntheticTemp°C " +
+            if (currentTempC > 0) {
+                Log.v("BlePacket", "[B-010] Using synthetic temp for $deviceType: $currentTempC°C " +
                     "(target=$targetTempC°C, boost=$boostOffsetC°C, mode=$heaterMode)")
             }
-            syntheticTemp
         }
-        val batteryLevel      = bytes[8].toInt() and 0xFF
-        val autoShutdownSecs  = (bytes[9].toInt() and 0xFF) or ((bytes[10].toInt() and 0xFF) shl 8)
-        val isCharging        = (bytes[13].toInt() and 0xFF) > 0
-        val settingsFlags     = bytes[14].toInt() and 0xFF
-        val settings2Flags    = if (bytes.size > 16) bytes[16].toInt() and 0xFF else 0
+        val batteryLevel      = (bytes.getOrNull(8)?.toInt() ?: 0) and 0xFF
+        val autoShutdownSecs  = ((bytes.getOrNull(9)?.toInt() ?: 0) and 0xFF) or 
+                               (((bytes.getOrNull(10)?.toInt() ?: 0) and 0xFF) shl 8)
+        val isCharging        = (bytes.getOrNull(13)?.toInt() ?: 0) and 0xFF > 0
+        val settingsFlags     = (bytes.getOrNull(14)?.toInt() ?: 0) and 0xFF
+        val settings2Flags    = if (bytes.size > 16) (bytes[16].toInt() and 0xFF) else 0
 
         val isCelsius          = (settingsFlags and BleConstants.FLAG_UNIT_FAHRENHEIT)  == 0
         val setpointReached    = (settingsFlags and BleConstants.FLAG_SETPOINT_REACHED) != 0
@@ -70,8 +75,6 @@ object BlePacket {
         val permanentBle       = (settings2Flags and BleConstants.FLAG2_PERMANENT_BLE)  != 0
 
         // Bit 0x40 = shared vibration/boost-visualization flag.
-        // Per the reference implementation, Veazy inverts the meaning of this bit for BOTH fields.
-        // Venty does NOT invert — only Veazy has the hardware inversion.
         val rawBit         = (settingsFlags and BleConstants.FLAG_VIBRATION_BOOST_VIZ) != 0
         val vibrationEnabled   = if (deviceType == "Veazy") !rawBit else rawBit
         val boostVisualization = if (deviceType == "Veazy") !rawBit else rawBit
@@ -94,7 +97,8 @@ object BlePacket {
             chargeCurrentOptimization = chargeCurrentOpt,
             chargeVoltageLimit     = chargeVoltageLimit,
             permanentBluetooth     = permanentBle,
-            boostVisualization     = boostVisualization
+            boostVisualization     = boostVisualization,
+            isSynthetic            = isSynthetic
         )
     }
 
@@ -328,6 +332,7 @@ object BlePacket {
     fun detectDeviceType(prefix: String): String = when {
         prefix.startsWith("VZ")                            -> "Veazy"
         prefix.startsWith("VY")                            -> "Venty"
+        prefix.startsWith("VH")                            -> "Volcano Hybrid"
         prefix.startsWith("Storz",  ignoreCase = true)    -> "Crafty+"
         prefix.startsWith("MIGHTY", ignoreCase = true)    -> "Mighty+"
         prefix.startsWith("S\u0026B MIGHTY", ignoreCase = true) -> "Mighty+"

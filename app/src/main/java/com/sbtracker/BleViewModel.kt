@@ -27,9 +27,11 @@ import com.sbtracker.data.SessionMetadata
 import com.sbtracker.data.ActiveProgramHolder
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -98,6 +100,14 @@ class BleViewModel @Inject constructor(
 
     private val _knownDeviceBatteries = MutableStateFlow<List<DeviceBatterySnapshot>>(emptyList())
     val knownDeviceBatteries: StateFlow<List<DeviceBatterySnapshot>> = _knownDeviceBatteries.asStateFlow()
+
+    // ── Restore Trigger ──
+    private val _triggerRestorePicker = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    val triggerRestorePicker = _triggerRestorePicker.asSharedFlow()
+
+    fun requestRestorePicker() {
+        _triggerRestorePicker.tryEmit(Unit)
+    }
 
     // ── Internal state ──
 

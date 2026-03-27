@@ -1,12 +1,14 @@
 package com.sbtracker
 
 import android.annotation.SuppressLint
+import android.util.Log
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCallback
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
+import android.bluetooth.BluetoothGattService
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothProfile
 import android.bluetooth.le.ScanCallback
@@ -18,6 +20,7 @@ import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
+import java.util.UUID
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -70,6 +73,7 @@ class BleManager(private val context: Context) {
 
     private var gatt:          BluetoothGatt?                   = null
     private var txChar:        BluetoothGattCharacteristic?     = null
+    @Volatile private var pendingResponseId: Byte = 0x00
     @Volatile private var pendingResponse: CompletableDeferred<ByteArray>? = null
     @Volatile private var pendingWriteAck: CompletableDeferred<Boolean>?  = null
     
@@ -100,8 +104,22 @@ class BleManager(private val context: Context) {
         val cb = object : ScanCallback() {
             override fun onScanResult(callbackType: Int, result: ScanResult) {
                 val name = try { result.device.name } catch (_: SecurityException) { null }
-                if (name == null || !name.startsWith("S&B ")) return
-                found[result.device.address] = ScannedDevice(result.device, name, result.rssi)
+                val serviceUuids = result.scanRecord?.serviceUuids?.map { it.uuid } ?: emptyList()
+                
+                // Extremely lenient filtering: Service UUID match OR name keyword match
+                val hasSbService = serviceUuids.any { it == BleConstants.SERVICE_UUID || it == BleConstants.VOLCANO_STATE_SVC }
+                val hasSbName = name?.contains("S&B", ignoreCase = true) == true ||
+                                name?.contains("Storz", ignoreCase = true) == true ||
+                                name?.contains("Bickel", ignoreCase = true) == true ||
+                                name?.contains("Venty", ignoreCase = true) == true ||
+                                name?.contains("Crafty", ignoreCase = true) == true ||
+                                name?.contains("Mighty", ignoreCase = true) == true ||
+                                name?.contains("Volcano", ignoreCase = true) == true
+
+                if (!hasSbService && !hasSbName) return
+                
+                val finalName = name ?: "S&B Device (${result.device.address.takeLast(5)})"
+                found[result.device.address] = ScannedDevice(result.device, finalName, result.rssi)
             }
 
             override fun onScanFailed(errorCode: Int) {
@@ -141,6 +159,10 @@ class BleManager(private val context: Context) {
     }
 
     fun connectToDevice(device: BluetoothDevice) {
+        if (_connectionState.value is ConnectionState.Connected || _connectionState.value is ConnectionState.Connecting) {
+            Log.d("BleManager", "Ignoring connect request for ${device.address}: already ${(_connectionState.value).javaClass.simpleName}")
+            return
+        }
         isIntentionalDisconnect = false
         _connectionState.value = ConnectionState.Connecting
         connect(device)
@@ -159,14 +181,17 @@ class BleManager(private val context: Context) {
      */
     fun reconnectToAddress(address: String) {
         if (address.isBlank() || isIntentionalDisconnect) return
-        if (_connectionState.value !is ConnectionState.Disconnected) return
+        if (_connectionState.value is ConnectionState.Connected || _connectionState.value is ConnectionState.Connecting) return
+        Log.d("BleManager", "Reconnecting to known address: $address")
         deviceAddress = address
         _connectionState.value = ConnectionState.Reconnecting(0)
         managerScope.launch {
             try {
                 val device = adapter()?.getRemoteDevice(address) ?: return@launch
-                // autoConnect = true: OS-managed reconnect, no polling needed
-                gatt = device.connectGatt(context, true, gattCallback, BluetoothDevice.TRANSPORT_LE)
+                // USE autoConnect = false for explicit reconnect attempt
+                // autoConnect = true is often too slow and unreliable for user-initiated reconnects
+                refreshGattCache(gatt) // Clear cache from previous session if exists
+                gatt = device.connectGatt(context, false, gattCallback, BluetoothDevice.TRANSPORT_LE)
             } catch (_: SecurityException) {
                 _connectionState.value = ConnectionState.Disconnected
             } catch (_: Exception) {
@@ -207,11 +232,27 @@ class BleManager(private val context: Context) {
         deviceAddress = device.address
         reconnectJob?.cancel()
         try {
+            // Revert to simpler connect logic, don't close/null GATT unless explicitly needed
             gatt = device.connectGatt(
                 context, false, gattCallback, BluetoothDevice.TRANSPORT_LE
             )
         } catch (_: SecurityException) {
             handleUnexpectedDisconnect()
+        }
+    }
+
+    /**
+     * Clears the internal GATT service cache. Critical for S&B devices when 
+     * switching between different firmware versions or device types.
+     */
+    private fun refreshGattCache(gatt: BluetoothGatt?) {
+        if (gatt == null) return
+        try {
+            val method = gatt.javaClass.getMethod("refresh")
+            val success = method.invoke(gatt) as Boolean
+            Log.d("BleManager", "GATT cache refresh triggered: $success")
+        } catch (e: Exception) {
+            Log.e("BleManager", "Failed to refresh GATT cache", e)
         }
     }
 
@@ -268,38 +309,107 @@ class BleManager(private val context: Context) {
             when (newState) {
                 BluetoothProfile.STATE_CONNECTED -> {
                     if (status == BluetoothGatt.GATT_SUCCESS) {
-                        try { gatt.discoverServices() } catch (_: SecurityException) {}
+                        Log.d("BleManager", "Connected to ${gatt.device.address}, requesting MTU...")
+                        managerScope.launch {
+                            delay(500)
+                            try { 
+                                if (!gatt.requestMtu(512)) {
+                                    Log.w("BleManager", "requestMtu failed, discovering anyway")
+                                    gatt.discoverServices()
+                                } else {
+                                    // Safety timeout for MTU change
+                                    delay(2000)
+                                    if (gatt.services.isEmpty()) {
+                                        Log.w("BleManager", "MTU change timed out, force discovering")
+                                        gatt.discoverServices()
+                                    }
+                                }
+                            } catch (_: SecurityException) {
+                                gatt.discoverServices()
+                            }
+                        }
                     } else {
+                        Log.e("BleManager", "Connection failed for ${gatt.device.address} with status $status")
                         handleUnexpectedDisconnect()
                     }
                 }
                 BluetoothProfile.STATE_DISCONNECTED -> {
+                    Log.d("BleManager", "Disconnected from ${gatt.device.address} with status $status")
                     handleUnexpectedDisconnect()
                 }
             }
         }
 
+        override fun onMtuChanged(gatt: BluetoothGatt, mtu: Int, status: Int) {
+            Log.d("BleManager", "MTU changed to $mtu (status: $status). Discovering services...")
+            try { gatt.discoverServices() } catch (_: SecurityException) {}
+        }
+
         override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
             if (status != BluetoothGatt.GATT_SUCCESS) { 
+                Log.e("BleManager", "Service discovery failed with status $status")
                 handleUnexpectedDisconnect()
                 return 
             }
             
-            // Try default S&B service (Venty, Veazy, new Crafty+)
-            var svc = gatt.getService(BleConstants.SERVICE_UUID)
-            var char = svc?.getCharacteristic(BleConstants.CHARACTERISTIC_UUID)
+            Log.d("BleManager", "Services discovered. Listing services...")
+            val services = gatt.services
+            if (services.isEmpty()) {
+                Log.w("BleManager", "Service list is empty! Refreshing cache and retrying...")
+                refreshGattCache(gatt)
+                managerScope.launch {
+                    delay(1000)
+                    gatt.discoverServices()
+                }
+                return
+            }
+            // Identify the S&B service and characteristic (exhaustive search)
+            val sbServices = listOf(
+                BleConstants.SERVICE_UUID,        // Venty, Veazy, new Crafty+, etc.
+                BleConstants.VOLCANO_STATE_SVC,   // Volcano Hybrid State
+                BleConstants.VOLCANO_CTRL_SVC,    // Volcano Hybrid Control
+                BleConstants.CRAFTY_SERVICE_1,    // Legacy Crafty/Mighty
+                BleConstants.CRAFTY_SERVICE_2,    // Legacy Crafty/Mighty
+                BleConstants.CRAFTY_SERVICE_3     // Legacy Crafty/Mighty
+            )
             
-            // Fallback to Crafty primary service if default not found
-            if (svc == null || char == null) {
-                svc = gatt.getService(BleConstants.CRAFTY_SERVICE_2) ?: gatt.getService(BleConstants.CRAFTY_SERVICE_1)
-                char = svc?.getCharacteristic(BleConstants.CHARACTERISTIC_UUID)
+            val sbChars = listOf(
+                BleConstants.CHARACTERISTIC_UUID, // Standard
+                BleConstants.VOLCANO_STATE_CHAR,  // Volcano Hybrid State
+                BleConstants.VOLCANO_CTRL_CHAR,   // Volcano Hybrid Control
+                UUID.fromString("00000001-4c45-4b43-4942-265a524f5453") // Alt Crafty/Mighty
+            )
+
+            var foundSvc: BluetoothGattService? = null
+            var foundChar: BluetoothGattCharacteristic? = null
+            
+            for (svcUuid in sbServices) {
+                foundSvc = gatt.getService(svcUuid)
+                if (foundSvc != null) {
+                    for (charUuid in sbChars) {
+                        foundChar = foundSvc.getCharacteristic(charUuid)
+                        if (foundChar != null) {
+                            Log.d("BleManager", "Found S&B match: Svc $svcUuid, Char $charUuid")
+                            break
+                        }
+                    }
+                }
+                if (foundChar != null) break
             }
 
-            if (svc == null || char == null) {
+            if (foundChar == null) {
+                Log.e("BleManager", "S&B characteristic NOT found among ${services.size} services!")
+                // Diagnostic logging
+                services.forEach { s -> 
+                    Log.d("BleManager", "Available Svc: ${s.uuid}")
+                    s.characteristics.forEach { c -> Log.d("BleManager", "  - Char: ${c.uuid}") }
+                }
                 handleUnexpectedDisconnect()
                 return
             }
             
+            val char = foundChar!!
+            Log.d("BleManager", "Active S&B Service: ${foundSvc?.uuid}, Char: ${char.uuid}")
             txChar = char
             try {
                 gatt.setCharacteristicNotification(char, true)
@@ -353,15 +463,26 @@ class BleManager(private val context: Context) {
         val name = try { gatt.device.name ?: "S&B Device" } catch (_: SecurityException) { "S&B Device" }
         _connectionState.value = ConnectionState.Connected(name, gatt.device.address)
 
+        managerScope.launch {
+            delay(300) // Let notifications stabilize
+            enqueueInitialHandshake(gatt)
+        }
+
+        startPolling()
+    }
+
+    private fun enqueueInitialHandshake(gatt: BluetoothGatt) {
         commandQueue.enqueue {
             // Reference app sequence: CMD 0x02 (Reset), then 0x1D (Status), 0x01 (Basic), 0x04 (Extended)
             
-            // CMD 0x02 - Initialization / Firmware request
-            sendAndReceive(BlePacket.buildRequest(BleConstants.CMD_INITIAL_RESET))
-                ?.let { bytes -> _firmwareBytes.emit(bytes) }
+            // CMD 0x02 - Initialization / Firmware request (Just write, don't block)
+            sendWrite(BlePacket.buildRequest(BleConstants.CMD_INITIAL_RESET))
+            delay(200)
 
-            // CMD 0x1D - Handshake status request
-            sendAndReceive(BlePacket.buildRequest(BleConstants.CMD_INITIAL_STATUS))
+            // CMD 0x1D - Handshake status request (CRITICAL: Just write, don't wait to avoid hang)
+            // This triggers the device to start notifications for 0x01
+            sendWrite(BlePacket.buildRequest(BleConstants.CMD_INITIAL_STATUS))
+            delay(200)
 
             // CMD 0x01 - Initial status poll
             sendAndReceive(BlePacket.buildRequest(BleConstants.CMD_STATUS))
@@ -371,9 +492,19 @@ class BleManager(private val context: Context) {
             sendAndReceive(BlePacket.buildRequest(BleConstants.CMD_EXTENDED))
                 ?.let { bytes -> _extendedBytes.emit(bytes to gatt.device.address) }
 
-            // CMD 0x06 - Request brightness/vibration (requires 7-byte packet)
-            sendAndReceive(BlePacket.buildBrightnessVibrationRequest())
-                ?.let { bytes -> _displaySettingsBytes.emit(bytes) }
+            // CMD 0x05 & 0x06 - Optional info (Identity and Display)
+            // Run these in parallel or with shorter timeout to not block main status
+            managerScope.launch {
+                try {
+                    sendAndReceive(BlePacket.buildRequest(BleConstants.CMD_IDENTITY))
+                        ?.let { bytes -> _identityBytes.emit(bytes to gatt.device.address) }
+                } catch (_: Exception) {}
+
+                try {
+                    sendAndReceive(BlePacket.buildBrightnessVibrationRequest())
+                        ?.let { bytes -> _displaySettingsBytes.emit(bytes) }
+                } catch (_: Exception) {}
+            }
         }
 
         startPolling()
@@ -381,8 +512,17 @@ class BleManager(private val context: Context) {
 
     private fun handleNotification(value: ByteArray) {
         val pending = pendingResponse
-        if (pending != null && pending.isActive) {
+        val expected = pendingResponseId
+        val received = value.firstOrNull() ?: 0x00.toByte()
+        
+        // S&B Protocol: Most commands reply with their own ID, but 0x1D (Initial Status) replies with 0x01 (Status Update)
+        val isMatch = (received == expected) || 
+                      (expected == BleConstants.CMD_INITIAL_STATUS && received == BleConstants.CMD_STATUS) ||
+                      (expected == 0x00.toByte())
+
+        if (pending != null && pending.isActive && isMatch) {
             pendingResponse = null
+            pendingResponseId = 0x00
             pending.complete(value)
             return
         }
@@ -453,10 +593,12 @@ class BleManager(private val context: Context) {
     }
 
     private suspend fun sendAndReceive(packet: ByteArray): ByteArray? {
+        val cmdId = packet.firstOrNull() ?: 0x00
         val char = txChar ?: return null
         val currentGatt = gatt ?: return null
         val deferred = CompletableDeferred<ByteArray>()
         pendingResponse = deferred
+        pendingResponseId = cmdId
         return try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 currentGatt.writeCharacteristic(char, packet, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT)
@@ -466,7 +608,7 @@ class BleManager(private val context: Context) {
                 @Suppress("DEPRECATION")
                 currentGatt.writeCharacteristic(char)
             }
-            withTimeout(3_000L) { deferred.await() }
+            withTimeout(5_000L) { deferred.await() }
         } catch (_: Exception) {
             pendingResponse = null
             null
