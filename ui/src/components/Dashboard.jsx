@@ -16,91 +16,96 @@ const Dashboard = () => {
   useVaporizerData()
   const { view, telemetry } = useStore()
 
-  const renderView = () => {
-    switch (view) {
-      case 'overview': return <OverviewView />
-      case 'session':  return <SessionView />
-      case 'analysis': return <AnalysisView />
-      case 'history':  return <HistoryView />
-      case 'battery':  return <BatteryView />
-      case 'settings': return <SettingsView />
-      default: return <OverviewView />
-    }
-  }
-
   return (
     <div className="dashboard-container">
       <BubbleMatrix />
       <StatusPill state={telemetry.connectionState} deviceType={telemetry.status?.deviceType} />
-      
-      <AnimatePresence mode="wait">
-        <motion.div 
-          key={view} 
-          initial={{ opacity: 0, y: 10, scale: 0.98 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -10, scale: 1.02 }}
-          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-          style={{ 
-            width: '100%', 
-            flex: 1,
-            minHeight: 0,
-            display: 'flex', 
-            justifyContent: 'center',
-            overflow: 'hidden',
-            zIndex: 10
-          }}
-        >
-          {renderView()}
-        </motion.div>
-      </AnimatePresence>
-      
+
+      <main className="dashboard-main">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={view}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.22, ease: 'easeOut' }}
+            style={{ width: '100%', display: 'flex', justifyContent: 'center', minHeight: 0 }}
+          >
+            <CurrentView view={view} />
+          </motion.div>
+        </AnimatePresence>
+      </main>
+
       <Sidebar />
     </div>
   )
 }
 
-const StatusPill = ({ state, deviceType }) => {
-  const isConnected = state === 'Connected'
-  const isLinking = state === 'Connecting' || state === 'Scanning' || state === 'Reconnecting'
-  const { devMode } = useStore()
+const CurrentView = ({ view }) => {
+  switch (view) {
+    case 'overview':
+      return <OverviewView />
+    case 'session':
+      return <SessionView />
+    case 'analysis':
+      return <AnalysisView />
+    case 'history':
+      return <HistoryView />
+    case 'battery':
+      return <BatteryView />
+    case 'settings':
+      return <SettingsView />
+    default:
+      return <OverviewView />
+  }
+}
 
-  const label = isConnected ? (deviceType || 'SBTracker') : (isLinking ? 'Linking...' : 'Offline')
-  const color = isConnected ? 'var(--accent-green)' : (isLinking ? 'var(--accent-orange)' : 'var(--accent-red)')
-  
+const StatusPill = ({ state, deviceType }) => {
+  const { devMode } = useStore()
+  const isConnected = state === 'Connected'
+  const isBusy = state === 'Connecting' || state === 'Scanning' || state === 'Reconnecting'
+
+  const color = devMode
+    ? 'var(--accent-orange)'
+    : isConnected
+      ? 'var(--accent-green)'
+      : isBusy
+        ? 'var(--accent-orange)'
+        : 'var(--accent-red)'
+
+  const label = devMode
+    ? 'Developer tools'
+    : isConnected
+      ? (deviceType || 'Connected')
+      : isBusy
+        ? 'Connecting'
+        : 'Offline'
+
   return (
-    <motion.div 
-      initial={{ y: -20, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      style={{ position: 'fixed', top: 'calc(var(--safe-top) + 12px)', left: '50%', transform: 'translateX(-50%)', zIndex: 100 }}
-    >
-      <motion.div 
-        className="glass-card" 
-        whileHover={{ scale: 1.05 }}
-        style={{ 
-          padding: '8px 16px', 
-          borderRadius: '200px', 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: '10px', 
-          border: `1px solid ${devMode ? 'var(--accent-purple)' : color}44`,
-          background: 'rgba(255,255,255,0.03)',
-          boxShadow: `0 8px 32px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(255,255,255,0.05)`,
-          cursor: 'default'
+    <div className="dashboard-status-pill">
+      <div
+        className="glass-card"
+        style={{
+          padding: '8px 14px',
+          borderRadius: '999px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          background: 'rgba(15, 24, 20, 0.92)',
+          borderColor: `${color}33`,
         }}
       >
-        <motion.div 
-          animate={{ 
-            scale: [1, 1.2, 1],
-            opacity: [0.5, 1, 0.5]
-          }}
-          transition={{ duration: 2, repeat: Infinity }}
-          style={{ width: '8px', height: '8px', borderRadius: '50%', background: devMode ? 'var(--accent-purple)' : color, boxShadow: `0 0 12px ${devMode ? 'var(--accent-purple)' : color}` }} 
+        <motion.span
+          className="status-dot"
+          animate={{ opacity: [0.55, 1, 0.55], scale: [1, 1.15, 1] }}
+          transition={{ duration: 1.8, repeat: Infinity }}
+          style={{ background: color, boxShadow: `0 0 14px ${color}` }}
         />
-        <span style={{ fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.2em', opacity: 0.9, color: devMode ? 'var(--accent-purple)' : '#fff' }}>
-          {devMode ? 'Developer Mode' : label}
+        <span style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase' }}>
+          {label}
         </span>
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   )
 }
 

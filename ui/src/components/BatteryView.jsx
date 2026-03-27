@@ -1,221 +1,217 @@
 import React from 'react'
 import { motion } from 'framer-motion'
-import { Battery, Zap, Clock, ShieldCheck, Info } from 'lucide-react'
+import { Battery, Clock3, Plug, ShieldCheck, Zap } from 'lucide-react'
 import useStore from '../store/useStore'
 
 const BatteryView = () => {
   const { telemetry, sendCommand } = useStore()
-  const { status, stats, batteryInsights } = telemetry
-  
+  const { status, stats, batteryInsights, extended } = telemetry
+
   const isCharging = status?.isCharging
   const batteryLevel = status?.batteryLevel || 0
-  
-  const formatChargeTime = (min) => {
-    if (!min || min <= 0) return '—'
-    if (min >= 60) return `${Math.floor(min/60)}h ${min%60}m`
-    return `${min}m`
-  }
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
+    <motion.section
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
       className="view-container"
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-        <h2 className="view-title">Battery</h2>
-        <ShieldCheck size={14} style={{ opacity: 0.3 }} />
-      </div>
+      <header className="page-header">
+        <p className="view-title">Battery</p>
+        <h1 className="page-title">Battery health and charge behavior</h1>
+        <p className="page-subtitle">
+          This screen should answer two things quickly: how much battery you have right now, and whether the device is aging normally.
+        </p>
+      </header>
 
-      {/* Battery Hero */}
-      <motion.div 
-        layout
-        className="glass-card future-glass" 
-        style={{ padding: '32px 24px', position: 'relative', overflow: 'hidden', marginBottom: '24px' }}
-      >
-        {isCharging && (
-          <motion.div 
-            animate={{ 
-              opacity: [0.05, 0.15, 0.05],
-              background: [
-                'radial-gradient(circle at 50% 50%, rgba(34, 211, 238, 0.1), transparent)',
-                'radial-gradient(circle at 50% 50%, rgba(34, 211, 238, 0.2), transparent)'
-              ]
-            }}
-            transition={{ duration: 3, repeat: Infinity }}
-            style={{ position: 'absolute', inset: 0, zIndex: 0 }}
-          />
-        )}
-        
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', zIndex: 1 }}>
-          <div>
-            <div style={{ fontSize: '56px', fontWeight: '900', lineHeight: '1', display: 'flex', alignItems: 'flex-start', letterSpacing: '-0.04em' }}>
-              {batteryLevel}
-              <span style={{ fontSize: '24px', marginLeft: '6px', opacity: 0.3, fontWeight: '500' }}>%</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '12px' }}>
-              <motion.div 
-                animate={isCharging ? { scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] } : {}}
-                transition={{ duration: 1.5, repeat: Infinity }}
-                style={{ width: '8px', height: '8px', borderRadius: '50%', background: isCharging ? 'var(--accent-cyan)' : 'var(--accent-cyan)', boxShadow: `0 0 12px ${isCharging ? 'var(--accent-cyan)' : 'transparent'}` }} 
-              />
-              <span style={{ fontSize: '11px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.15em', opacity: 0.6 }}>
-                {isCharging ? 'Charging' : 'Battery Status'}
-              </span>
-            </div>
-          </div>
-          
-          <div style={{ width: '80px', height: '140px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '6px', position: 'relative', boxShadow: 'inset 0 4px 12px rgba(0,0,0,0.2)' }}>
-             <motion.div 
-               initial={{ height: 0 }}
-               animate={{ 
-                 height: `${batteryLevel}%`,
-                 background: isCharging ? 'linear-gradient(to top, var(--accent-cyan), var(--accent-purple))' : 'linear-gradient(to top, var(--accent-cyan), var(--accent-cyan)88)'
-               }}
-               transition={{ type: 'spring', damping: 20, stiffness: 100 }}
-               style={{ 
-                 borderRadius: '12px',
-                 position: 'absolute',
-                 bottom: '6px',
-                 left: '6px',
-                 right: '6px',
-                 width: 'calc(100% - 12px)',
-                 boxShadow: isCharging ? '0 0 20px rgba(34, 211, 238, 0.4)' : 'none'
-               }}
-             />
-             <div style={{ position: 'absolute', top: '-8px', left: '50%', transform: 'translateX(-50%)', width: '24px', height: '8px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px 3px 0 0', border: '1px solid rgba(255,255,255,0.08)', borderBottom: 'none' }} />
-          </div>
-        </div>
-        
-        {isCharging && (stats.chargeEtaMinutes || stats.chargeEta80Minutes) && (
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            style={{ marginTop: '32px', paddingTop: '24px', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', gap: '16px' }}
-          >
-            {stats.chargeEta80Minutes && status.batteryLevel < 80 && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <Zap size={16} color="var(--accent-cyan)" style={{ opacity: 0.6 }} />
-                  <span style={{ fontSize: '12px', opacity: 0.5, fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Time to 80% Capacity</span>
-                </div>
-                <span style={{ fontSize: '16px', fontWeight: '900', color: 'var(--accent-cyan)' }} className="text-glow-cyan">{stats.chargeEta80Minutes}m</span>
-              </div>
-            )}
-            {stats.chargeEtaMinutes && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <Clock size={16} style={{ opacity: 0.4 }} />
-                  <span style={{ fontSize: '12px', opacity: 0.5, fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Time to Full</span>
-                </div>
-                <span style={{ fontSize: '16px', fontWeight: '900', opacity: 0.8 }}>{stats.chargeEtaMinutes}m</span>
-              </div>
-            )}
-          </motion.div>
-        )}
-      </motion.div>
-
-      {/* Health & Maintenance Grid */}
-      <div className="grid-stats" style={{ marginBottom: '24px' }}>
-        <motion.div layout className="glass-card future-glass" style={{ padding: '20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
-            <Zap size={16} color="var(--accent-cyan)" />
-            <span style={{ fontSize: '10px', textTransform: 'uppercase', opacity: 0.5, fontWeight: '800', letterSpacing: '0.1em' }}>Efficiency</span>
-          </div>
-          <div style={{ fontSize: '24px', fontWeight: '900', letterSpacing: '-0.02em' }} className="text-glow-cyan">{batteryInsights?.avgDrainRecent ? `${batteryInsights.avgDrainRecent.toFixed(1)}%` : '—'}</div>
-          <div style={{ fontSize: '10px', opacity: 0.4, marginTop: '6px', fontWeight: '600' }}>Avg drain per session</div>
-        </motion.div>
-        
-        <motion.div layout className="glass-card future-glass" style={{ padding: '20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
-            <Battery size={16} color="var(--accent-cyan)" />
-            <span style={{ fontSize: '10px', textTransform: 'uppercase', opacity: 0.5, fontWeight: '800', letterSpacing: '0.1em' }}>Endurance</span>
-          </div>
-          <div style={{ fontSize: '24px', fontWeight: '900', letterSpacing: '-0.02em' }}>{stats.sessionsToCritical || '—'}</div>
-          <div style={{ fontSize: '10px', opacity: 0.4, marginTop: '6px', fontWeight: '600' }}>Sessions to 15%</div>
-        </motion.div>
-      </div>
-
-      {!isCharging && stats?.drainEstimateReliable && stats.sessionsRemainingLow > 0 && stats.sessionsRemainingHigh > 0 && stats.sessionsRemainingLow !== stats.sessionsRemainingHigh && (
-        <div className="glass-card" style={{ padding: '16px 18px', marginBottom: '20px' }}>
-          <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.12em', opacity: 0.45, marginBottom: '6px' }}>Estimate Range</div>
-          <div style={{ fontSize: '14px', fontWeight: '700' }}>
-            About {stats.sessionsRemainingLow} to {stats.sessionsRemainingHigh} sessions before 15%
-          </div>
-        </div>
-      )}
-
-      <div className="grid-stats" style={{ marginTop: '0', marginBottom: '24px' }}>
-        <motion.div layout className="glass-card" style={{ padding: '20px' }}>
-          <div style={{ fontSize: '10px', textTransform: 'uppercase', opacity: 0.5, fontWeight: '800', letterSpacing: '0.1em', marginBottom: '10px' }}>Median Drain</div>
-          <div style={{ fontSize: '24px', fontWeight: '900' }}>{batteryInsights?.medianDrain ? `${batteryInsights.medianDrain.toFixed(1)}%` : '—'}</div>
-          <div style={{ fontSize: '10px', opacity: 0.4, marginTop: '6px' }}>Typical battery drop</div>
-        </motion.div>
-
-        <motion.div layout className="glass-card" style={{ padding: '20px' }}>
-          <div style={{ fontSize: '10px', textTransform: 'uppercase', opacity: 0.5, fontWeight: '800', letterSpacing: '0.1em', marginBottom: '10px' }}>Longest Run</div>
-          <div style={{ fontSize: '24px', fontWeight: '900' }}>{batteryInsights?.longestRunSessions || '—'}</div>
-          <div style={{ fontSize: '10px', opacity: 0.4, marginTop: '6px' }}>Sessions on one charge</div>
-        </motion.div>
-      </div>
-
-      {(telemetry.extended?.heaterRuntimeMinutes || 0) >= 600 && (
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-          className="glass-card" 
-          style={{ padding: '20px', background: 'rgba(251, 146, 60, 0.1)', border: '1px solid rgba(251, 146, 60, 0.3)' }}
-        >
-          <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-            <div style={{ padding: '10px', borderRadius: '12px', background: 'rgba(251, 146, 60, 0.2)' }}>
-              <ShieldCheck size={24} color="#fb923c" />
-            </div>
+      <div className="hero-layout">
+        <div className="glass-card future-glass" style={{ padding: '22px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start' }}>
             <div>
-              <div style={{ fontSize: '14px', fontWeight: '800', color: '#fb923c' }}>Clean Recommended</div>
-              <div style={{ fontSize: '10px', opacity: 0.5, marginTop: '2px' }}>Heater usage has exceeded 10 hours. For peak thermal performance, a deep cleaning is suggested.</div>
+              <div className="section-heading" style={{ marginBottom: '10px' }}>
+                {isCharging ? 'Charging now' : 'Current battery'}
+              </div>
+              <div className="metric-value" style={{ fontSize: '64px' }}>
+                {batteryLevel}
+                <span style={{ fontSize: '26px', color: 'var(--text-soft)' }}>%</span>
+              </div>
+              <div className="metric-note">
+                {isCharging
+                  ? (stats?.chargeEtaMinutes ? `${stats.chargeEtaMinutes} minutes to full` : 'Estimating time to full')
+                  : (stats?.sessionsToCritical ? `About ${stats.sessionsToCritical} sessions before 15%` : 'Need more session history for range estimates')}
+              </div>
             </div>
-          </div>
-        </motion.div>
-      )}
 
-      {/* Charging Options */}
-      <div className="settings-section-label" style={{ padding: '0 8px', marginBottom: '12px', fontSize: '11px', fontWeight: '800', opacity: 0.4, letterSpacing: '0.2em' }}>Charge Protection</div>
-      <motion.div layout className="glass-card future-glass" style={{ padding: '0', marginBottom: '24px' }}>
-        <div className="setting-toggle-item" onClick={() => sendCommand('setChargeCurrentOptimization', !status?.chargeCurrentOptimization)} style={{ padding: '20px 24px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <ShieldCheck size={20} color="var(--accent-cyan)" style={{ opacity: status?.chargeCurrentOptimization ? 1 : 0.4 }} />
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: '15px', fontWeight: '700', opacity: status?.chargeCurrentOptimization ? 1 : 0.6 }}>Charge Optimization</span>
-              <span style={{ fontSize: '10px', opacity: 0.4, fontWeight: '600' }}>Reduce battery wear while charging</span>
+            <div
+              className="glass-panel"
+              style={{
+                width: '86px',
+                height: '150px',
+                padding: '8px',
+                position: 'relative',
+                display: 'flex',
+                alignItems: 'flex-end',
+              }}
+            >
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '-8px',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: '28px',
+                  height: '8px',
+                  borderRadius: '4px 4px 0 0',
+                  background: 'rgba(255,255,255,0.16)',
+                }}
+              />
+              <div
+                style={{
+                  width: '100%',
+                  height: `${Math.max(8, batteryLevel)}%`,
+                  borderRadius: '14px',
+                  background: isCharging
+                    ? 'linear-gradient(180deg, rgba(113, 215, 192, 1), rgba(113, 215, 192, 0.44))'
+                    : 'linear-gradient(180deg, rgba(125, 217, 146, 1), rgba(125, 217, 146, 0.32))',
+                }}
+              />
             </div>
           </div>
-          <div className={`tg-switch ${status?.chargeCurrentOptimization ? 'active' : ''}`} style={{ width: '44px', height: '24px', borderRadius: '12px', background: status?.chargeCurrentOptimization ? 'var(--accent-cyan)' : 'rgba(255,255,255,0.1)', position: 'relative', transition: 'all 0.3s' }}>
-            <motion.div animate={{ x: status?.chargeCurrentOptimization ? 22 : 2 }} style={{ position: 'absolute', top: 2, width: '20px', height: '20px', borderRadius: '10px', background: '#fff' }} />
+
+          <div className="summary-grid" style={{ marginTop: '18px' }}>
+            <MetricTile icon={<Plug size={16} />} label="Sessions left" value={stats?.sessionsRemaining || '—'} note={stats?.drainEstimateReliable ? 'Estimated' : 'Still learning'} />
+            <MetricTile icon={<Clock3 size={16} />} label="To 80%" value={stats?.chargeEta80Minutes ? `${stats.chargeEta80Minutes}m` : '—'} note="If charging" />
+            <MetricTile icon={<Zap size={16} />} label="Charge rate" value={stats?.chargeRatePctPerMin ? `${stats.chargeRatePctPerMin.toFixed(1)}%/m` : '—'} note="Current pace" />
+            <MetricTile icon={<Battery size={16} />} label="Median drain" value={batteryInsights?.medianDrain ? `${batteryInsights.medianDrain.toFixed(1)}%` : '—'} note="Typical session" />
           </div>
         </div>
-        
-        <div className="setting-toggle-item" onClick={() => sendCommand('setChargeVoltageLimit', !status?.chargeVoltageLimit)} style={{ padding: '20px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <Zap size={20} color="var(--accent-cyan)" style={{ opacity: status?.chargeVoltageLimit ? 1 : 0.4 }} />
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: '15px', fontWeight: '700', opacity: status?.chargeVoltageLimit ? 1 : 0.6 }}>80% Charge Limit</span>
-              <span style={{ fontSize: '10px', opacity: 0.4, fontWeight: '600' }}>Stop charging early to preserve battery health</span>
-            </div>
-          </div>
-          <div className={`tg-switch ${status?.chargeVoltageLimit ? 'active' : ''}`} style={{ width: '44px', height: '24px', borderRadius: '12px', background: status?.chargeVoltageLimit ? 'var(--accent-cyan)' : 'rgba(255,255,255,0.1)', position: 'relative', transition: 'all 0.3s' }}>
-            <motion.div animate={{ x: status?.chargeVoltageLimit ? 22 : 2 }} style={{ position: 'absolute', top: 2, width: '20px', height: '20px', borderRadius: '10px', background: '#fff' }} />
-          </div>
-        </div>
-      </motion.div>
 
-      <div style={{ padding: '12px', textAlign: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', opacity: 0.3 }}>
-          <Info size={12} />
-          <span style={{ fontSize: '10px' }}>Cleaning is { (telemetry.extended?.heaterRuntimeMinutes || 0) < 600 ? 'not needed yet' : 'recommended now' }</span>
+        <div className="panel-stack">
+          {!isCharging && stats?.drainEstimateReliable && stats.sessionsRemainingLow > 0 && stats.sessionsRemainingHigh > 0 && (
+            <div className="glass-card" style={{ padding: '18px' }}>
+              <div className="section-heading" style={{ marginBottom: '10px' }}>Estimate range</div>
+              <div style={{ fontSize: '16px', fontWeight: 800 }}>
+                About {stats.sessionsRemainingLow} to {stats.sessionsRemainingHigh} sessions before 15%
+              </div>
+              <div style={{ marginTop: '8px', fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                The range widens when your recent sessions vary a lot in duration, hits, or starting battery.
+              </div>
+            </div>
+          )}
+
+          <div className="glass-card" style={{ padding: '18px' }}>
+            <div className="section-heading" style={{ marginBottom: '12px' }}>Care signals</div>
+            <InfoRow label="Recent drain" value={batteryInsights?.avgDrainRecent ? `${batteryInsights.avgDrainRecent.toFixed(1)}%` : '—'} />
+            <InfoRow label="All-time average" value={batteryInsights?.avgDrainAll ? `${batteryInsights.avgDrainAll.toFixed(1)}%` : '—'} />
+            <InfoRow label="Trend" value={formatTrend(batteryInsights?.drainTrend)} />
+            <InfoRow label="Consistency" value={batteryInsights?.drainStdDev ? `±${batteryInsights.drainStdDev.toFixed(1)}%` : '—'} />
+            <InfoRow label="Sessions per charge" value={batteryInsights?.sessionsPerCycle ? batteryInsights.sessionsPerCycle.toFixed(1) : '—'} />
+          </div>
         </div>
       </div>
-    </motion.div>
+
+      <div className="split-layout">
+        <div className="glass-card" style={{ padding: '18px' }}>
+          <div className="section-heading" style={{ marginBottom: '12px' }}>Charge history</div>
+          <InfoRow label="Average charge time" value={formatChargeMinutes(batteryInsights?.avgChargeTime)} />
+          <InfoRow label="Average gained" value={batteryInsights?.avgBatteryGainedPct ? `${batteryInsights.avgBatteryGainedPct.toFixed(0)}%` : '—'} />
+          <InfoRow label="Depth of discharge" value={batteryInsights?.avgDepthOfDischarge ? `${batteryInsights.avgDepthOfDischarge.toFixed(0)}%` : '—'} />
+          <InfoRow label="Days per charge cycle" value={batteryInsights?.avgDaysPerChargeCycle ? `${batteryInsights.avgDaysPerChargeCycle.toFixed(1)} d` : '—'} />
+          <InfoRow label="Longest run" value={batteryInsights?.longestRunSessions || '—'} />
+        </div>
+
+        <div className="glass-card" style={{ padding: '18px' }}>
+          <div className="section-heading" style={{ marginBottom: '12px' }}>Protection settings</div>
+          <SettingRow
+            label="Charge optimization"
+            detail="Reduce battery wear while charging"
+            active={status?.chargeCurrentOptimization}
+            onClick={() => sendCommand('setChargeCurrentOptimization', !status?.chargeCurrentOptimization)}
+          />
+          <SettingRow
+            label="80% charge limit"
+            detail="Stop charging early to preserve health"
+            active={status?.chargeVoltageLimit}
+            onClick={() => sendCommand('setChargeVoltageLimit', !status?.chargeVoltageLimit)}
+          />
+        </div>
+      </div>
+
+      {(extended?.heaterRuntimeMinutes || 0) >= 600 && (
+        <div className="glass-card" style={{ padding: '18px', borderColor: 'rgba(231, 164, 91, 0.22)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+            <ShieldCheck size={18} color="var(--accent-orange)" />
+            <div className="section-heading" style={{ color: 'var(--accent-orange)' }}>Maintenance</div>
+          </div>
+          <div style={{ fontSize: '16px', fontWeight: 800, marginBottom: '6px' }}>Cleaning is worth doing soon</div>
+          <div style={{ fontSize: '13px', lineHeight: 1.5, color: 'var(--text-muted)' }}>
+            The heater has logged roughly {Math.round((extended?.heaterRuntimeMinutes || 0) / 60)} hours of use. If performance feels slower or less consistent, a clean is a good next step.
+          </div>
+        </div>
+      )}
+    </motion.section>
   )
+}
+
+const MetricTile = ({ icon, label, value, note }) => (
+  <div className="metric-card glass-panel">
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-cyan)' }}>
+      {icon}
+      <span className="metric-label">{label}</span>
+    </div>
+    <div className="metric-value" style={{ fontSize: '24px' }}>{value}</div>
+    <div className="metric-note">{note}</div>
+  </div>
+)
+
+const InfoRow = ({ label, value }) => (
+  <div className="info-row">
+    <span className="info-row-label">{label}</span>
+    <span className="info-row-value">{value}</span>
+  </div>
+)
+
+const SettingRow = ({ label, detail, active, onClick }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    style={{
+      width: '100%',
+      textAlign: 'left',
+      background: 'transparent',
+      border: 'none',
+      padding: '12px 0',
+      borderBottom: '1px solid rgba(255,255,255,0.05)',
+      cursor: 'pointer',
+      color: 'inherit',
+    }}
+  >
+    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'center' }}>
+      <div>
+        <div style={{ fontSize: '15px', fontWeight: 700 }}>{label}</div>
+        <div style={{ marginTop: '4px', fontSize: '12px', color: 'var(--text-muted)' }}>{detail}</div>
+      </div>
+      <div className={`tg-switch ${active ? 'active' : ''}`}>
+        <div className="tg-handle" style={{ transform: `translateX(${active ? 20 : 0}px)` }} />
+      </div>
+    </div>
+  </button>
+)
+
+const formatChargeMinutes = (minutes) => {
+  if (!minutes || minutes <= 0) return '—'
+  if (minutes >= 60) {
+    return `${Math.floor(minutes / 60)}h ${minutes % 60}m`
+  }
+  return `${minutes}m`
+}
+
+const formatTrend = (value) => {
+  if (value === undefined || value === null) return '—'
+  if (value > 0.5) return `Up ${value.toFixed(1)}%`
+  if (value < -0.5) return `Down ${Math.abs(value).toFixed(1)}%`
+  return 'Stable'
 }
 
 export default BatteryView

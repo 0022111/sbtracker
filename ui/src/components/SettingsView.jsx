@@ -100,7 +100,13 @@ const SettingsView = () => {
       className="view-container"
       style={{ paddingBottom: '240px' }}
     >
-      <h2 className="view-title">Settings</h2>
+      <header className="page-header">
+        <p className="view-title">Settings</p>
+        <h1 className="page-title">Preferences, device behavior, and data</h1>
+        <p className="page-subtitle">
+          Settings should be boring in the good way: clear defaults, safe data tools, and the device controls you only touch occasionally.
+        </p>
+      </header>
       
       <div className="settings-section-label" style={{ padding: '0 8px', marginBottom: '12px', fontSize: '11px', fontWeight: '800', opacity: 0.4, letterSpacing: '0.2em' }}>Dosage Tracking</div>
       <motion.div layout className="glass-card future-glass" style={{ padding: '0', marginBottom: '24px' }}>
@@ -156,7 +162,7 @@ const SettingsView = () => {
         />
         <SettingToggle 
           icon={<Shield size={20} />} 
-          label="Eco Voltage Limit" 
+          label="80% Charge Limit" 
           active={status?.chargeVoltageLimit} 
           onClick={() => sendCommand('setChargeVoltageLimit', !status?.chargeVoltageLimit)} 
         />
