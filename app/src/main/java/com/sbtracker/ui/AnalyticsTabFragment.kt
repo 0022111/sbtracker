@@ -268,8 +268,8 @@ class AnalyticsTabFragment : Fragment() {
                 historyVm.mostHitsInSession,
                 historyVm.favoriteTempCelsius,
                 historyVm.peakSessionsInADay
-            ) { streak, longStreak, peakTime, busiestDay, hitsPerMin, daysActive, 
-                longestDur, mostHits, favTemp, peakSessions ->
+            ) { streak: Int, longStreak: Int, peakTime: String, busiestDay: String, hitsPerMin: Float, daysActive: Int,
+                longestDur: Long?, mostHits: Int, favTemp: Int?, peakSessions: Int ->
                 // Log newly exposed metrics for debugging
                 android.util.Log.d("HistoryAnalytics",
                     "Streak: $streak | Peak Time: $peakTime | Busiest: $busiestDay | " +
