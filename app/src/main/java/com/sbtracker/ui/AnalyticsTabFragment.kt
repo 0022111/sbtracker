@@ -273,31 +273,6 @@ class AnalyticsTabFragment : Fragment() {
             }.collect { }
         }
 
-        // ── Extended Personal Records & Usage Metrics (NEW) ──────────────────
-        viewLifecycleOwner.lifecycleScope.launch {
-            combine(
-                historyVm.currentStreakDaysFlow,
-                historyVm.longestStreakDaysFlow,
-                historyVm.peakTimeOfDayLabel,
-                historyVm.busiestDayOfWeekLabel,
-                historyVm.avgHitsPerMinuteFlow,
-                historyVm.totalDaysActiveFlow,
-                historyVm.longestSessionDurationMs,
-                historyVm.mostHitsInSession,
-                historyVm.favoriteTempCelsius,
-                historyVm.peakSessionsInADay
-            ) { streak: Int, longStreak: Int, peakTime: String, busiestDay: String, hitsPerMin: Float, daysActive: Int,
-                longestDur: Long?, mostHits: Int, favTemp: Int?, peakSessions: Int ->
-                // Log newly exposed metrics for debugging
-                android.util.Log.d("HistoryAnalytics",
-                    "Streak: $streak | Peak Time: $peakTime | Busiest: $busiestDay | " +
-                    "Hits/Min: $hitsPerMin | Days Active: $daysActive | " +
-                    "Longest: $longestDur | Most Hits: $mostHits | Fav Temp: $favTemp | Peak Sessions: $peakSessions")
-                Unit
-            }.collect { }
-        }
-    }
-
     private fun openSessionReport(s: SessionSummary) {
         val intent = Intent(requireContext(), SessionReportActivity::class.java).apply {
             putExtra("session_id", s.id)
