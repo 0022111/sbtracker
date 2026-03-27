@@ -349,6 +349,13 @@ class BleService : Service() {
                     wsServer?.broadcastTelemetry(TelemetryMapper.historyToJson(summaries))
                 }
             }
+
+            // 5. Charge History Stream
+            launch {
+                db.chargeCycleDao().observeAllCycles().collectLatest { charges ->
+                    wsServer?.broadcastTelemetry(TelemetryMapper.chargesToJson(charges))
+                }
+            }
         }
     }
 

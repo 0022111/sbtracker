@@ -32,6 +32,7 @@ const OverviewView = () => {
   const leadRecommendation = intelligence.recommendations[0]
   const hasSessionTrace = currentSessionSeries.length > 1
   const liveAvgHitSec = stats?.hitCount > 0 ? ((stats?.avgHitDurationSec || 0).toFixed(1)) : null
+  const liveHitEnergy = Math.min(1, ((stats?.currentHitDurationSec || 0) / 10))
   const primaryAction = !isConnected
     ? { label: 'Find device', onClick: () => sendCommand('startScan'), className: 'btn-secondary' }
     : isHeating
@@ -152,6 +153,25 @@ const OverviewView = () => {
             <SignalTile icon={<Gauge size={16} />} label="Heat-up ETA" value={formatHeat(stats?.estHeatUpMs)} note={isHeating ? 'Live estimate' : 'Based on history'} />
             <SignalTile icon={<Zap size={16} />} label="Runway" value={intelligence.battery.sessionsRemaining ?? '—'} note={intelligence.battery.confidenceLabel} />
           </div>
+
+          {isHeating && (
+            <div className={`hit-hud ${stats?.isHitActive ? 'active' : ''}`}>
+              <div className="hit-hud-copy">
+                <div className="hit-hud-label">Live hit detector</div>
+                <div className="hit-hud-value">
+                  {stats?.isHitActive ? `${formatHitSeconds(stats?.currentHitDurationSec || 0)} pull in progress` : 'Waiting for next pull'}
+                </div>
+                <div className="hit-hud-note">
+                  {stats?.isHitActive
+                    ? 'Timer reset detected and the pull is still open.'
+                    : sessionHits.length
+                      ? `Last closed hit: ${formatHitSeconds(sessionHits[sessionHits.length - 1].durationSec)} at ${displayTemp(sessionHits[sessionHits.length - 1].peakTemp, isCelsius)}${unit}.`
+                      : 'No completed hits recorded in this session yet.'}
+                </div>
+              </div>
+              <div className="hit-hud-orb" style={{ '--hit-energy': liveHitEnergy }} />
+            </div>
+          )}
         </div>
 
         <div className="panel-stack">

@@ -224,4 +224,26 @@ object TelemetryMapper {
         root.put("data", array)
         return root.toString()
     }
+
+    fun chargesToJson(charges: List<com.sbtracker.data.ChargeCycle>): String {
+        val root = JSONObject()
+        root.put("type", "charges")
+        val array = org.json.JSONArray()
+        charges.forEach { cycle ->
+            val obj = JSONObject()
+            obj.put("id", cycle.id)
+            obj.put("startTimeMs", cycle.startTimeMs)
+            obj.put("endTimeMs", cycle.endTimeMs)
+            obj.put("startBattery", cycle.startBattery)
+            obj.put("endBattery", cycle.endBattery)
+            obj.put("durationMs", cycle.durationMs)
+            obj.put("batteryGained", cycle.batteryGained)
+            obj.put("avgRatePctPerMin", cycle.avgRatePctPerMin)
+            obj.put("chargeVoltageLimit", cycle.chargeVoltageLimit)
+            obj.put("chargeCurrentOptimization", cycle.chargeCurrentOptimization)
+            array.put(obj)
+        }
+        root.put("data", array)
+        return root.toString()
+    }
 }

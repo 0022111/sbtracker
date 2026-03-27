@@ -4,11 +4,15 @@ import { Battery, Clock3, Plug, ShieldCheck, Zap } from 'lucide-react'
 import useStore from '../store/useStore'
 
 const BatteryView = () => {
-  const { telemetry, sendCommand } = useStore()
+  const { telemetry, sendCommand, chargeHistory, sessionHistory } = useStore()
   const { status, stats, batteryInsights, extended } = telemetry
 
   const isCharging = status?.isCharging
   const batteryLevel = status?.batteryLevel || 0
+  const timelineRows = React.useMemo(
+    () => buildChargeTimeline(sessionHistory, chargeHistory).slice(0, 6),
+    [chargeHistory, sessionHistory]
+  )
 
   return (
     <motion.section
@@ -43,34 +47,12 @@ const BatteryView = () => {
               </div>
             </div>
 
-            <div
-              className="glass-panel"
-              style={{
-                width: '86px',
-                height: '150px',
-                padding: '8px',
-                position: 'relative',
-                display: 'flex',
-                alignItems: 'flex-end',
-              }}
-            >
+            <div className="glass-panel battery-gauge-shell">
+              <div className="battery-gauge-cap" />
               <div
+                className="battery-gauge-fill"
                 style={{
-                  position: 'absolute',
-                  top: '-8px',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  width: '28px',
-                  height: '8px',
-                  borderRadius: '4px 4px 0 0',
-                  background: 'rgba(255,255,255,0.16)',
-                }}
-              />
-              <div
-                style={{
-                  width: '100%',
                   height: `${Math.max(8, batteryLevel)}%`,
-                  borderRadius: '14px',
                   background: isCharging
                     ? 'linear-gradient(180deg, rgba(113, 215, 192, 1), rgba(113, 215, 192, 0.44))'
                     : 'linear-gradient(180deg, rgba(125, 217, 146, 1), rgba(125, 217, 146, 0.32))',
@@ -89,7 +71,7 @@ const BatteryView = () => {
 
         <div className="panel-stack">
           {!isCharging && stats?.drainEstimateReliable && stats.sessionsRemainingLow > 0 && stats.sessionsRemainingHigh > 0 && (
-            <div className="glass-card" style={{ padding: '18px' }}>
+            <div className="glass-card panel-card">
               <div className="section-heading" style={{ marginBottom: '10px' }}>Estimate range</div>
               <div style={{ fontSize: '16px', fontWeight: 800 }}>
                 About {stats.sessionsRemainingLow} to {stats.sessionsRemainingHigh} sessions before 15%
@@ -100,7 +82,7 @@ const BatteryView = () => {
             </div>
           )}
 
-          <div className="glass-card" style={{ padding: '18px' }}>
+          <div className="glass-card panel-card">
             <div className="section-heading" style={{ marginBottom: '12px' }}>Care signals</div>
             <InfoRow label="Recent drain" value={batteryInsights?.avgDrainRecent ? `${batteryInsights.avgDrainRecent.toFixed(1)}%` : '—'} />
             <InfoRow label="All-time average" value={batteryInsights?.avgDrainAll ? `${batteryInsights.avgDrainAll.toFixed(1)}%` : '—'} />
@@ -111,8 +93,58 @@ const BatteryView = () => {
         </div>
       </div>
 
+      <div className="glass-card panel-card">
+        <div className="session-trace-head">
+          <div>
+            <div className="section-heading">Charge to Session Timeline</div>
+            <div className="trace-subtitle">
+              See exactly what each charge bought you: where it started, where it ended, how long it took, and how many sessions happened before the next plug-in.
+            </div>
+          </div>
+          <div className="trace-badges">
+            <span className="pill">{chargeHistory.length} charges logged</span>
+            <span className="pill">{sessionHistory.length} sessions tracked</span>
+          </div>
+        </div>
+
+        {timelineRows.length ? (
+          <div className="charge-timeline">
+            {timelineRows.map((row) => (
+              <div key={row.id} className="charge-row">
+                <div className="charge-row-top">
+                  <div>
+                    <div className="charge-row-title">{formatDate(row.startTimeMs)}</div>
+                    <div className="charge-row-copy">
+                      {row.startBattery}% to {row.endBattery}% over {formatChargeMinutes(Math.round(row.durationMs / 60000))}
+                    </div>
+                  </div>
+                  <span className="pill">
+                    {row.sessionCount} {row.sessionCount === 1 ? 'session' : 'sessions'} after
+                  </span>
+                </div>
+
+                <div className="charge-bar-shell">
+                  <div className="charge-bar-range" style={{ left: `${row.startBattery}%`, width: `${Math.max(2, row.endBattery - row.startBattery)}%` }} />
+                </div>
+
+                <div className="charge-row-metrics">
+                  <span className="pill">{row.batteryGained}% gained</span>
+                  <span className="pill">{row.avgRatePctPerMin.toFixed(1)}%/m avg</span>
+                  <span className="pill">{row.totalDrainAfter}% drained before next charge</span>
+                  <span className="pill">{formatSessionPack(row.sessionsAfter)}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="empty-copy">
+            Once the app records a charge cycle, this timeline will show how long it charged and how many sessions that refill actually funded.
+          </div>
+        )}
+      </div>
+
       <div className="split-layout">
-        <div className="glass-card" style={{ padding: '18px' }}>
+        <div className="glass-card panel-card">
           <div className="section-heading" style={{ marginBottom: '12px' }}>Charge history</div>
           <InfoRow label="Average charge time" value={formatChargeMinutes(batteryInsights?.avgChargeTime)} />
           <InfoRow label="Average gained" value={batteryInsights?.avgBatteryGainedPct ? `${batteryInsights.avgBatteryGainedPct.toFixed(0)}%` : '—'} />
@@ -121,7 +153,7 @@ const BatteryView = () => {
           <InfoRow label="Longest run" value={batteryInsights?.longestRunSessions || '—'} />
         </div>
 
-        <div className="glass-card" style={{ padding: '18px' }}>
+        <div className="glass-card panel-card">
           <div className="section-heading" style={{ marginBottom: '12px' }}>Protection settings</div>
           <SettingRow
             label="Charge optimization"
@@ -139,7 +171,7 @@ const BatteryView = () => {
       </div>
 
       {(extended?.heaterRuntimeMinutes || 0) >= 600 && (
-        <div className="glass-card" style={{ padding: '18px', borderColor: 'rgba(231, 164, 91, 0.22)' }}>
+        <div className="glass-card panel-card" style={{ borderColor: 'rgba(231, 164, 91, 0.22)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
             <ShieldCheck size={18} color="var(--accent-orange)" />
             <div className="section-heading" style={{ color: 'var(--accent-orange)' }}>Maintenance</div>
@@ -198,6 +230,40 @@ const SettingRow = ({ label, detail, active, onClick }) => (
     </div>
   </button>
 )
+
+function buildChargeTimeline(sessionHistory, chargeHistory) {
+  const sessionsAsc = [...sessionHistory].sort((a, b) => a.startTimeMs - b.startTimeMs)
+  const chargesDesc = [...chargeHistory].sort((a, b) => b.endTimeMs - a.endTimeMs)
+
+  return chargesDesc.map((charge, index) => {
+    const nextNewerCharge = index > 0 ? chargesDesc[index - 1] : null
+    const sessionsAfter = sessionsAsc.filter((session) =>
+      session.startTimeMs >= charge.endTimeMs &&
+      (!nextNewerCharge || session.startTimeMs < nextNewerCharge.startTimeMs)
+    )
+
+    return {
+      ...charge,
+      sessionsAfter,
+      sessionCount: sessionsAfter.length,
+      totalDrainAfter: sessionsAfter.reduce((sum, session) => sum + (session.batteryConsumed || 0), 0),
+    }
+  })
+}
+
+const formatSessionPack = (sessions) => {
+  if (!sessions.length) return 'No sessions yet'
+  const totalHits = sessions.reduce((sum, session) => sum + (session.hitCount || 0), 0)
+  const totalMinutes = sessions.reduce((sum, session) => sum + ((session.durationMs || 0) / 60000), 0)
+  return `${totalHits} hits across ${totalMinutes.toFixed(0)}m`
+}
+
+const formatDate = (timestampMs) => new Date(timestampMs).toLocaleString([], {
+  month: 'short',
+  day: 'numeric',
+  hour: 'numeric',
+  minute: '2-digit',
+})
 
 const formatChargeMinutes = (minutes) => {
   if (!minutes || minutes <= 0) return '—'

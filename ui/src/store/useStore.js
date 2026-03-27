@@ -35,6 +35,7 @@ const useStore = create((set, get) => ({
   },
   programs: [],
   sessionHistory: [],
+  chargeHistory: [],
   tempHistory: [], // Last 60s for real-time ring
   currentSessionSeries: [], // Full session for Strava-style recap
   sessionHits: [], // Hits in the current session for graph markers
@@ -49,6 +50,10 @@ const useStore = create((set, get) => ({
     }
     if (data.type === 'history') {
       set({ sessionHistory: data.data })
+      return
+    }
+    if (data.type === 'charges') {
+      set({ chargeHistory: data.data })
       return
     }
     
