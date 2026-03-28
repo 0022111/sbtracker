@@ -87,6 +87,14 @@ object TelemetryMapper {
         statsObj.put("sessionsRemainingLow", stats.sessionsRemainingLow)
         statsObj.put("sessionsRemainingHigh", stats.sessionsRemainingHigh)
         statsObj.put("chargeRatePctPerMin", stats.chargeRatePctPerMin)
+        // Live session battery fields
+        statsObj.put("batteryDrain", stats.batteryDrain)
+        statsObj.put("startingBattery", stats.startingBattery)
+        statsObj.put("drainRatePctPerMin", stats.drainRatePctPerMin)
+        // Live session temperature fields
+        statsObj.put("avgTempC", stats.avgTempC)
+        statsObj.put("peakTempC", stats.peakTempC)
+        statsObj.put("heatUpTimeSecs", stats.heatUpTimeSecs)
         root.put("stats", statsObj)
 
         batteryInsights?.let { bi ->

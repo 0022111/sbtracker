@@ -369,7 +369,8 @@ class BleService : Service() {
         )
         return NotificationCompat.Builder(this, NotificationChannels.STATUS)
             .setContentTitle(statusText).setContentText(contentText)
-            .setSmallIcon(R.mipmap.ic_launcher).setContentIntent(pendingIntent)
+            .setSmallIcon(R.drawable.ic_notif)
+            .setContentIntent(pendingIntent)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .apply { actions.forEach { addAction(it) } }.build()
@@ -390,6 +391,10 @@ class BleService : Service() {
         return PendingIntent.getBroadcast(this, reqCode, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
     }
 
+    // Dedup key: only call manager.notify when visible content changes.
+    // The elapsed timer changes every second otherwise, causing a notify storm.
+    private var lastNotifKey: String = ""
+
     private fun updateNotification(status: com.sbtracker.data.DeviceStatus?, state: BleManager.ConnectionState, stats: SessionTracker.SessionStats) {
         val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         var notifActions: List<NotificationCompat.Action> = emptyList()
@@ -401,18 +406,26 @@ class BleService : Service() {
                         NotificationCompat.Action(0, "▼ Temp", buildActionIntent(NotificationActionReceiver.ACTION_TEMP_DOWN, status.targetTempC, status.heaterMode)),
                         NotificationCompat.Action(0, "Stop", buildActionIntent(NotificationActionReceiver.ACTION_HEATER_OFF))
                     )
-                    val elapsed = "${stats.durationSeconds / 60}m ${stats.durationSeconds % 60}s"
-                    "Session Active — ${status.currentTempC}°C" to "Battery: ${status.batteryLevel}% • $elapsed"
+                    // Round elapsed to nearest 30s so notify() cadence is max 2/min during session
+                    val elapsedRounded = (stats.durationSeconds / 30) * 30
+                    val drain = if (stats.batteryDrain > 0) " • −${stats.batteryDrain}%" else ""
+                    "Session — ${status.currentTempC}°C" to "${status.batteryLevel}% batt$drain • ${elapsedRounded / 60}m"
                 } else if (status.isCharging) {
-                    "Charging" to "Battery: ${status.batteryLevel}% • ETA ~${stats.chargeEtaMinutes}m"
+                    val eta = stats.chargeEtaMinutes?.let { " • ~${it}m" } ?: ""
+                    "Charging" to "${status.batteryLevel}%$eta"
                 } else {
                     notifActions = listOf(NotificationCompat.Action(0, "Ignite", buildActionIntent(NotificationActionReceiver.ACTION_HEATER_ON, status.targetTempC)))
-                    "Device Online" to "Battery: ${status.batteryLevel}% • Idle"
+                    "Ready" to "${status.batteryLevel}% • ${status.targetTempC}°C set"
                 }
             }
-            state is BleManager.ConnectionState.Reconnecting -> "Reconnecting..." to "Waiting for device"
+            state is BleManager.ConnectionState.Reconnecting -> "Reconnecting…" to "Waiting for device"
             else -> "Disconnected" to "Tap to reconnect"
         }
+
+        // Only rebuild and post notification if something the user can see has changed
+        val key = "$title|$content|${notifActions.size}"
+        if (key == lastNotifKey) return
+        lastNotifKey = key
         manager.notify(notificationId, createNotification(title, content, notifActions))
     }
 
