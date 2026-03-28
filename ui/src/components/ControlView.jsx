@@ -15,10 +15,10 @@ export default function ControlView() {
 
   const { status, stats, connectionState } = telemetry
   const isConnected = connectionState === 'Connected'
-  const isHeating   = (status?.heaterMode ?? 0) > 0
-  const isCharging  = status?.isCharging ?? false
-  const isCelsius   = status?.isCelsius ?? true
-  const limits      = telemetry.deviceLimits || { min: 40, max: 210 }
+  const isHeating = (status?.heaterMode ?? 0) > 0
+  const isCharging = status?.isCharging ?? false
+  const isCelsius = status?.isCelsius ?? true
+  const limits = telemetry.deviceLimits || { min: 40, max: 210 }
   const isHitActive = stats?.isHitActive ?? false
 
   // Trace sheet
@@ -30,10 +30,10 @@ export default function ControlView() {
   useEffect(() => {
     if (prevHeating.current && !isHeating && currentSessionSeries.length > 2) {
       setLastSession({
-        durationMs:  (currentSessionSeries.at(-1)?.t ?? 0) - (currentSessionSeries[0]?.t ?? 0),
-        hitCount:    stats?.hitCount ?? 0,
-        avgTempC:    status?.targetTempC,
-        peakTempC:   status?.targetTempC,
+        durationMs: (currentSessionSeries.at(-1)?.t ?? 0) - (currentSessionSeries[0]?.t ?? 0),
+        hitCount: stats?.hitCount ?? 0,
+        avgTempC: status?.targetTempC,
+        peakTempC: status?.targetTempC,
       })
       setLastHits([...sessionHits])
       setShowTrace(true)
@@ -109,24 +109,24 @@ export default function ControlView() {
 ──────────────────────────────────────────── */
 function TempDisplay({ isConnected, isHeating, isHitActive, isCharging, status, stats, isCelsius, limits, onSetTemp, sendCommand }) {
   const currentC = status?.currentTempC ?? null
-  const targetC  = status?.targetTempC  ?? 185
+  const targetC = status?.targetTempC ?? 185
 
   const toDisplay = (c) => isCelsius ? Math.round(c) : Math.round(c * 1.8 + 32)
-  const unit      = isCelsius ? '°C' : '°F'
+  const unit = isCelsius ? '°C' : '°F'
 
   const size = 220
-  const r    = 88
-  const cx   = size / 2
-  const cy   = size / 2
+  const r = 88
+  const cx = size / 2
+  const cy = size / 2
   const circ = 2 * Math.PI * r
-  const pct  = (v) => Math.min(1, Math.max(0, (v - limits.min) / (limits.max - limits.min)))
+  const pct = (v) => Math.min(1, Math.max(0, (v - limits.min) / (limits.max - limits.min)))
 
   const currentPct = currentC !== null ? pct(currentC) : 0
-  const targetPct  = pct(targetC)
+  const targetPct = pct(targetC)
 
   // Arc dash calculations (start from top = -90deg offset)
   const currentDash = circ * currentPct
-  const targetDash  = circ * targetPct
+  const targetDash = circ * targetPct
 
   const ringColor = isHitActive
     ? 'var(--hit)'
@@ -224,7 +224,7 @@ function TempDisplay({ isConnected, isHeating, isHitActive, isCharging, status, 
 /* StepButton — tap for single step, hold for repeat */
 function StepButton({ label, onPress }) {
   const intervalRef = useRef(null)
-  const timeoutRef  = useRef(null)
+  const timeoutRef = useRef(null)
 
   const start = () => {
     onPress()
@@ -263,18 +263,18 @@ function StepButton({ label, onPress }) {
 /* ── State panels ── */
 
 function HeatingState({ status, stats, isCelsius, sessionHits, sendCommand, onStop }) {
-  const boostC   = status?.boostOffsetC      ?? 0
-  const sbC      = status?.superBoostOffsetC ?? 0
-  const isBoost  = status?.heaterMode === 2
+  const boostC = status?.boostOffsetC ?? 0
+  const sbC = status?.superBoostOffsetC ?? 0
+  const isBoost = status?.heaterMode === 2
   const isSuperB = status?.heaterMode === 3
-  const isHit    = stats?.isHitActive ?? false
-  const elapsed  = formatSec(stats?.durationSeconds ?? 0)
-  const unit     = isCelsius ? '°C' : '°F'
-  const toDisp   = (c) => isCelsius ? c : Math.round(c * 1.8 + 32)
+  const isHit = stats?.isHitActive ?? false
+  const elapsed = formatSec(stats?.durationSeconds ?? 0)
+  const unit = isCelsius ? '°C' : '°F'
+  const toDisp = (c) => isCelsius ? c : Math.round(c * 1.8 + 32)
 
-  const drain      = stats?.batteryDrain     ?? 0
-  const startBat   = stats?.startingBattery  ?? 0
-  const drainRate  = stats?.drainRatePctPerMin ?? 0
+  const drain = stats?.batteryDrain ?? 0
+  const startBat = stats?.startingBattery ?? 0
+  const drainRate = stats?.drainRatePctPerMin ?? 0
 
   return (
     <>
@@ -368,9 +368,9 @@ function HeatingState({ status, stats, isCelsius, sessionHits, sendCommand, onSt
 }
 
 function IdleState({ status, limits, isCelsius, sendCommand, onStart }) {
-  const boost = status?.boostOffsetC      ?? 0
-  const sbC   = status?.superBoostOffsetC ?? 0
-  const unit  = isCelsius ? '°C' : '°F'
+  const boost = status?.boostOffsetC ?? 0
+  const sbC = status?.superBoostOffsetC ?? 0
+  const unit = isCelsius ? '°C' : '°F'
 
   return (
     <>
@@ -392,8 +392,8 @@ function IdleState({ status, limits, isCelsius, sendCommand, onStart }) {
 }
 
 function ChargingState({ status, stats }) {
-  const pct  = status?.batteryLevel ?? 0
-  const eta  = stats?.chargeEtaMinutes
+  const pct = status?.batteryLevel ?? 0
+  const eta = stats?.chargeEtaMinutes
   const eta80 = stats?.chargeEta80Minutes
   const rate = stats?.chargeRatePctPerMin
 
@@ -482,7 +482,7 @@ function StatCell({ label, value, color }) {
 
 function StatusIndicator({ state, deviceType }) {
   const isConnected = state === 'Connected'
-  const isBusy      = ['Connecting', 'Scanning', 'Reconnecting'].includes(state)
+  const isBusy = ['Connecting', 'Scanning', 'Reconnecting'].includes(state)
   const color = isConnected ? 'var(--success)' : isBusy ? 'var(--ember)' : 'var(--text-muted)'
   const label = isConnected ? (deviceType || 'Connected') : isBusy ? state : 'Offline'
   return (
@@ -495,7 +495,7 @@ function StatusIndicator({ state, deviceType }) {
 
 function BatteryChip({ level, charging, eta }) {
   if (level == null) return null
-  const low   = level < 20
+  const low = level < 20
   const color = charging ? 'var(--teal)' : low ? 'var(--danger)' : 'var(--text-dim)'
   return (
     <div className="status-pill">

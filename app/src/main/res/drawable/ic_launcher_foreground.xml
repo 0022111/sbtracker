@@ -1,0 +1,31 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108"
+    android:tint="#E8734A">
+  <!--
+    Premium Ember Flame Adaptive Foreground.
+    The flame is scaled (3.0x) and centered within the 108dp adaptive safe zone.
+    Color: #E8734A (var--ember)
+  -->
+  <group
+      android:translateX="18"
+      android:translateY="18"
+      android:scaleX="3.0"
+      android:scaleY="3.0">
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="
+          M12,2
+          C12,2 7,7.5 7,12.5
+          C7,15.5 9,17 9,17
+          C9,14 11,12 11,12
+          C11,12 12,16 12,18
+          C12,20 10.5,21.5 10.5,21.5
+          C10.5,21.5 17,21 17,16
+          C17,13 15,11 15,11
+          C15,11 16,13.5 14,15
+          C14,15 15,10 12,2Z" />
+  </group>
+</vector>
