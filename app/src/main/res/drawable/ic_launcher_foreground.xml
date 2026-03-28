@@ -7,7 +7,7 @@
   <!--
     Premium Ember Flame Adaptive Foreground.
     The flame is scaled (3.0x) and centered within the 108dp adaptive safe zone.
-    Color: #E8734A (var--ember)
+    Color: #E8734A (var-ember)
   -->
   <group
       android:translateX="18"
