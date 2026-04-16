@@ -80,18 +80,22 @@ fun NowScreen(vm: AppViewModel, modifier: Modifier = Modifier) {
 
 @Composable
 private fun ConnectionStrip(state: BleManager.State, onScan: () -> Unit, onDisconnect: () -> Unit) {
-    val (label, connected) = when (state) {
-        BleManager.State.Disconnected  -> "Not connected" to false
-        BleManager.State.Scanning      -> "Scanning…"      to false
-        BleManager.State.Connecting    -> "Connecting…"    to false
-        is BleManager.State.Connected  -> (state.name ?: state.address) to true
+    val label = when (state) {
+        BleManager.State.Disconnected  -> "Not connected"
+        BleManager.State.Scanning      -> "Scanning…"
+        BleManager.State.Connecting    -> "Connecting…"
+        is BleManager.State.Connected  -> state.name ?: state.address
     }
     Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(Icons.Filled.BluetoothSearching, null, tint = MaterialTheme.colorScheme.primary)
         Spacer(Modifier.width(8.dp))
         Text(label, modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
-        if (connected) OutlinedButton(onClick = onDisconnect) { Text("Disconnect") }
-        else           Button(onClick = onScan)              { Text("Connect") }
+        when (state) {
+            is BleManager.State.Connected  -> OutlinedButton(onClick = onDisconnect) { Text("Disconnect") }
+            BleManager.State.Scanning,
+            BleManager.State.Connecting    -> OutlinedButton(onClick = onDisconnect) { Text("Cancel") }
+            BleManager.State.Disconnected  -> Button(onClick = onScan) { Text("Connect") }
+        }
     }
 }
 

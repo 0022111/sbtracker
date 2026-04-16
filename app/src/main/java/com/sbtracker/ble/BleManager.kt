@@ -14,10 +14,16 @@ import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.content.Context
 import android.util.Log
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 /**
  * Thin wrapper over [BluetoothGatt]. Exposes a hot flow of connection state
@@ -46,20 +52,49 @@ class BleManager(private val context: Context) {
     private var gatt: BluetoothGatt? = null
     private var char: BluetoothGattCharacteristic? = null
     private val writeQueue = WriteQueue()
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private var timeoutJob: Job? = null
 
     fun startScan() {
-        val scanner = adapter?.bluetoothLeScanner ?: return
+        val adapter = adapter ?: run { Log.w(TAG, "no bluetooth adapter"); return }
+        if (!adapter.isEnabled) { Log.w(TAG, "bluetooth adapter disabled"); return }
+
+        // Bonded-device shortcut: if the user has paired an S&B device before,
+        // connect straight to it. The official app does this and it avoids a
+        // full scan cycle when the device happens to be off / not advertising.
+        adapter.bondedDevices?.firstOrNull { d -> d.name?.let(::looksLikeStorzBickel) == true }
+            ?.let {
+                Log.i(TAG, "bonded device found: ${it.name} (${it.address})")
+                _state.value = State.Scanning
+                connect(it)
+                return
+            }
+
+        val scanner = adapter.bluetoothLeScanner ?: run { Log.w(TAG, "no BLE scanner"); return }
         _state.value = State.Scanning
+
         // No ScanFilter: S&B devices don't always include their 128-bit service
-        // UUID in the 31-byte advertisement payload. We match by device name in
-        // onScanResult instead and confirm the service after GATT connect.
+        // UUID in the 31-byte advertisement payload. We match on the scan record
+        // in onScanResult (name OR service UUID) and confirm via GATT connect.
         val settings = ScanSettings.Builder()
             .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+            .setMatchMode(ScanSettings.MATCH_MODE_AGGRESSIVE)
             .build()
         scanner.startScan(null, settings, scanCallback)
+        Log.i(TAG, "scan started")
+
+        timeoutJob?.cancel()
+        timeoutJob = scope.launch {
+            delay(SCAN_TIMEOUT_MS)
+            if (_state.value is State.Scanning) {
+                Log.w(TAG, "scan timeout — no S&B device found in ${SCAN_TIMEOUT_MS / 1000}s")
+                stopScan()
+            }
+        }
     }
 
     fun stopScan() {
+        timeoutJob?.cancel()
         adapter?.bluetoothLeScanner?.stopScan(scanCallback)
         if (_state.value is State.Scanning) _state.value = State.Disconnected
     }
@@ -71,6 +106,8 @@ class BleManager(private val context: Context) {
     }
 
     fun disconnect() {
+        timeoutJob?.cancel()
+        adapter?.bluetoothLeScanner?.stopScan(scanCallback)
         gatt?.disconnect()
         gatt?.close()
         gatt = null
@@ -90,15 +127,25 @@ class BleManager(private val context: Context) {
             // First match wins. Ignore subsequent results that were queued before
             // stopScan() unregistered us.
             if (_state.value !is State.Scanning) return
-            val device = result.device ?: return
-            val name   = device.name ?: result.scanRecord?.deviceName ?: return
-            if (!looksLikeStorzBickel(name)) return
-            Log.i(TAG, "scan match: $name (${device.address})")
+            val device  = result.device ?: return
+            val name    = device.name ?: result.scanRecord?.deviceName
+            val uuids   = result.scanRecord?.serviceUuids.orEmpty()
+            val hasSbUuid = uuids.any { it.uuid == Protocol.SERVICE_UUID }
+            val nameMatch = name?.let(::looksLikeStorzBickel) == true
+            // Log everything we see — this is the scan-diagnosis channel.
+            Log.d(TAG, "scan: name=$name addr=${device.address} uuids=$uuids rssi=${result.rssi}")
+            if (!hasSbUuid && !nameMatch) return
+            Log.i(TAG, "scan match: $name (${device.address}) via ${if (hasSbUuid) "uuid" else "name"}")
             connect(device)
+        }
+
+        override fun onBatchScanResults(results: MutableList<ScanResult>?) {
+            results?.forEach { onScanResult(ScanSettings.CALLBACK_TYPE_ALL_MATCHES, it) }
         }
 
         override fun onScanFailed(errorCode: Int) {
             Log.w(TAG, "scan failed: $errorCode")
+            timeoutJob?.cancel()
             _state.value = State.Disconnected
         }
     }
@@ -106,11 +153,13 @@ class BleManager(private val context: Context) {
     private fun looksLikeStorzBickel(name: String): Boolean {
         val n = name.uppercase()
         return "STORZ"   in n ||
+               "BICKEL"  in n ||
                "VENTY"   in n ||
                "VEAZY"   in n ||
                "CRAFTY"  in n ||
                "MIGHTY"  in n ||
-               "VOLCANO" in n
+               "VOLCANO" in n ||
+               "S&B"     in n
     }
 
     private val gattCallback = object : BluetoothGattCallback() {
@@ -163,5 +212,8 @@ class BleManager(private val context: Context) {
         }
     }
 
-    companion object { private const val TAG = "BleManager" }
+    companion object {
+        private const val TAG = "BleManager"
+        private const val SCAN_TIMEOUT_MS: Long = 20_000L
+    }
 }
