@@ -10,6 +10,7 @@ import android.os.Binder
 import android.os.Build
 import android.os.IBinder
 import com.sbtracker.R
+import com.sbtracker.core.Sessions
 import com.sbtracker.data.Db
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -87,6 +88,8 @@ class BleService : Service() {
                     if (nowOn != heaterOn) {
                         heaterOn = nowOn
                         restartPolling()
+                        // Heater just turned off → re-derive sessions from the recent log.
+                        if (!nowOn) persistNewSessions(address)
                     }
                 }
                 Protocol.CMD_EXTENDED -> {
@@ -128,6 +131,18 @@ class BleService : Service() {
         }
     }
 
+    /**
+     * Re-derive sessions from the recent log and insert any that aren't yet
+     * persisted. Dedupe on start time via [com.sbtracker.data.SessionDao.findNear].
+     */
+    private suspend fun persistNewSessions(address: String) {
+        val since  = System.currentTimeMillis() - SESSION_LOOKBACK_MS
+        val window = db.status().getRange(address, since, System.currentTimeMillis())
+        for (s in Sessions.derive(window)) {
+            if (db.sessions().findNear(address, s.startTimeMs) == null) db.sessions().insert(s)
+        }
+    }
+
     // ── Foreground notification ─────────────────────────────────────────────
 
     private fun ensureChannel() {
@@ -158,5 +173,6 @@ class BleService : Service() {
         private const val NOTIFICATION_ID = 1
         private const val FAST_POLL_MS: Long = 500L
         private const val SLOW_POLL_MS: Long = 30_000L
+        private const val SESSION_LOOKBACK_MS: Long = 6L * 60 * 60 * 1000
     }
 }

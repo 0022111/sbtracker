@@ -15,13 +15,13 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
 import com.sbtracker.ble.BleService
-import com.sbtracker.ui.HomeScreen
-import com.sbtracker.ui.HomeViewModel
+import com.sbtracker.ui.AppViewModel
+import com.sbtracker.ui.SBTrackerApp
 import com.sbtracker.ui.SBTrackerTheme
 
 class MainActivity : ComponentActivity() {
 
-    private val vm: HomeViewModel by viewModels()
+    private val vm: AppViewModel by viewModels()
 
     private val permRequest = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -42,7 +42,7 @@ class MainActivity : ComponentActivity() {
         bindService(intent, connection, Context.BIND_AUTO_CREATE)
 
         setContent {
-            SBTrackerTheme { HomeScreen(vm) }
+            SBTrackerTheme { SBTrackerApp(vm) }
         }
     }
 

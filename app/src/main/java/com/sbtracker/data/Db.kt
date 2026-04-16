@@ -92,6 +92,10 @@ interface DeviceStatusDao {
     @Query("SELECT * FROM device_status WHERE deviceAddress = :address ORDER BY timestampMs DESC LIMIT 1")
     fun observeLatest(address: String): Flow<DeviceStatus?>
 
+    /** Reactive window over the log — any insert re-emits. Keep windows bounded. */
+    @Query("SELECT * FROM device_status WHERE deviceAddress = :address AND timestampMs >= :since ORDER BY timestampMs ASC")
+    fun observeSince(address: String, since: Long): Flow<List<DeviceStatus>>
+
     @Query("SELECT DISTINCT deviceAddress FROM device_status")
     suspend fun getAllAddresses(): List<String>
 
