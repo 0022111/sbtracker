@@ -1,40 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-    <style name="Theme.SBTracker" parent="Theme.Material3.Dark.NoActionBar">
-        <!-- Main Cyber Green Accent -->
-        <item name="colorPrimary">#00FF41</item>
-        <item name="colorOnPrimary">#000000</item>
-        <item name="colorPrimaryContainer">#004411</item>
-        <item name="colorOnPrimaryContainer">#88FFAA</item>
-
-        <!-- Secondary color (slightly deeper green) -->
-        <item name="colorSecondary">#00D035</item>
-        <item name="colorOnSecondary">#000000</item>
-
-        <!-- Pure black background -->
-        <item name="android:windowBackground">#000000</item>
-        <item name="colorSurface">#0B110D</item> <!-- Very dark cyber green-tinted charcoal -->
-        <item name="colorOnSurface">#EAEFEA</item>
-        <item name="colorSurfaceVariant">#141E17</item> <!-- Slightly lighter for cards -->
-        <item name="colorOnSurfaceVariant">#80A88F</item> <!-- Greenish muted text -->
-
-        <item name="android:statusBarColor">#000000</item>
-        <item name="android:navigationBarColor">#000000</item>
+    <!-- Compose-only app: any NoActionBar base is fine. Using the platform
+         theme avoids pulling in appcompat or the material component library;
+         Compose supplies all real styling via SBTrackerTheme. -->
+    <style name="Theme.SBTracker" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@android:color/black</item>
+        <item name="android:statusBarColor">@android:color/black</item>
+        <item name="android:navigationBarColor">@android:color/black</item>
     </style>
-
-    <style name="Theme.SBTracker.NoActionBar" parent="Theme.SBTracker" />
-
-    <!-- Section headers for settings/report -->
-    <style name="SectionHeader">
-        <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
-        <item name="android:textSize">12sp</item>
-        <item name="android:textAllCaps">true</item>
-        <item name="android:letterSpacing">0.08</item>
-        <item name="android:paddingBottom">8dp</item>
-        <item name="android:fontFamily">sans-serif-medium</item>
-    </style>
-
 </resources>
