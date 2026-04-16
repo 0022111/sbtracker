@@ -10,11 +10,9 @@ import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothProfile
 import android.bluetooth.le.ScanCallback
-import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.content.Context
-import android.os.ParcelUuid
 import android.util.Log
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -52,13 +50,13 @@ class BleManager(private val context: Context) {
     fun startScan() {
         val scanner = adapter?.bluetoothLeScanner ?: return
         _state.value = State.Scanning
-        val filter = ScanFilter.Builder()
-            .setServiceUuid(ParcelUuid(Protocol.SERVICE_UUID))
-            .build()
+        // No ScanFilter: S&B devices don't always include their 128-bit service
+        // UUID in the 31-byte advertisement payload. We match by device name in
+        // onScanResult instead and confirm the service after GATT connect.
         val settings = ScanSettings.Builder()
             .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
             .build()
-        scanner.startScan(listOf(filter), settings, scanCallback)
+        scanner.startScan(null, settings, scanCallback)
     }
 
     fun stopScan() {
@@ -93,8 +91,26 @@ class BleManager(private val context: Context) {
             // stopScan() unregistered us.
             if (_state.value !is State.Scanning) return
             val device = result.device ?: return
+            val name   = device.name ?: result.scanRecord?.deviceName ?: return
+            if (!looksLikeStorzBickel(name)) return
+            Log.i(TAG, "scan match: $name (${device.address})")
             connect(device)
         }
+
+        override fun onScanFailed(errorCode: Int) {
+            Log.w(TAG, "scan failed: $errorCode")
+            _state.value = State.Disconnected
+        }
+    }
+
+    private fun looksLikeStorzBickel(name: String): Boolean {
+        val n = name.uppercase()
+        return "STORZ"   in n ||
+               "VENTY"   in n ||
+               "VEAZY"   in n ||
+               "CRAFTY"  in n ||
+               "MIGHTY"  in n ||
+               "VOLCANO" in n
     }
 
     private val gattCallback = object : BluetoothGattCallback() {
