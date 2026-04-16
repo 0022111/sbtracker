@@ -101,6 +101,10 @@ class BleManager(private val context: Context) {
 
     fun connect(device: BluetoothDevice) {
         stopScan()
+        // Close any stale handle before opening a new one. Without this, every
+        // failed attempt leaks a conn ID in the BT stack and eventually the
+        // whole GATT client falls over ("Ignore unknown conn ID …").
+        closeGatt()
         _state.value = State.Connecting
         gatt = device.connectGatt(context, false, gattCallback, BluetoothDevice.TRANSPORT_LE)
     }
@@ -109,11 +113,15 @@ class BleManager(private val context: Context) {
         timeoutJob?.cancel()
         adapter?.bluetoothLeScanner?.stopScan(scanCallback)
         gatt?.disconnect()
+        closeGatt()
+        _state.value = State.Disconnected
+    }
+
+    private fun closeGatt() {
         gatt?.close()
         gatt = null
         char = null
         writeQueue.clear()
-        _state.value = State.Disconnected
     }
 
     fun write(bytes: ByteArray) {
@@ -164,34 +172,59 @@ class BleManager(private val context: Context) {
 
     private val gattCallback = object : BluetoothGattCallback() {
         override fun onConnectionStateChange(g: BluetoothGatt, status: Int, newState: Int) {
+            Log.i(TAG, "conn state: status=$status newState=$newState addr=${g.device.address}")
             when (newState) {
-                BluetoothProfile.STATE_CONNECTED -> g.discoverServices()
+                BluetoothProfile.STATE_CONNECTED -> {
+                    if (status != BluetoothGatt.GATT_SUCCESS) {
+                        Log.w(TAG, "connected with error status $status — closing")
+                        closeGatt()
+                        _state.value = State.Disconnected
+                        return
+                    }
+                    // Give the stack a beat before discovering services — some
+                    // chipsets need a moment, otherwise discoverServices returns
+                    // stale / partial results. Keep the callback snappy, delay
+                    // on a background coroutine.
+                    scope.launch {
+                        delay(600)
+                        gatt?.discoverServices()
+                    }
+                }
                 BluetoothProfile.STATE_DISCONNECTED -> {
-                    g.close()
-                    gatt = null
-                    char = null
-                    writeQueue.clear()
+                    closeGatt()
                     _state.value = State.Disconnected
                 }
             }
         }
 
         override fun onServicesDiscovered(g: BluetoothGatt, status: Int) {
+            if (status != BluetoothGatt.GATT_SUCCESS) {
+                Log.w(TAG, "service discovery failed: $status")
+                disconnect()
+                return
+            }
             val svc = g.getService(Protocol.SERVICE_UUID)
             val c   = svc?.getCharacteristic(Protocol.CHARACTERISTIC_UUID)
             if (c == null) {
-                Log.w(TAG, "primary service not found on ${g.device.address}")
+                Log.w(TAG, "primary S&B service not found on ${g.device.address}")
                 disconnect()
                 return
             }
             char = c
             g.setCharacteristicNotification(c, true)
-            c.getDescriptor(Protocol.CCCD_UUID)?.let { d ->
-                d.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
-                g.writeDescriptor(d)
+            val cccd = c.getDescriptor(Protocol.CCCD_UUID)
+            if (cccd == null) {
+                Log.w(TAG, "CCCD missing — promoting without notifications")
+                promoteToConnected(g)
+                return
             }
-            _state.value = State.Connected(g.device.address, g.device.name)
-            writeQueue.bind(g)
+            cccd.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+            val ok = g.writeDescriptor(cccd)
+            if (!ok) {
+                Log.w(TAG, "writeDescriptor enqueue rejected — promoting anyway")
+                promoteToConnected(g)
+            }
+            // Otherwise wait for onDescriptorWrite to promote us.
         }
 
         override fun onCharacteristicChanged(g: BluetoothGatt, c: BluetoothGattCharacteristic) {
@@ -208,8 +241,21 @@ class BleManager(private val context: Context) {
         }
 
         override fun onDescriptorWrite(g: BluetoothGatt, d: BluetoothGattDescriptor, status: Int) {
+            if (d.uuid == Protocol.CCCD_UUID && _state.value is State.Connecting) {
+                if (status != BluetoothGatt.GATT_SUCCESS) {
+                    Log.w(TAG, "CCCD write failed: $status — promoting anyway, polling will cover")
+                }
+                promoteToConnected(g)
+                return
+            }
             writeQueue.next()
         }
+    }
+
+    /** Flip to Connected and hand the GATT to the write queue — single entry point. */
+    private fun promoteToConnected(g: BluetoothGatt) {
+        _state.value = State.Connected(g.device.address, g.device.name)
+        writeQueue.bind(g)
     }
 
     companion object {
